@@ -1,0 +1,171 @@
+package handler
+
+import (
+	"encoding/json"
+	"net/http"
+	"regexp"
+	"strings"
+
+	"github.com/creatrid/creatrid/internal/middleware"
+	"github.com/creatrid/creatrid/internal/store"
+	"github.com/go-chi/chi/v5"
+)
+
+var (
+	usernameRegex    = regexp.MustCompile(`^[a-zA-Z0-9_-]{3,30}$`)
+	reservedUsernames = map[string]bool{
+		"admin": true, "api": true, "auth": true, "dashboard": true,
+		"settings": true, "connections": true, "onboarding": true,
+		"sign-in": true, "sign-out": true, "about": true, "help": true,
+		"support": true, "terms": true, "privacy": true, "blog": true,
+		"profile": true,
+	}
+)
+
+type UserHandler struct {
+	store *store.Store
+}
+
+func NewUserHandler(store *store.Store) *UserHandler {
+	return &UserHandler{store: store}
+}
+
+type onboardRequest struct {
+	Username string `json:"username"`
+	Name     string `json:"name"`
+}
+
+func (h *UserHandler) Onboard(w http.ResponseWriter, r *http.Request) {
+	user := middleware.UserFromContext(r.Context())
+	if user == nil {
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "Not authenticated"})
+		return
+	}
+
+	var req onboardRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+		return
+	}
+
+	username := strings.ToLower(strings.TrimSpace(req.Username))
+	name := strings.TrimSpace(req.Name)
+
+	if name == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Name is required"})
+		return
+	}
+
+	if err := validateUsername(username); err != "" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": err})
+		return
+	}
+
+	// Check uniqueness
+	existing, dbErr := h.store.FindUserByUsername(r.Context(), username)
+	if dbErr != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Database error"})
+		return
+	}
+	if existing != nil && existing.ID != user.ID {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "This username is already taken"})
+		return
+	}
+
+	if err := h.store.UpdateUserOnboarding(r.Context(), user.ID, username, name); err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Failed to update profile"})
+		return
+	}
+
+	recalcScore(r.Context(), h.store, user.ID)
+	writeJSON(w, http.StatusOK, map[string]bool{"success": true})
+}
+
+type updateProfileRequest struct {
+	Name     *string `json:"name"`
+	Bio      *string `json:"bio"`
+	Username *string `json:"username"`
+}
+
+func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
+	user := middleware.UserFromContext(r.Context())
+	if user == nil {
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "Not authenticated"})
+		return
+	}
+
+	var req updateProfileRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+		return
+	}
+
+	// Trim values
+	if req.Name != nil {
+		trimmed := strings.TrimSpace(*req.Name)
+		req.Name = &trimmed
+	}
+	if req.Bio != nil {
+		trimmed := strings.TrimSpace(*req.Bio)
+		req.Bio = &trimmed
+	}
+
+	// Validate username if provided
+	if req.Username != nil {
+		username := strings.ToLower(strings.TrimSpace(*req.Username))
+		req.Username = &username
+
+		if err := validateUsername(username); err != "" {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": err})
+			return
+		}
+
+		existing, dbErr := h.store.FindUserByUsername(r.Context(), username)
+		if dbErr != nil {
+			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Database error"})
+			return
+		}
+		if existing != nil && existing.ID != user.ID {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "This username is already taken"})
+			return
+		}
+	}
+
+	if err := h.store.UpdateUserProfile(r.Context(), user.ID, req.Name, req.Bio, req.Username); err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Failed to update profile"})
+		return
+	}
+
+	recalcScore(r.Context(), h.store, user.ID)
+	writeJSON(w, http.StatusOK, map[string]bool{"success": true})
+}
+
+func (h *UserHandler) PublicProfile(w http.ResponseWriter, r *http.Request) {
+	username := chi.URLParam(r, "username")
+	if username == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Username is required"})
+		return
+	}
+
+	user, err := h.store.FindUserByUsername(r.Context(), strings.ToLower(username))
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Database error"})
+		return
+	}
+	if user == nil {
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": "User not found"})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]interface{}{"user": user.ToPublic()})
+}
+
+func validateUsername(username string) string {
+	if !usernameRegex.MatchString(username) {
+		return "Username must be 3-30 characters (letters, numbers, hyphens, underscores)"
+	}
+	if reservedUsernames[username] {
+		return "This username is reserved"
+	}
+	return ""
+}

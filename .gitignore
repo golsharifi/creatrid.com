@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Next.js
+frontend/.next/
+frontend/out/
+
+# Go
+backend/server
+backend/tmp/
+
+# Env files
+.env*
+!.env.example
+!deploy/.env.production
+
+# OS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+
+# Debug
+*.log
+
+# TypeScript
+*.tsbuildinfo
+frontend/next-env.d.ts
