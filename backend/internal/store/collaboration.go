@@ -126,7 +126,7 @@ type DiscoverUser struct {
 	Connections  int     `json:"connections"`
 }
 
-func (s *Store) DiscoverCreators(ctx context.Context, minScore int, platform string, limit, offset int) ([]DiscoverUser, int, error) {
+func (s *Store) DiscoverCreators(ctx context.Context, minScore int, platform, search string, limit, offset int) ([]DiscoverUser, int, error) {
 	// Build dynamic query based on filters
 	baseWhere := `WHERE u.onboarded = true AND u.role = 'CREATOR'`
 	args := []interface{}{}
@@ -141,6 +141,12 @@ func (s *Store) DiscoverCreators(ctx context.Context, minScore int, platform str
 	if platform != "" {
 		baseWhere += ` AND EXISTS (SELECT 1 FROM connections c WHERE c.user_id = u.id AND c.platform = $` + itoa(argIdx) + `)`
 		args = append(args, platform)
+		argIdx++
+	}
+
+	if search != "" {
+		baseWhere += ` AND (u.name ILIKE '%' || $` + itoa(argIdx) + ` || '%' OR u.username ILIKE '%' || $` + itoa(argIdx) + ` || '%' OR u.bio ILIKE '%' || $` + itoa(argIdx) + ` || '%')`
+		args = append(args, search)
 		argIdx++
 	}
 

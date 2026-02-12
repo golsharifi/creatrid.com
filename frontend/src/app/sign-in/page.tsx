@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { api } from "@/lib/api";
 import { Shield } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function SignInPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!loading && user) {
@@ -23,9 +25,9 @@ export default function SignInPage() {
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
             <Shield className="h-6 w-6" />
           </div>
-          <h1 className="text-2xl font-bold">Sign in to Creatrid</h1>
+          <h1 className="text-2xl font-bold">{t("signIn.title")}</h1>
           <p className="mt-2 text-sm text-zinc-500">
-            Get your verified creator identity
+            {t("signIn.subtitle")}
           </p>
         </div>
 
@@ -51,7 +53,7 @@ export default function SignInPage() {
               fill="#EA4335"
             />
           </svg>
-          Continue with Google
+          {t("signIn.continueWithGoogle")}
         </a>
       </div>
     </div>

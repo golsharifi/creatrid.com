@@ -17,8 +17,10 @@ import (
 	"github.com/creatrid/creatrid/internal/handler"
 	"github.com/creatrid/creatrid/internal/middleware"
 	"github.com/creatrid/creatrid/internal/platform"
+	"github.com/creatrid/creatrid/internal/scheduler"
 	"github.com/creatrid/creatrid/internal/storage"
 	"github.com/creatrid/creatrid/internal/store"
+	"github.com/getsentry/sentry-go"
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -29,6 +31,19 @@ func main() {
 	cfg, err := config.Load()
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
+	}
+
+	// Init Sentry (optional)
+	if cfg.SentryDSN != "" {
+		if err := sentry.Init(sentry.ClientOptions{
+			Dsn:              cfg.SentryDSN,
+			TracesSampleRate: 0.1,
+		}); err != nil {
+			log.Printf("Warning: Sentry init failed: %v", err)
+		} else {
+			defer sentry.Flush(2 * time.Second)
+			log.Println("Sentry error monitoring enabled")
+		}
 	}
 
 	// Connect to database
@@ -99,13 +114,25 @@ func main() {
 
 	// Init handlers
 	authHandler := handler.NewAuthHandler(googleSvc, jwtSvc, st, cfg)
-	userHandler := handler.NewUserHandler(st, blobStore, emailSvc)
+	userHandler := handler.NewUserHandler(st, blobStore, emailSvc, jwtSvc, cfg)
 	connHandler := handler.NewConnectionHandler(st, cfg, emailSvc, providers...)
 	ogHandler := handler.NewOGHandler(st, cfg)
 	analyticsHandler := handler.NewAnalyticsHandler(st)
 	adminHandler := handler.NewAdminHandler(st)
 	digestHandler := handler.NewDigestHandler(st, emailSvc)
 	collabHandler := handler.NewCollaborationHandler(st)
+
+	// Start connection refresh scheduler
+	providerMap := make(map[string]platform.Provider)
+	for _, p := range providers {
+		providerMap[p.Name()] = p
+	}
+	refreshInterval, _ := time.ParseDuration(cfg.RefreshInterval)
+	if refreshInterval == 0 {
+		refreshInterval = 6 * time.Hour
+	}
+	sched := scheduler.New(st, providerMap, refreshInterval)
+	go sched.Start(context.Background())
 
 	// Setup router
 	r := chi.NewRouter()
@@ -115,9 +142,14 @@ func main() {
 	r.Use(middleware.CORS(cfg.FrontendURL))
 	r.Use(middleware.RateLimit(20, 40)) // 20 req/s per IP, burst 40
 
+	// Auth routes (stricter rate limit)
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.RateLimit(5, 10)) // 5 req/s per IP, burst 10
+		r.Get("/api/auth/google", authHandler.GoogleLogin)
+		r.Get("/api/auth/google/callback", authHandler.GoogleCallback)
+	})
+
 	// Public routes
-	r.Get("/api/auth/google", authHandler.GoogleLogin)
-	r.Get("/api/auth/google/callback", authHandler.GoogleCallback)
 	r.Get("/api/users/{username}", userHandler.PublicProfile)
 	r.Get("/api/users/{username}/connections", connHandler.PublicList)
 	r.Post("/api/users/{username}/view", analyticsHandler.TrackView)
@@ -131,8 +163,9 @@ func main() {
 		w.Write([]byte(`{"status":"ok"}`))
 	})
 
-	// Connection OAuth routes (redirect-based auth)
+	// Connection OAuth routes (redirect-based auth, stricter rate limit)
 	r.Group(func(r chi.Router) {
+		r.Use(middleware.RateLimit(5, 10)) // 5 req/s per IP, burst 10
 		r.Use(middleware.RequireAuthRedirect(jwtSvc, st, cfg.FrontendURL))
 		r.Get("/api/connections/{platform}/connect", connHandler.Connect)
 		r.Get("/api/connections/{platform}/callback", connHandler.Callback)
@@ -146,6 +179,8 @@ func main() {
 		r.Post("/api/users/onboard", userHandler.Onboard)
 		r.Patch("/api/users/profile", userHandler.UpdateProfile)
 		r.Post("/api/users/profile/image", userHandler.UploadImage)
+		r.Delete("/api/users/account", userHandler.DeleteAccount)
+		r.Get("/api/users/export", userHandler.ExportProfile)
 		r.Get("/api/connections", connHandler.List)
 		r.Delete("/api/connections/{platform}", connHandler.Disconnect)
 		r.Post("/api/connections/{platform}/refresh", connHandler.Refresh)

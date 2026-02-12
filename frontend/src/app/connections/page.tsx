@@ -6,6 +6,7 @@ import { useEffect, useState, useCallback, Suspense } from "react";
 import { api } from "@/lib/api";
 import type { Connection } from "@/lib/types";
 import { CheckCircle, ExternalLink } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface PlatformConfig {
   key: string;
@@ -17,7 +18,7 @@ interface PlatformConfig {
 const PLATFORMS: PlatformConfig[] = [
   { key: "youtube", name: "YouTube", icon: "YT", available: true },
   { key: "github", name: "GitHub", icon: "GH", available: true },
-  { key: "twitter", name: "Twitter / X", icon: "𝕏", available: true },
+  { key: "twitter", name: "Twitter / X", icon: "\u{1d54f}", available: true },
   { key: "linkedin", name: "LinkedIn", icon: "in", available: true },
   { key: "instagram", name: "Instagram", icon: "IG", available: true },
   { key: "behance", name: "Behance", icon: "Be", available: true },
@@ -28,6 +29,7 @@ function ConnectionsContent() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useTranslation();
   const [connections, setConnections] = useState<Connection[]>([]);
   const [loadingConnections, setLoadingConnections] = useState(true);
   const [disconnecting, setDisconnecting] = useState<string | null>(null);
@@ -67,21 +69,20 @@ function ConnectionsContent() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
-      <h1 className="text-2xl font-bold">Connected Accounts</h1>
+      <h1 className="text-2xl font-bold">{t("connections.title")}</h1>
       <p className="mt-1 text-sm text-zinc-500">
-        Connect your social accounts to build your Creator Score.
+        {t("connections.subtitle")}
       </p>
 
       {connected && (
         <div className="mt-4 rounded-lg bg-green-50 p-3 text-sm text-green-700 dark:bg-green-950 dark:text-green-300">
           <CheckCircle className="mr-2 inline h-4 w-4" />
-          Successfully connected{" "}
-          {PLATFORMS.find((p) => p.key === connected)?.name || connected}!
+          {t("connections.successConnected", { platform: PLATFORMS.find((p) => p.key === connected)?.name || connected })}
         </div>
       )}
       {error && (
         <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
-          Connection failed: {error.replace(/_/g, " ")}
+          {t("connections.connectionFailed", { error: error.replace(/_/g, " ") })}
         </div>
       )}
 
@@ -116,12 +117,12 @@ function ConnectionsContent() {
                       </p>
                       {conn.followerCount !== null && (
                         <span className="text-xs text-zinc-400">
-                          {conn.followerCount.toLocaleString()} followers
+                          {t("connections.followers", { val: conn.followerCount.toLocaleString() })}
                         </span>
                       )}
                     </div>
                   ) : (
-                    <p className="text-xs text-zinc-400">Not connected</p>
+                    <p className="text-xs text-zinc-400">{t("connections.notConnected")}</p>
                   )}
                 </div>
               </div>
@@ -142,21 +143,21 @@ function ConnectionsContent() {
                     disabled={disconnecting === platform.key}
                     className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950"
                   >
-                    {disconnecting === platform.key ? "..." : "Disconnect"}
+                    {disconnecting === platform.key ? t("connections.disconnecting") : t("connections.disconnect")}
                   </button>
                 ) : platform.available ? (
                   <button
                     onClick={() => handleConnect(platform.key)}
                     className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
                   >
-                    Connect
+                    {t("connections.connect")}
                   </button>
                 ) : (
                   <button
                     disabled
                     className="cursor-not-allowed rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium opacity-40 dark:border-zinc-700"
                   >
-                    Coming Soon
+                    {t("connections.comingSoon")}
                   </button>
                 )}
               </div>

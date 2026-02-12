@@ -25,6 +25,7 @@ func (h *CollaborationHandler) Discover(w http.ResponseWriter, r *http.Request) 
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	minScore, _ := strconv.Atoi(r.URL.Query().Get("minScore"))
 	platform := r.URL.Query().Get("platform")
+	search := r.URL.Query().Get("q")
 
 	if limit <= 0 || limit > 100 {
 		limit = 20
@@ -33,7 +34,7 @@ func (h *CollaborationHandler) Discover(w http.ResponseWriter, r *http.Request) 
 		offset = 0
 	}
 
-	users, total, err := h.store.DiscoverCreators(r.Context(), minScore, platform, limit, offset)
+	users, total, err := h.store.DiscoverCreators(r.Context(), minScore, platform, search, limit, offset)
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Failed to fetch creators"})
 		return

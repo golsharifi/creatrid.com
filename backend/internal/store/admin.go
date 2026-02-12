@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/creatrid/creatrid/internal/model"
 )
@@ -16,16 +17,17 @@ type AdminStats struct {
 }
 
 type AdminUser struct {
-	ID           string       `json:"id"`
-	Name         *string      `json:"name"`
-	Email        string       `json:"email"`
-	Username     *string      `json:"username"`
-	Image        *string      `json:"image"`
-	Role         model.UserRole `json:"role"`
-	CreatorScore *int         `json:"creatorScore"`
-	IsVerified   bool         `json:"isVerified"`
-	Onboarded    bool         `json:"onboarded"`
-	Connections  int          `json:"connections"`
+	ID              string         `json:"id"`
+	Name            *string        `json:"name"`
+	Email           string         `json:"email"`
+	Username        *string        `json:"username"`
+	Image           *string        `json:"image"`
+	Role            model.UserRole `json:"role"`
+	CreatorScore    *int           `json:"creatorScore"`
+	IsVerified      bool           `json:"isVerified"`
+	Onboarded       bool           `json:"onboarded"`
+	Connections     int            `json:"connections"`
+	WeeklyDigestOptIn bool         `json:"-"`
 }
 
 func (s *Store) AdminGetStats(ctx context.Context) (*AdminStats, error) {
@@ -63,7 +65,8 @@ func (s *Store) AdminListUsers(ctx context.Context, limit, offset int) ([]AdminU
 	rows, err := s.pool.Query(ctx,
 		`SELECT u.id, u.name, u.email, u.username, u.image, u.role,
 		        u.creator_score, u.is_verified, u.onboarded,
-		        COALESCE((SELECT COUNT(*) FROM connections WHERE user_id = u.id), 0)
+		        COALESCE((SELECT COUNT(*) FROM connections WHERE user_id = u.id), 0),
+		        u.email_prefs
 		 FROM users u
 		 ORDER BY u.created_at DESC
 		 LIMIT $1 OFFSET $2`,
@@ -77,11 +80,19 @@ func (s *Store) AdminListUsers(ctx context.Context, limit, offset int) ([]AdminU
 	var users []AdminUser
 	for rows.Next() {
 		var u AdminUser
+		var emailPrefsRaw json.RawMessage
 		if err := rows.Scan(
 			&u.ID, &u.Name, &u.Email, &u.Username, &u.Image, &u.Role,
-			&u.CreatorScore, &u.IsVerified, &u.Onboarded, &u.Connections,
+			&u.CreatorScore, &u.IsVerified, &u.Onboarded, &u.Connections, &emailPrefsRaw,
 		); err != nil {
 			return nil, 0, err
+		}
+		// Parse weekly digest preference
+		var prefs model.EmailPrefs
+		if json.Unmarshal(emailPrefsRaw, &prefs) == nil {
+			u.WeeklyDigestOptIn = prefs.WeeklyDigest
+		} else {
+			u.WeeklyDigestOptIn = true // default
 		}
 		users = append(users, u)
 	}

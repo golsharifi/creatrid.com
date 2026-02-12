@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import Link from "next/link";
 import { Inbox, Send, CheckCircle, XCircle, Clock } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 type IncomingRequest = {
   id: string;
@@ -32,6 +33,7 @@ type OutgoingRequest = {
 export default function CollaborationsPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const { t } = useTranslation();
   const [tab, setTab] = useState<"inbox" | "outbox">("inbox");
   const [incoming, setIncoming] = useState<IncomingRequest[]>([]);
   const [outgoing, setOutgoing] = useState<OutgoingRequest[]>([]);
@@ -71,16 +73,16 @@ export default function CollaborationsPage() {
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Collaborations</h1>
+          <h1 className="text-2xl font-bold">{t("collaborations.title")}</h1>
           <p className="mt-1 text-zinc-500">
-            Manage collaboration requests.
+            {t("collaborations.subtitle")}
           </p>
         </div>
         <Link
           href="/discover"
           className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
         >
-          Discover Creators
+          {t("collaborations.discoverCreators")}
         </Link>
       </div>
 
@@ -95,7 +97,7 @@ export default function CollaborationsPage() {
           }`}
         >
           <Inbox className="h-4 w-4" />
-          Inbox
+          {t("collaborations.inbox")}
           {pendingCount > 0 && (
             <span className="rounded-full bg-blue-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
               {pendingCount}
@@ -111,7 +113,7 @@ export default function CollaborationsPage() {
           }`}
         >
           <Send className="h-4 w-4" />
-          Sent
+          {t("collaborations.sent")}
         </button>
       </div>
 
@@ -120,7 +122,7 @@ export default function CollaborationsPage() {
         <div className="space-y-3">
           {incoming.length === 0 ? (
             <p className="rounded-xl border border-dashed border-zinc-200 p-8 text-center text-sm text-zinc-400 dark:border-zinc-800">
-              No collaboration requests yet.
+              {t("collaborations.noRequestsYet")}
             </p>
           ) : (
             incoming.map((req) => (
@@ -142,7 +144,7 @@ export default function CollaborationsPage() {
                         href={`/profile?u=${req.fromUsername}`}
                         className="font-medium hover:underline"
                       >
-                        {req.fromName || "Creator"}
+                        {req.fromName || t("common.creator")}
                       </Link>
                       <StatusBadge status={req.status} />
                     </div>
@@ -165,14 +167,14 @@ export default function CollaborationsPage() {
                         disabled={responding === req.id}
                         className="rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
                       >
-                        Accept
+                        {t("collaborations.accept")}
                       </button>
                       <button
                         onClick={() => respond(req.id, "decline")}
                         disabled={responding === req.id}
-                        className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700"
+                        className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
                       >
-                        Decline
+                        {t("collaborations.decline")}
                       </button>
                     </div>
                   )}
@@ -188,7 +190,7 @@ export default function CollaborationsPage() {
         <div className="space-y-3">
           {outgoing.length === 0 ? (
             <p className="rounded-xl border border-dashed border-zinc-200 p-8 text-center text-sm text-zinc-400 dark:border-zinc-800">
-              No sent requests. <Link href="/discover" className="underline">Discover creators</Link> to collaborate with.
+              {t("collaborations.noSentRequests")} <Link href="/discover" className="underline">{t("collaborations.discoverToCollab")}</Link>{t("collaborations.discoverToCollabSuffix")}
             </p>
           ) : (
             outgoing.map((req) => (
@@ -210,7 +212,7 @@ export default function CollaborationsPage() {
                         href={`/profile?u=${req.toUsername}`}
                         className="font-medium hover:underline"
                       >
-                        {req.toName || "Creator"}
+                        {req.toName || t("common.creator")}
                       </Link>
                       <StatusBadge status={req.status} />
                     </div>
@@ -237,24 +239,26 @@ export default function CollaborationsPage() {
 }
 
 function StatusBadge({ status }: { status: string }) {
+  const { t } = useTranslation();
+
   if (status === "pending") {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-600 dark:bg-amber-900/20 dark:text-amber-400">
-        <Clock className="h-3 w-3" /> Pending
+        <Clock className="h-3 w-3" /> {t("collaborations.pending")}
       </span>
     );
   }
   if (status === "accepted") {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-medium text-green-600 dark:bg-green-900/20 dark:text-green-400">
-        <CheckCircle className="h-3 w-3" /> Accepted
+        <CheckCircle className="h-3 w-3" /> {t("collaborations.accepted")}
       </span>
     );
   }
   if (status === "declined") {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-medium text-red-500 dark:bg-red-900/20 dark:text-red-400">
-        <XCircle className="h-3 w-3" /> Declined
+        <XCircle className="h-3 w-3" /> {t("collaborations.declined")}
       </span>
     );
   }

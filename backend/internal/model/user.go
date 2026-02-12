@@ -13,22 +13,38 @@ const (
 	RoleAdmin   UserRole = "ADMIN"
 )
 
+type EmailPrefs struct {
+	Welcome         bool `json:"welcome"`
+	ConnectionAlert bool `json:"connectionAlert"`
+	WeeklyDigest    bool `json:"weeklyDigest"`
+	Collaborations  bool `json:"collaborations"`
+}
+
 type User struct {
-	ID            string     `json:"id"`
-	Name          *string    `json:"name"`
-	Email         string     `json:"email"`
-	EmailVerified *time.Time `json:"emailVerified,omitempty"`
-	Image         *string    `json:"image"`
-	Username      *string    `json:"username"`
-	Bio           *string    `json:"bio"`
-	Role          UserRole   `json:"role"`
-	CreatorScore  *int             `json:"creatorScore"`
-	IsVerified    bool             `json:"isVerified"`
-	Onboarded     bool             `json:"onboarded"`
-	Theme         string           `json:"theme"`
-	CustomLinks   json.RawMessage  `json:"customLinks"`
-	CreatedAt     time.Time        `json:"createdAt"`
-	UpdatedAt     time.Time        `json:"updatedAt"`
+	ID            string          `json:"id"`
+	Name          *string         `json:"name"`
+	Email         string          `json:"email"`
+	EmailVerified *time.Time      `json:"emailVerified,omitempty"`
+	Image         *string         `json:"image"`
+	Username      *string         `json:"username"`
+	Bio           *string         `json:"bio"`
+	Role          UserRole        `json:"role"`
+	CreatorScore  *int            `json:"creatorScore"`
+	IsVerified    bool            `json:"isVerified"`
+	Onboarded     bool            `json:"onboarded"`
+	Theme         string          `json:"theme"`
+	CustomLinks   json.RawMessage `json:"customLinks"`
+	EmailPrefsRaw json.RawMessage `json:"emailPrefs"`
+	CreatedAt     time.Time       `json:"createdAt"`
+	UpdatedAt     time.Time       `json:"updatedAt"`
+}
+
+func (u *User) GetEmailPrefs() EmailPrefs {
+	var prefs EmailPrefs
+	if err := json.Unmarshal(u.EmailPrefsRaw, &prefs); err != nil {
+		return EmailPrefs{Welcome: true, ConnectionAlert: true, WeeklyDigest: true, Collaborations: true}
+	}
+	return prefs
 }
 
 type PublicUser struct {

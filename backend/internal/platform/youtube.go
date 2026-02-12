@@ -91,6 +91,30 @@ func (y *YouTubeProvider) FetchProfile(ctx context.Context, token *oauth2.Token)
 		profileURL = "https://youtube.com/" + username
 	}
 
+	metadata := map[string]interface{}{
+		"subscriber_count": subscriberCount,
+		"video_count":      videoCount,
+		"view_count":       viewCount,
+	}
+
+	// Fetch latest video ID for embedding
+	videoResp, err := client.Get("https://www.googleapis.com/youtube/v3/search?part=id&channelId=" + ch.ID + "&maxResults=1&order=date&type=video")
+	if err == nil {
+		defer videoResp.Body.Close()
+		if videoResp.StatusCode == http.StatusOK {
+			var videoResult struct {
+				Items []struct {
+					ID struct {
+						VideoID string `json:"videoId"`
+					} `json:"id"`
+				} `json:"items"`
+			}
+			if json.NewDecoder(videoResp.Body).Decode(&videoResult) == nil && len(videoResult.Items) > 0 {
+				metadata["latest_video_id"] = videoResult.Items[0].ID.VideoID
+			}
+		}
+	}
+
 	return &Profile{
 		PlatformUserID: ch.ID,
 		Username:       username,
@@ -98,10 +122,6 @@ func (y *YouTubeProvider) FetchProfile(ctx context.Context, token *oauth2.Token)
 		AvatarURL:      ch.Snippet.Thumbnails.Default.URL,
 		ProfileURL:     profileURL,
 		FollowerCount:  subscriberCount,
-		Metadata: map[string]interface{}{
-			"subscriber_count": subscriberCount,
-			"video_count":      videoCount,
-			"view_count":       viewCount,
-		},
+		Metadata:       metadata,
 	}, nil
 }

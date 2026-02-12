@@ -153,8 +153,8 @@ func (h *ConnectionHandler) Callback(w http.ResponseWriter, r *http.Request) {
 
 	recalcScore(r.Context(), h.store, user.ID)
 
-	// Send connection alert email (async)
-	if h.email != nil && user.Name != nil {
+	// Send connection alert email (async, respecting preferences)
+	if h.email != nil && user.Name != nil && user.GetEmailPrefs().ConnectionAlert {
 		go func() {
 			platformUsername := profile.Username
 			if platformUsername == "" {

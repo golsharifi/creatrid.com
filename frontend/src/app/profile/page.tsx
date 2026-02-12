@@ -4,13 +4,14 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import { api } from "@/lib/api";
-import { Shield, CheckCircle, ExternalLink, QrCode } from "lucide-react";
+import { Shield, CheckCircle, ExternalLink, QrCode, Star, Code } from "lucide-react";
 import {
   CopyLinkButton,
   ShareTwitterButton,
   ShareLinkedInButton,
 } from "@/components/share-buttons";
 import type { PublicUser, Connection } from "@/lib/types";
+import { useTranslation } from "react-i18next";
 
 const PROFILE_BASE_URL =
   process.env.NEXT_PUBLIC_PROFILE_URL || "https://creatrid.com";
@@ -27,6 +28,7 @@ const THEME_STYLES: Record<string, { accent: string; badge: string }> = {
 function ProfileContent() {
   const searchParams = useSearchParams();
   const username = searchParams.get("u");
+  const { t } = useTranslation();
   const [user, setUser] = useState<PublicUser | null>(null);
   const [connections, setConnections] = useState<Connection[]>([]);
   const [notFound, setNotFound] = useState(false);
@@ -63,7 +65,7 @@ function ProfileContent() {
   if (loading) {
     return (
       <div className="flex flex-1 items-center justify-center py-24">
-        <p className="text-zinc-400">Loading profile...</p>
+        <p className="text-zinc-400">{t("profile.loadingProfile")}</p>
       </div>
     );
   }
@@ -72,9 +74,9 @@ function ProfileContent() {
     return (
       <div className="flex flex-1 items-center justify-center py-24">
         <div className="text-center">
-          <h1 className="text-2xl font-bold">User not found</h1>
+          <h1 className="text-2xl font-bold">{t("profile.userNotFound")}</h1>
           <p className="mt-2 text-zinc-500">
-            This creator profile doesn&apos;t exist.
+            {t("profile.profileNotExist")}
           </p>
         </div>
       </div>
@@ -95,7 +97,7 @@ function ProfileContent() {
           {user.image ? (
             <img
               src={user.image}
-              alt={user.name || "Creator"}
+              alt={user.name || t("common.creator")}
               className="h-24 w-24 rounded-full object-cover"
             />
           ) : (
@@ -126,7 +128,7 @@ function ProfileContent() {
           <div className="mt-6 flex items-center gap-2 rounded-full border border-zinc-200 px-4 py-2 dark:border-zinc-800">
             <Shield className="h-4 w-4" />
             <span className="text-sm font-medium">
-              Creator Score: {user.creatorScore}
+              {t("profile.creatorScore", { score: user.creatorScore })}
             </span>
           </div>
         )}
@@ -135,7 +137,7 @@ function ProfileContent() {
         {connections.length > 0 && (
           <div className="mt-8 w-full max-w-sm">
             <h2 className="mb-3 text-sm font-semibold text-zinc-500">
-              Connected Platforms
+              {t("profile.connectedPlatforms")}
             </h2>
             <div className="space-y-2">
               {connections.map((conn) => (
@@ -178,11 +180,90 @@ function ProfileContent() {
           </div>
         )}
 
+        {/* YouTube Latest Video Embed */}
+        {connections.some(
+          (c) => c.platform === "youtube" && c.metadata?.latest_video_id
+        ) && (
+          <div className="mt-8 w-full max-w-sm">
+            <h2 className="mb-3 text-sm font-semibold text-zinc-500">
+              {t("profile.latestVideo")}
+            </h2>
+            <div className="overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
+              <iframe
+                src={`https://www.youtube.com/embed/${connections.find((c) => c.platform === "youtube")!.metadata.latest_video_id}`}
+                title="Latest YouTube video"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="aspect-video w-full"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* GitHub Top Repos */}
+        {connections.some(
+          (c) =>
+            c.platform === "github" &&
+            Array.isArray(c.metadata?.top_repos) &&
+            (c.metadata.top_repos as unknown[]).length > 0
+        ) && (
+          <div className="mt-8 w-full max-w-sm">
+            <h2 className="mb-3 text-sm font-semibold text-zinc-500">
+              {t("profile.topRepositories")}
+            </h2>
+            <div className="space-y-2">
+              {(
+                connections.find((c) => c.platform === "github")!.metadata
+                  .top_repos as {
+                  name: string;
+                  description: string;
+                  url: string;
+                  stars: number;
+                  language: string;
+                }[]
+              ).map((repo) => (
+                <a
+                  key={repo.name}
+                  href={repo.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() =>
+                    username &&
+                    api.analytics.trackClick(username, "repo", repo.url)
+                  }
+                  className="block rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900"
+                >
+                  <div className="flex items-center gap-2">
+                    <Code className="h-4 w-4 text-zinc-400" />
+                    <span className="text-sm font-medium">{repo.name}</span>
+                    {repo.stars > 0 && (
+                      <span className="ml-auto flex items-center gap-1 text-xs text-zinc-400">
+                        <Star className="h-3 w-3" />
+                        {repo.stars.toLocaleString()}
+                      </span>
+                    )}
+                  </div>
+                  {repo.description && (
+                    <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                      {repo.description}
+                    </p>
+                  )}
+                  {repo.language && (
+                    <span className="mt-1.5 inline-block rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+                      {repo.language}
+                    </span>
+                  )}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Custom Links */}
         {user.customLinks && user.customLinks.length > 0 && (
           <div className="mt-8 w-full max-w-sm">
             <h2 className="mb-3 text-sm font-semibold text-zinc-500">
-              Links
+              {t("profile.links")}
             </h2>
             <div className="space-y-2">
               {user.customLinks.map((link, i) => (
@@ -216,7 +297,7 @@ function ProfileContent() {
               className="flex items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
             >
               <QrCode className="h-3.5 w-3.5" />
-              QR Code
+              {t("dashboard.qrCode")}
             </button>
           </div>
 
@@ -232,7 +313,7 @@ function ProfileContent() {
                 />
               </div>
               <p className="mt-2 text-xs text-zinc-400">
-                Scan to view this profile
+                {t("profile.scanToView")}
               </p>
             </div>
           )}
@@ -241,7 +322,7 @@ function ProfileContent() {
         {/* Creatrid Badge */}
         <div className="mt-8 flex items-center gap-2 text-xs text-zinc-400">
           <Shield className="h-3 w-3" />
-          Verified on Creatrid
+          {t("profile.verifiedOnCreatrid")}
         </div>
       </div>
     </div>
@@ -249,11 +330,12 @@ function ProfileContent() {
 }
 
 export default function PublicProfilePage() {
+  const { t } = useTranslation();
   return (
     <Suspense
       fallback={
         <div className="flex flex-1 items-center justify-center py-24">
-          <p className="text-zinc-400">Loading profile...</p>
+          <p className="text-zinc-400">{t("profile.loadingProfile")}</p>
         </div>
       }
     >

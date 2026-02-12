@@ -47,6 +47,9 @@ type Config struct {
 	SMTPUsername string
 	SMTPPassword string
 	SMTPFrom     string
+
+	SentryDSN        string
+	RefreshInterval  string
 }
 
 func Load() (*Config, error) {
@@ -83,6 +86,9 @@ func Load() (*Config, error) {
 		SMTPUsername: os.Getenv("SMTP_USERNAME"),
 		SMTPPassword: os.Getenv("SMTP_PASSWORD"),
 		SMTPFrom:     getEnv("SMTP_FROM", "noreply@creatrid.com"),
+
+		SentryDSN:       os.Getenv("SENTRY_DSN"),
+		RefreshInterval: getEnv("REFRESH_INTERVAL", "6h"),
 	}
 
 	cfg.GoogleRedirect = cfg.BackendURL + "/api/auth/google/callback"

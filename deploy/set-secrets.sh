@@ -17,7 +17,7 @@ fi
 # Read values from env file
 source "$ENV_FILE"
 
-echo "==> Setting secrets on Container App: $ACA_APP"
+echo "==> Setting core secrets on Container App: $ACA_APP"
 
 az containerapp secret set \
   --resource-group "$RESOURCE_GROUP" \
@@ -28,7 +28,7 @@ az containerapp secret set \
     google-client-secret="$GOOGLE_CLIENT_SECRET" \
   -o none
 
-echo "==> Updating environment variables..."
+echo "==> Building environment variables..."
 
 ENV_VARS=(
   "PORT=8080"
@@ -42,17 +42,80 @@ ENV_VARS=(
   "COOKIE_SECURE=true"
 )
 
-if [ -n "${GITHUB_CLIENT_ID:-}" ] && [ -n "${GITHUB_CLIENT_SECRET:-}" ]; then
+# Helper: conditionally add an OAuth platform's secrets
+add_platform_secrets() {
+  local name="$1"
+  local id_var="$2"
+  local secret_var="$3"
+
+  local id_val="${!id_var:-}"
+  local secret_val="${!secret_var:-}"
+
+  if [ -n "$id_val" ] && [ -n "$secret_val" ]; then
+    local lower_name
+    lower_name=$(echo "$name" | tr '[:upper:]' '[:lower:]')
+    echo "  Adding $name OAuth secrets..."
+    az containerapp secret set \
+      --resource-group "$RESOURCE_GROUP" \
+      --name "$ACA_APP" \
+      --secrets \
+        "${lower_name}-client-id=${id_val}" \
+        "${lower_name}-client-secret=${secret_val}" \
+      -o none
+    ENV_VARS+=("${id_var}=secretref:${lower_name}-client-id")
+    ENV_VARS+=("${secret_var}=secretref:${lower_name}-client-secret")
+  fi
+}
+
+add_platform_secrets "GitHub" "GITHUB_CLIENT_ID" "GITHUB_CLIENT_SECRET"
+add_platform_secrets "Twitter" "TWITTER_CLIENT_ID" "TWITTER_CLIENT_SECRET"
+add_platform_secrets "LinkedIn" "LINKEDIN_CLIENT_ID" "LINKEDIN_CLIENT_SECRET"
+add_platform_secrets "Instagram" "INSTAGRAM_CLIENT_ID" "INSTAGRAM_CLIENT_SECRET"
+add_platform_secrets "Dribbble" "DRIBBBLE_CLIENT_ID" "DRIBBBLE_CLIENT_SECRET"
+add_platform_secrets "Behance" "BEHANCE_CLIENT_ID" "BEHANCE_CLIENT_SECRET"
+
+# Azure Storage
+if [ -n "${AZURE_STORAGE_ACCOUNT:-}" ] && [ -n "${AZURE_STORAGE_KEY:-}" ]; then
+  echo "  Adding Azure Storage secrets..."
   az containerapp secret set \
     --resource-group "$RESOURCE_GROUP" \
     --name "$ACA_APP" \
     --secrets \
-      github-client-id="$GITHUB_CLIENT_ID" \
-      github-client-secret="$GITHUB_CLIENT_SECRET" \
+      azure-storage-key="$AZURE_STORAGE_KEY" \
     -o none
-  ENV_VARS+=("GITHUB_CLIENT_ID=secretref:github-client-id")
-  ENV_VARS+=("GITHUB_CLIENT_SECRET=secretref:github-client-secret")
+  ENV_VARS+=("AZURE_STORAGE_ACCOUNT=$AZURE_STORAGE_ACCOUNT")
+  ENV_VARS+=("AZURE_STORAGE_KEY=secretref:azure-storage-key")
+  ENV_VARS+=("AZURE_STORAGE_CONTAINER=${AZURE_STORAGE_CONTAINER:-avatars}")
 fi
+
+# SMTP
+if [ -n "${SMTP_HOST:-}" ] && [ -n "${SMTP_USERNAME:-}" ] && [ -n "${SMTP_PASSWORD:-}" ]; then
+  echo "  Adding SMTP secrets..."
+  az containerapp secret set \
+    --resource-group "$RESOURCE_GROUP" \
+    --name "$ACA_APP" \
+    --secrets \
+      smtp-password="$SMTP_PASSWORD" \
+    -o none
+  ENV_VARS+=("SMTP_HOST=$SMTP_HOST")
+  ENV_VARS+=("SMTP_PORT=${SMTP_PORT:-587}")
+  ENV_VARS+=("SMTP_USERNAME=$SMTP_USERNAME")
+  ENV_VARS+=("SMTP_PASSWORD=secretref:smtp-password")
+  ENV_VARS+=("SMTP_FROM=${SMTP_FROM:-noreply@creatrid.com}")
+fi
+
+# Sentry
+if [ -n "${SENTRY_DSN:-}" ]; then
+  echo "  Adding Sentry DSN..."
+  ENV_VARS+=("SENTRY_DSN=$SENTRY_DSN")
+fi
+
+# Refresh interval
+if [ -n "${REFRESH_INTERVAL:-}" ]; then
+  ENV_VARS+=("REFRESH_INTERVAL=$REFRESH_INTERVAL")
+fi
+
+echo "==> Updating environment variables..."
 
 az containerapp update \
   --resource-group "$RESOURCE_GROUP" \

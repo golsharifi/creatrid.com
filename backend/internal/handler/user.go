@@ -7,7 +7,10 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 
+	"github.com/creatrid/creatrid/internal/auth"
+	"github.com/creatrid/creatrid/internal/config"
 	"github.com/creatrid/creatrid/internal/email"
 	"github.com/creatrid/creatrid/internal/middleware"
 	"github.com/creatrid/creatrid/internal/storage"
@@ -28,13 +31,15 @@ var (
 )
 
 type UserHandler struct {
-	store *store.Store
-	blob  *storage.BlobStorage
-	email *email.Service
+	store  *store.Store
+	blob   *storage.BlobStorage
+	email  *email.Service
+	jwt    *auth.JWTService
+	config *config.Config
 }
 
-func NewUserHandler(store *store.Store, blob *storage.BlobStorage, emailSvc *email.Service) *UserHandler {
-	return &UserHandler{store: store, blob: blob, email: emailSvc}
+func NewUserHandler(store *store.Store, blob *storage.BlobStorage, emailSvc *email.Service, jwtSvc *auth.JWTService, cfg *config.Config) *UserHandler {
+	return &UserHandler{store: store, blob: blob, email: emailSvc, jwt: jwtSvc, config: cfg}
 }
 
 type onboardRequest struct {
@@ -86,8 +91,8 @@ func (h *UserHandler) Onboard(w http.ResponseWriter, r *http.Request) {
 
 	recalcScore(r.Context(), h.store, user.ID)
 
-	// Send welcome email (async, don't block response)
-	if h.email != nil {
+	// Send welcome email (async, don't block response, respecting preferences)
+	if h.email != nil && user.GetEmailPrefs().Welcome {
 		go func() {
 			profileURL := "https://creatrid.com/profile?u=" + username
 			subj, body := email.WelcomeEmail(name, username, profileURL)
@@ -106,11 +111,12 @@ type customLink struct {
 }
 
 type updateProfileRequest struct {
-	Name        *string      `json:"name"`
-	Bio         *string      `json:"bio"`
-	Username    *string      `json:"username"`
-	Theme       *string      `json:"theme"`
-	CustomLinks []customLink `json:"customLinks,omitempty"`
+	Name        *string          `json:"name"`
+	Bio         *string          `json:"bio"`
+	Username    *string          `json:"username"`
+	Theme       *string          `json:"theme"`
+	CustomLinks []customLink     `json:"customLinks,omitempty"`
+	EmailPrefs  *json.RawMessage `json:"emailPrefs,omitempty"`
 }
 
 func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
@@ -187,8 +193,76 @@ func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Update email preferences if provided
+	if req.EmailPrefs != nil {
+		if err := h.store.UpdateUserEmailPrefs(r.Context(), user.ID, *req.EmailPrefs); err != nil {
+			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Failed to update email preferences"})
+			return
+		}
+	}
+
 	recalcScore(r.Context(), h.store, user.ID)
 	writeJSON(w, http.StatusOK, map[string]bool{"success": true})
+}
+
+func (h *UserHandler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
+	user := middleware.UserFromContext(r.Context())
+	if user == nil {
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "Not authenticated"})
+		return
+	}
+
+	// Log deletion for audit trail
+	_ = h.store.LogDeletion(r.Context(), cuid2.Generate(), user.Email)
+
+	// Delete avatar from blob storage if exists
+	if h.blob != nil && user.Image != nil && *user.Image != "" {
+		_ = h.blob.Delete(r.Context(), *user.Image)
+	}
+
+	// Delete user (cascading delete handles connections, analytics, collaborations)
+	if err := h.store.DeleteUser(r.Context(), user.ID); err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Failed to delete account"})
+		return
+	}
+
+	// Clear auth cookie
+	h.jwt.ClearTokenCookie(w, h.config.CookieDomain, h.config.CookieSecure)
+
+	// Send confirmation email (async)
+	if h.email != nil {
+		go func() {
+			name := "Creator"
+			if user.Name != nil {
+				name = *user.Name
+			}
+			subj, body := email.AccountDeletedEmail(name)
+			_ = h.email.Send(user.Email, subj, body)
+		}()
+	}
+
+	writeJSON(w, http.StatusOK, map[string]bool{"deleted": true})
+}
+
+func (h *UserHandler) ExportProfile(w http.ResponseWriter, r *http.Request) {
+	user := middleware.UserFromContext(r.Context())
+	if user == nil {
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "Not authenticated"})
+		return
+	}
+
+	connections, _ := h.store.FindConnectionsByUserID(r.Context(), user.ID)
+	publicConns := make([]interface{}, 0, len(connections))
+	for _, c := range connections {
+		publicConns = append(publicConns, c.ToPublic())
+	}
+
+	w.Header().Set("Content-Disposition", `attachment; filename="creatrid-profile.json"`)
+	writeJSON(w, http.StatusOK, map[string]interface{}{
+		"user":        user.ToPublic(),
+		"connections": publicConns,
+		"exportedAt":  time.Now(),
+	})
 }
 
 func (h *UserHandler) PublicProfile(w http.ResponseWriter, r *http.Request) {

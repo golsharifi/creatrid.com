@@ -1,4 +1,5 @@
-import type { User, PublicUser, Connection } from "./types";
+import type { User, PublicUser, Connection, EmailPrefs } from "./types";
+import { captureException } from "./sentry";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
@@ -27,7 +28,8 @@ async function request<T>(
     }
 
     return { data: json };
-  } catch {
+  } catch (err) {
+    captureException(err);
     return { error: "Network error" };
   }
 }
@@ -51,11 +53,16 @@ export const api = {
       username?: string;
       theme?: string;
       customLinks?: { title: string; url: string }[];
+      emailPrefs?: EmailPrefs;
     }) =>
       request<{ success: boolean }>("/api/users/profile", {
         method: "PATCH",
         body: JSON.stringify(data),
       }),
+    deleteAccount: () =>
+      request<{ deleted: boolean }>("/api/users/account", { method: "DELETE" }),
+    exportProfile: () =>
+      request<Record<string, unknown>>("/api/users/export"),
     uploadImage: async (file: File): Promise<ApiResponse<{ image: string }>> => {
       try {
         const formData = new FormData();
@@ -147,12 +154,13 @@ export const api = {
       request<{ sent: number }>("/api/admin/digest", { method: "POST" }),
   },
   discover: {
-    list: (params?: { limit?: number; offset?: number; minScore?: number; platform?: string }) => {
+    list: (params?: { limit?: number; offset?: number; minScore?: number; platform?: string; q?: string }) => {
       const p = new URLSearchParams();
       if (params?.limit) p.set("limit", String(params.limit));
       if (params?.offset) p.set("offset", String(params.offset));
       if (params?.minScore) p.set("minScore", String(params.minScore));
       if (params?.platform) p.set("platform", params.platform);
+      if (params?.q) p.set("q", params.q);
       return request<{
         creators: {
           id: string;

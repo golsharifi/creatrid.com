@@ -123,6 +123,40 @@ func (s *Store) UpdateConnectionProfile(ctx context.Context, userID, platform st
 	return err
 }
 
+func (s *Store) FindStaleConnections(ctx context.Context, olderThan time.Duration, limit int) ([]*model.Connection, error) {
+	rows, err := s.pool.Query(ctx,
+		`SELECT id, user_id, platform, platform_user_id,
+			username, display_name, avatar_url, profile_url,
+			follower_count, access_token, refresh_token, token_expires_at,
+			metadata, connected_at, updated_at
+		 FROM connections WHERE updated_at < $1
+		 ORDER BY updated_at ASC LIMIT $2`,
+		time.Now().Add(-olderThan), limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var connections []*model.Connection
+	for rows.Next() {
+		var c model.Connection
+		var metaBytes []byte
+		err := rows.Scan(
+			&c.ID, &c.UserID, &c.Platform, &c.PlatformUserID,
+			&c.Username, &c.DisplayName, &c.AvatarURL, &c.ProfileURL,
+			&c.FollowerCount, &c.AccessToken, &c.RefreshToken, &c.TokenExpiresAt,
+			&metaBytes, &c.ConnectedAt, &c.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		c.Metadata = json.RawMessage(metaBytes)
+		connections = append(connections, &c)
+	}
+	return connections, rows.Err()
+}
+
 func (s *Store) CountConnectionsByUserID(ctx context.Context, userID string) (int, error) {
 	var count int
 	err := s.pool.QueryRow(ctx,

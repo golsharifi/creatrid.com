@@ -8,6 +8,7 @@ import Link from "next/link";
 import { User, Link2, BarChart3, ArrowRight, QrCode, Eye, MousePointerClick } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { CopyLinkButton, ShareTwitterButton, ShareLinkedInButton } from "@/components/share-buttons";
+import { useTranslation } from "react-i18next";
 
 const PROFILE_BASE_URL =
   process.env.NEXT_PUBLIC_PROFILE_URL || "https://creatrid.com";
@@ -15,6 +16,7 @@ const PROFILE_BASE_URL =
 export default function DashboardPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const [connectionCount, setConnectionCount] = useState(0);
   const [showQR, setShowQR] = useState(false);
@@ -60,10 +62,10 @@ export default function DashboardPage() {
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
       <div className="mb-8">
         <h1 className="text-2xl font-bold">
-          Welcome back, {user.name || "Creator"}
+          {t("dashboard.welcomeBack", { name: user.name || t("common.creator") })}
         </h1>
         <p className="mt-1 text-zinc-500">
-          Manage your Creator Passport from here.
+          {t("dashboard.managePassport")}
         </p>
       </div>
 
@@ -79,9 +81,9 @@ export default function DashboardPage() {
             </div>
             <ArrowRight className="h-4 w-4 text-zinc-400 transition-transform group-hover:translate-x-1" />
           </div>
-          <h3 className="font-semibold">Profile</h3>
+          <h3 className="font-semibold">{t("dashboard.profile")}</h3>
           <p className="mt-1 text-sm text-zinc-500">
-            {profileComplete}/{profileTotal} complete
+            {t("dashboard.profileComplete", { complete: profileComplete, total: profileTotal })}
           </p>
           <div className="mt-3 h-2 rounded-full bg-zinc-100 dark:bg-zinc-800">
             <div
@@ -104,9 +106,9 @@ export default function DashboardPage() {
             </div>
             <ArrowRight className="h-4 w-4 text-zinc-400 transition-transform group-hover:translate-x-1" />
           </div>
-          <h3 className="font-semibold">Connections</h3>
+          <h3 className="font-semibold">{t("dashboard.connections")}</h3>
           <p className="mt-1 text-sm text-zinc-500">
-            Connect your social accounts
+            {t("dashboard.connectSocial")}
           </p>
           <p className="mt-3 text-2xl font-bold">{connectionCount}</p>
         </Link>
@@ -118,11 +120,11 @@ export default function DashboardPage() {
               <BarChart3 className="h-5 w-5" />
             </div>
           </div>
-          <h3 className="font-semibold">Creator Score</h3>
+          <h3 className="font-semibold">{t("dashboard.creatorScore")}</h3>
           <p className="mt-1 text-sm text-zinc-500">
             {user.creatorScore !== null
-              ? "Based on profile, connections & reach"
-              : "Complete your profile to unlock"}
+              ? t("dashboard.scoreBasedOn")
+              : t("dashboard.scoreUnlock")}
           </p>
           <p
             className={`mt-3 text-2xl font-bold ${
@@ -131,9 +133,9 @@ export default function DashboardPage() {
                 : "text-zinc-300 dark:text-zinc-600"
             }`}
           >
-            {user.creatorScore ?? "—"}
+            {user.creatorScore ?? t("common.noData")}
             {user.creatorScore !== null && (
-              <span className="text-sm font-normal text-zinc-400"> / 100</span>
+              <span className="text-sm font-normal text-zinc-400"> {t("dashboard.outOf100")}</span>
             )}
           </p>
           {user.creatorScore !== null && (
@@ -154,17 +156,17 @@ export default function DashboardPage() {
             <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
               <Eye className="h-5 w-5" />
             </div>
-            <h3 className="font-semibold">Profile Views</h3>
+            <h3 className="font-semibold">{t("dashboard.profileViews")}</h3>
             <p className="mt-2 text-2xl font-bold">{analytics.totalViews}</p>
             <p className="mt-1 text-xs text-zinc-500">
-              {analytics.viewsToday} today &middot; {analytics.viewsThisWeek} this week
+              {t("dashboard.todayAndWeek", { today: analytics.viewsToday, week: analytics.viewsThisWeek })}
             </p>
           </div>
           <div className="rounded-xl border border-zinc-200 p-6 dark:border-zinc-800">
             <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
               <MousePointerClick className="h-5 w-5" />
             </div>
-            <h3 className="font-semibold">Link Clicks</h3>
+            <h3 className="font-semibold">{t("dashboard.linkClicks")}</h3>
             <p className="mt-2 text-2xl font-bold">{analytics.totalClicks}</p>
             <div className="mt-1 flex flex-wrap gap-2 text-xs text-zinc-500">
               {Object.entries(analytics.clicksByType).map(([type, count]) => (
@@ -173,7 +175,7 @@ export default function DashboardPage() {
                 </span>
               ))}
               {Object.keys(analytics.clicksByType).length === 0 && (
-                <span>No clicks yet</span>
+                <span>{t("dashboard.noClicks")}</span>
               )}
             </div>
           </div>
@@ -181,14 +183,14 @@ export default function DashboardPage() {
             <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
               <BarChart3 className="h-5 w-5" />
             </div>
-            <h3 className="font-semibold">Engagement</h3>
+            <h3 className="font-semibold">{t("dashboard.engagement")}</h3>
             <p className="mt-2 text-2xl font-bold">
               {analytics.totalViews > 0
                 ? ((analytics.totalClicks / analytics.totalViews) * 100).toFixed(1)
                 : "0.0"}
               <span className="text-sm font-normal text-zinc-400">%</span>
             </p>
-            <p className="mt-1 text-xs text-zinc-500">Click-through rate</p>
+            <p className="mt-1 text-xs text-zinc-500">{t("dashboard.clickThroughRate")}</p>
           </div>
         </div>
       )}
@@ -198,16 +200,16 @@ export default function DashboardPage() {
         <div className="mt-8 rounded-xl border border-zinc-200 p-6 dark:border-zinc-800">
           <div className="flex items-start justify-between">
             <div>
-              <h3 className="font-semibold">Your Public Profile</h3>
+              <h3 className="font-semibold">{t("dashboard.yourPublicProfile")}</h3>
               <p className="mt-1 text-sm text-zinc-500">
-                Share this link with brands and collaborators.
+                {t("dashboard.shareLink")}
               </p>
             </div>
             <Link
               href={`/profile?u=${user.username}`}
               className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
             >
-              Preview
+              {t("dashboard.preview")}
             </Link>
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -222,7 +224,7 @@ export default function DashboardPage() {
               className="flex items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
             >
               <QrCode className="h-3.5 w-3.5" />
-              QR Code
+              {t("dashboard.qrCode")}
             </button>
           </div>
           {showQR && (
@@ -231,9 +233,9 @@ export default function DashboardPage() {
                 <QRCodeSVG value={profileUrl} size={120} level="M" marginSize={2} />
               </div>
               <div className="text-sm text-zinc-500">
-                <p>Scan this QR code to open your Creator Passport.</p>
+                <p>{t("dashboard.scanQR")}</p>
                 <p className="mt-1 text-xs text-zinc-400">
-                  Perfect for business cards, portfolios, and events.
+                  {t("dashboard.qrPerfectFor")}
                 </p>
               </div>
             </div>

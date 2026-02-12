@@ -68,6 +68,24 @@ func ConnectionAlertEmail(name, platform, platformUsername string) (subject, bod
 	return
 }
 
+func AccountDeletedEmail(name string) (subject, body string) {
+	subject = "Your Creatrid account has been deleted"
+	content := fmt.Sprintf(`
+<h2 style="margin:0 0 16px;color:#18181b;font-size:22px;">Account Deleted</h2>
+<p style="color:#52525b;line-height:1.6;">Hi %s, your Creatrid account and all associated data have been permanently deleted. This includes:</p>
+<ul style="color:#52525b;line-height:1.8;padding-left:20px;">
+<li>Your profile and Creator Score</li>
+<li>All connected social accounts</li>
+<li>Analytics data (profile views and link clicks)</li>
+<li>Collaboration requests</li>
+</ul>
+<p style="color:#52525b;line-height:1.6;">If you didn't request this, please contact us immediately at <a href="mailto:support@creatrid.com" style="color:#18181b;">support@creatrid.com</a>.</p>
+<p style="color:#a1a1aa;font-size:13px;margin-top:24px;">You can always create a new account at <a href="https://creatrid.com" style="color:#18181b;">creatrid.com</a>.</p>
+`, name)
+	body = wrapHTML(subject, content)
+	return
+}
+
 func WeeklyDigestEmail(name string, totalViews, viewsThisWeek, totalClicks, connectionCount int, score *int) (subject, body string) {
 	subject = "Your weekly Creatrid digest"
 	scoreStr := "—"

@@ -32,7 +32,7 @@ func (h *DigestHandler) SendWeeklyDigest(w http.ResponseWriter, r *http.Request)
 
 	sent := 0
 	for _, u := range users {
-		if !u.Onboarded || u.Email == "" {
+		if !u.Onboarded || u.Email == "" || !u.WeeklyDigestOptIn {
 			continue
 		}
 

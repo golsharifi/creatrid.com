@@ -74,6 +74,43 @@ func (g *GitHubProvider) FetchProfile(ctx context.Context, token *oauth2.Token) 
 		return nil, fmt.Errorf("failed to decode github response: %w", err)
 	}
 
+	metadata := map[string]interface{}{
+		"public_repos": ghUser.PublicRepos,
+		"bio":          ghUser.Bio,
+	}
+
+	// Fetch top 3 repos by stars for embedding
+	repoReq, err := http.NewRequestWithContext(ctx, "GET", "https://api.github.com/users/"+ghUser.Login+"/repos?sort=stars&direction=desc&per_page=3", nil)
+	if err == nil {
+		repoReq.Header.Set("Accept", "application/vnd.github+json")
+		repoResp, err := client.Do(repoReq)
+		if err == nil {
+			defer repoResp.Body.Close()
+			if repoResp.StatusCode == http.StatusOK {
+				var repos []struct {
+					Name        string `json:"name"`
+					Description string `json:"description"`
+					HTMLURL     string `json:"html_url"`
+					Stars       int    `json:"stargazers_count"`
+					Language    string `json:"language"`
+				}
+				if json.NewDecoder(repoResp.Body).Decode(&repos) == nil && len(repos) > 0 {
+					topRepos := make([]map[string]interface{}, 0, len(repos))
+					for _, r := range repos {
+						topRepos = append(topRepos, map[string]interface{}{
+							"name":        r.Name,
+							"description": r.Description,
+							"url":         r.HTMLURL,
+							"stars":       r.Stars,
+							"language":    r.Language,
+						})
+					}
+					metadata["top_repos"] = topRepos
+				}
+			}
+		}
+	}
+
 	return &Profile{
 		PlatformUserID: fmt.Sprintf("%d", ghUser.ID),
 		Username:       ghUser.Login,
@@ -81,9 +118,6 @@ func (g *GitHubProvider) FetchProfile(ctx context.Context, token *oauth2.Token) 
 		AvatarURL:      ghUser.AvatarURL,
 		ProfileURL:     ghUser.HTMLURL,
 		FollowerCount:  ghUser.Followers,
-		Metadata: map[string]interface{}{
-			"public_repos": ghUser.PublicRepos,
-			"bio":          ghUser.Bio,
-		},
+		Metadata:       metadata,
 	}, nil
 }

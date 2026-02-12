@@ -3,6 +3,13 @@ export interface CustomLink {
   url: string;
 }
 
+export interface EmailPrefs {
+  welcome: boolean;
+  connectionAlert: boolean;
+  weeklyDigest: boolean;
+  collaborations: boolean;
+}
+
 export interface User {
   id: string;
   name: string | null;
@@ -17,6 +24,7 @@ export interface User {
   onboarded: boolean;
   theme: string;
   customLinks: CustomLink[];
+  emailPrefs: EmailPrefs;
   createdAt: string;
   updatedAt: string;
 }

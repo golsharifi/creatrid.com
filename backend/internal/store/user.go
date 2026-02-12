@@ -11,12 +11,12 @@ func (s *Store) FindUserByID(ctx context.Context, id string) (*model.User, error
 	var u model.User
 	err := s.pool.QueryRow(ctx,
 		`SELECT id, name, email, email_verified, image, username, bio, role,
-		        creator_score, is_verified, onboarded, theme, custom_links, created_at, updated_at
+		        creator_score, is_verified, onboarded, theme, custom_links, email_prefs, created_at, updated_at
 		 FROM users WHERE id = $1`, id,
 	).Scan(
 		&u.ID, &u.Name, &u.Email, &u.EmailVerified, &u.Image,
 		&u.Username, &u.Bio, &u.Role, &u.CreatorScore,
-		&u.IsVerified, &u.Onboarded, &u.Theme, &u.CustomLinks, &u.CreatedAt, &u.UpdatedAt,
+		&u.IsVerified, &u.Onboarded, &u.Theme, &u.CustomLinks, &u.EmailPrefsRaw, &u.CreatedAt, &u.UpdatedAt,
 	)
 	if err == pgx.ErrNoRows {
 		return nil, nil
@@ -28,12 +28,12 @@ func (s *Store) FindUserByEmail(ctx context.Context, email string) (*model.User,
 	var u model.User
 	err := s.pool.QueryRow(ctx,
 		`SELECT id, name, email, email_verified, image, username, bio, role,
-		        creator_score, is_verified, onboarded, theme, custom_links, created_at, updated_at
+		        creator_score, is_verified, onboarded, theme, custom_links, email_prefs, created_at, updated_at
 		 FROM users WHERE email = $1`, email,
 	).Scan(
 		&u.ID, &u.Name, &u.Email, &u.EmailVerified, &u.Image,
 		&u.Username, &u.Bio, &u.Role, &u.CreatorScore,
-		&u.IsVerified, &u.Onboarded, &u.Theme, &u.CustomLinks, &u.CreatedAt, &u.UpdatedAt,
+		&u.IsVerified, &u.Onboarded, &u.Theme, &u.CustomLinks, &u.EmailPrefsRaw, &u.CreatedAt, &u.UpdatedAt,
 	)
 	if err == pgx.ErrNoRows {
 		return nil, nil
@@ -45,12 +45,12 @@ func (s *Store) FindUserByUsername(ctx context.Context, username string) (*model
 	var u model.User
 	err := s.pool.QueryRow(ctx,
 		`SELECT id, name, email, email_verified, image, username, bio, role,
-		        creator_score, is_verified, onboarded, theme, custom_links, created_at, updated_at
+		        creator_score, is_verified, onboarded, theme, custom_links, email_prefs, created_at, updated_at
 		 FROM users WHERE username = $1`, username,
 	).Scan(
 		&u.ID, &u.Name, &u.Email, &u.EmailVerified, &u.Image,
 		&u.Username, &u.Bio, &u.Role, &u.CreatorScore,
-		&u.IsVerified, &u.Onboarded, &u.Theme, &u.CustomLinks, &u.CreatedAt, &u.UpdatedAt,
+		&u.IsVerified, &u.Onboarded, &u.Theme, &u.CustomLinks, &u.EmailPrefsRaw, &u.CreatedAt, &u.UpdatedAt,
 	)
 	if err == pgx.ErrNoRows {
 		return nil, nil
@@ -108,6 +108,27 @@ func (s *Store) UpdateUserScore(ctx context.Context, id string, score int) error
 	_, err := s.pool.Exec(ctx,
 		`UPDATE users SET creator_score = $1 WHERE id = $2`,
 		score, id,
+	)
+	return err
+}
+
+func (s *Store) UpdateUserEmailPrefs(ctx context.Context, id string, prefs []byte) error {
+	_, err := s.pool.Exec(ctx,
+		`UPDATE users SET email_prefs = $1 WHERE id = $2`,
+		prefs, id,
+	)
+	return err
+}
+
+func (s *Store) DeleteUser(ctx context.Context, id string) error {
+	_, err := s.pool.Exec(ctx, `DELETE FROM users WHERE id = $1`, id)
+	return err
+}
+
+func (s *Store) LogDeletion(ctx context.Context, id, email string) error {
+	_, err := s.pool.Exec(ctx,
+		`INSERT INTO deletion_log (id, user_email) VALUES ($1, $2)`,
+		id, email,
 	)
 	return err
 }
