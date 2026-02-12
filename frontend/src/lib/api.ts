@@ -242,4 +242,19 @@ export const api = {
     delete: (id: string) =>
       request<{ success: boolean }>(`/api/keys/${id}`, { method: "DELETE" }),
   },
+  billing: {
+    checkout: (plan: string) =>
+      request<{ url: string }>("/api/billing/checkout", {
+        method: "POST",
+        body: JSON.stringify({ plan }),
+      }),
+    subscription: () =>
+      request<{
+        plan: string;
+        status: string;
+        currentPeriodEnd: string | null;
+      }>("/api/billing/subscription"),
+    portal: () =>
+      request<{ url: string }>("/api/billing/portal", { method: "POST" }),
+  },
 };

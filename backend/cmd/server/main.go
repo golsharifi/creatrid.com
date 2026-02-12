@@ -124,6 +124,7 @@ func main() {
 	widgetHandler := handler.NewWidgetHandler(st)
 	apiKeyHandler := handler.NewAPIKeyHandler(st)
 	verifyHandler := handler.NewVerifyHandler(st)
+	billingHandler := handler.NewBillingHandler(st, cfg)
 
 	// Start connection refresh scheduler
 	providerMap := make(map[string]platform.Provider)
@@ -163,6 +164,7 @@ func main() {
 	r.Get("/api/widget/{username}", widgetHandler.JSON)
 	r.Get("/api/widget/{username}/svg", widgetHandler.SVGBadge)
 	r.Get("/api/widget/{username}/html", widgetHandler.HTMLEmbed)
+	r.Post("/api/billing/webhook", billingHandler.HandleWebhook)
 
 	// Health check
 	r.Get("/api/health", func(w http.ResponseWriter, r *http.Request) {
@@ -200,6 +202,9 @@ func main() {
 		r.Post("/api/keys", apiKeyHandler.Create)
 		r.Get("/api/keys", apiKeyHandler.List)
 		r.Delete("/api/keys/{id}", apiKeyHandler.Delete)
+		r.Post("/api/billing/checkout", billingHandler.CreateCheckout)
+		r.Get("/api/billing/subscription", billingHandler.GetSubscription)
+		r.Post("/api/billing/portal", billingHandler.CreatePortal)
 	})
 
 	// Admin routes

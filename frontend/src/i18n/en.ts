@@ -364,6 +364,64 @@ const en = {
     last30Days: "Last 30 days",
   },
 
+  // Pricing
+  pricing: {
+    title: "Pricing",
+    subtitle: "Choose the plan that fits your needs.",
+    free: "Free",
+    pro: "Pro",
+    business: "Business",
+    month: "/month",
+    freePrice: "$0",
+    proPrice: "$10",
+    businessPrice: "$50",
+    getStarted: "Get Started",
+    upgradeToPro: "Upgrade to Pro",
+    contactSales: "Contact Sales",
+    currentPlan: "Current Plan",
+    features: "Features",
+    freeFeatures: [
+      "3 social connections",
+      "Basic profile",
+      "Creator Score",
+      "Public profile page",
+    ],
+    proFeatures: [
+      "Unlimited connections",
+      "Advanced analytics",
+      "Custom themes",
+      "API keys (1,000 req/mo)",
+      "Embeddable widget",
+      "Priority support",
+    ],
+    businessFeatures: [
+      "Everything in Pro",
+      "Bulk verification API (10K req/mo)",
+      "Brand dashboard",
+      "Saved creator lists",
+      "White-label embed",
+    ],
+    mostPopular: "Most Popular",
+  },
+
+  // Billing
+  billing: {
+    title: "Billing",
+    subtitle: "Manage your subscription and billing.",
+    currentPlan: "Current Plan",
+    freePlan: "Free",
+    proPlan: "Pro",
+    businessPlan: "Business",
+    manage: "Manage Subscription",
+    upgrade: "Upgrade",
+    successTitle: "Subscription activated!",
+    successDesc:
+      "Thank you for upgrading. Your new features are now available.",
+    canceledTitle: "Checkout canceled",
+    canceledDesc: "No changes were made to your subscription.",
+    planFeatures: "Your plan includes:",
+  },
+
   // Widget
   widget: {
     title: "Embeddable Widget",

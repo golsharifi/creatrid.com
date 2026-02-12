@@ -50,6 +50,11 @@ type Config struct {
 
 	SentryDSN        string
 	RefreshInterval  string
+
+	StripeSecretKey     string
+	StripeWebhookSecret string
+	StripePricePro      string
+	StripePriceBusiness string
 }
 
 func Load() (*Config, error) {
@@ -89,6 +94,11 @@ func Load() (*Config, error) {
 
 		SentryDSN:       os.Getenv("SENTRY_DSN"),
 		RefreshInterval: getEnv("REFRESH_INTERVAL", "6h"),
+
+		StripeSecretKey:     os.Getenv("STRIPE_SECRET_KEY"),
+		StripeWebhookSecret: os.Getenv("STRIPE_WEBHOOK_SECRET"),
+		StripePricePro:      os.Getenv("STRIPE_PRICE_PRO"),
+		StripePriceBusiness: os.Getenv("STRIPE_PRICE_BUSINESS"),
 	}
 
 	cfg.GoogleRedirect = cfg.BackendURL + "/api/auth/google/callback"

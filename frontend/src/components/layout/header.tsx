@@ -22,6 +22,8 @@ import { useTranslation } from "react-i18next";
 
 const LANGUAGES = [
   { code: "en", label: "English" },
+  { code: "es", label: "Espa\u00f1ol" },
+  { code: "fa", label: "\u0641\u0627\u0631\u0633\u06cc" },
 ];
 
 export function Header() {
