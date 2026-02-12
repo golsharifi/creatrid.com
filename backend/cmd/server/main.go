@@ -57,6 +57,21 @@ func main() {
 	if cfg.GitHubClientID != "" && cfg.GitHubSecret != "" {
 		providers = append(providers, platform.NewGitHubProvider(cfg.GitHubClientID, cfg.GitHubSecret, cfg.GitHubRedirect))
 	}
+	if cfg.TwitterClientID != "" && cfg.TwitterSecret != "" {
+		providers = append(providers, platform.NewTwitterProvider(cfg.TwitterClientID, cfg.TwitterSecret, cfg.TwitterRedirect))
+	}
+	if cfg.LinkedInClientID != "" && cfg.LinkedInSecret != "" {
+		providers = append(providers, platform.NewLinkedInProvider(cfg.LinkedInClientID, cfg.LinkedInSecret, cfg.LinkedInRedirect))
+	}
+	if cfg.InstagramClientID != "" && cfg.InstagramSecret != "" {
+		providers = append(providers, platform.NewInstagramProvider(cfg.InstagramClientID, cfg.InstagramSecret, cfg.InstagramRedirect))
+	}
+	if cfg.DribbbleClientID != "" && cfg.DribbbleSecret != "" {
+		providers = append(providers, platform.NewDribbbleProvider(cfg.DribbbleClientID, cfg.DribbbleSecret, cfg.DribbbleRedirect))
+	}
+	if cfg.BehanceClientID != "" && cfg.BehanceSecret != "" {
+		providers = append(providers, platform.NewBehanceProvider(cfg.BehanceClientID, cfg.BehanceSecret, cfg.BehanceRedirect))
+	}
 
 	// Init handlers
 	authHandler := handler.NewAuthHandler(googleSvc, jwtSvc, st, cfg)

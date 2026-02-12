@@ -28,6 +28,8 @@ export default function SettingsPage() {
           username={user.username || ""}
           bio={user.bio || ""}
           image={user.image || ""}
+          theme={user.theme || "default"}
+          customLinks={user.customLinks || []}
         />
       </div>
     </div>

@@ -15,6 +15,15 @@ import type { PublicUser, Connection } from "@/lib/types";
 const PROFILE_BASE_URL =
   process.env.NEXT_PUBLIC_PROFILE_URL || "https://creatrid.com";
 
+const THEME_STYLES: Record<string, { accent: string; badge: string }> = {
+  default: { accent: "bg-zinc-900 dark:bg-zinc-100", badge: "border-zinc-200 dark:border-zinc-800" },
+  ocean: { accent: "bg-blue-600", badge: "border-blue-200 dark:border-blue-800" },
+  sunset: { accent: "bg-orange-500", badge: "border-orange-200 dark:border-orange-800" },
+  forest: { accent: "bg-emerald-600", badge: "border-emerald-200 dark:border-emerald-800" },
+  midnight: { accent: "bg-indigo-700", badge: "border-indigo-200 dark:border-indigo-800" },
+  rose: { accent: "bg-pink-500", badge: "border-pink-200 dark:border-pink-800" },
+};
+
 function ProfileContent() {
   const searchParams = useSearchParams();
   const username = searchParams.get("u");
@@ -70,8 +79,14 @@ function ProfileContent() {
     );
   }
 
+  const theme = THEME_STYLES[user.theme] || THEME_STYLES.default;
+
   return (
     <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
+      {/* Theme accent bar */}
+      {user.theme && user.theme !== "default" && (
+        <div className={`-mt-16 mb-8 h-2 rounded-full ${theme.accent}`} />
+      )}
       <div className="flex flex-col items-center text-center">
         {/* Avatar */}
         <div className="relative">
@@ -153,6 +168,29 @@ function ProfileContent() {
                       {conn.followerCount.toLocaleString()}
                     </span>
                   )}
+                  <ExternalLink className="h-3.5 w-3.5 text-zinc-300" />
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Custom Links */}
+        {user.customLinks && user.customLinks.length > 0 && (
+          <div className="mt-8 w-full max-w-sm">
+            <h2 className="mb-3 text-sm font-semibold text-zinc-500">
+              Links
+            </h2>
+            <div className="space-y-2">
+              {user.customLinks.map((link, i) => (
+                <a
+                  key={i}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900 ${theme.badge}`}
+                >
+                  <span className="text-sm font-medium">{link.title}</span>
                   <ExternalLink className="h-3.5 w-3.5 text-zinc-300" />
                 </a>
               ))}

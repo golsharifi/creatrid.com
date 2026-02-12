@@ -11,12 +11,12 @@ func (s *Store) FindUserByID(ctx context.Context, id string) (*model.User, error
 	var u model.User
 	err := s.pool.QueryRow(ctx,
 		`SELECT id, name, email, email_verified, image, username, bio, role,
-		        creator_score, is_verified, onboarded, created_at, updated_at
+		        creator_score, is_verified, onboarded, theme, custom_links, created_at, updated_at
 		 FROM users WHERE id = $1`, id,
 	).Scan(
 		&u.ID, &u.Name, &u.Email, &u.EmailVerified, &u.Image,
 		&u.Username, &u.Bio, &u.Role, &u.CreatorScore,
-		&u.IsVerified, &u.Onboarded, &u.CreatedAt, &u.UpdatedAt,
+		&u.IsVerified, &u.Onboarded, &u.Theme, &u.CustomLinks, &u.CreatedAt, &u.UpdatedAt,
 	)
 	if err == pgx.ErrNoRows {
 		return nil, nil
@@ -28,12 +28,12 @@ func (s *Store) FindUserByEmail(ctx context.Context, email string) (*model.User,
 	var u model.User
 	err := s.pool.QueryRow(ctx,
 		`SELECT id, name, email, email_verified, image, username, bio, role,
-		        creator_score, is_verified, onboarded, created_at, updated_at
+		        creator_score, is_verified, onboarded, theme, custom_links, created_at, updated_at
 		 FROM users WHERE email = $1`, email,
 	).Scan(
 		&u.ID, &u.Name, &u.Email, &u.EmailVerified, &u.Image,
 		&u.Username, &u.Bio, &u.Role, &u.CreatorScore,
-		&u.IsVerified, &u.Onboarded, &u.CreatedAt, &u.UpdatedAt,
+		&u.IsVerified, &u.Onboarded, &u.Theme, &u.CustomLinks, &u.CreatedAt, &u.UpdatedAt,
 	)
 	if err == pgx.ErrNoRows {
 		return nil, nil
@@ -45,12 +45,12 @@ func (s *Store) FindUserByUsername(ctx context.Context, username string) (*model
 	var u model.User
 	err := s.pool.QueryRow(ctx,
 		`SELECT id, name, email, email_verified, image, username, bio, role,
-		        creator_score, is_verified, onboarded, created_at, updated_at
+		        creator_score, is_verified, onboarded, theme, custom_links, created_at, updated_at
 		 FROM users WHERE username = $1`, username,
 	).Scan(
 		&u.ID, &u.Name, &u.Email, &u.EmailVerified, &u.Image,
 		&u.Username, &u.Bio, &u.Role, &u.CreatorScore,
-		&u.IsVerified, &u.Onboarded, &u.CreatedAt, &u.UpdatedAt,
+		&u.IsVerified, &u.Onboarded, &u.Theme, &u.CustomLinks, &u.CreatedAt, &u.UpdatedAt,
 	)
 	if err == pgx.ErrNoRows {
 		return nil, nil
@@ -75,14 +75,23 @@ func (s *Store) UpdateUserOnboarding(ctx context.Context, id, username, name str
 	return err
 }
 
-func (s *Store) UpdateUserProfile(ctx context.Context, id string, name, bio, username *string) error {
+func (s *Store) UpdateUserProfile(ctx context.Context, id string, name, bio, username, theme *string) error {
 	_, err := s.pool.Exec(ctx,
 		`UPDATE users SET
 			name = COALESCE($1, name),
 			bio = COALESCE($2, bio),
-			username = COALESCE($3, username)
-		 WHERE id = $4`,
-		name, bio, username, id,
+			username = COALESCE($3, username),
+			theme = COALESCE($4, theme)
+		 WHERE id = $5`,
+		name, bio, username, theme, id,
+	)
+	return err
+}
+
+func (s *Store) UpdateUserCustomLinks(ctx context.Context, id string, links []byte) error {
+	_, err := s.pool.Exec(ctx,
+		`UPDATE users SET custom_links = $1 WHERE id = $2`,
+		links, id,
 	)
 	return err
 }

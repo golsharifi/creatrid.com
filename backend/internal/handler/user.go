@@ -81,10 +81,17 @@ func (h *UserHandler) Onboard(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]bool{"success": true})
 }
 
+type customLink struct {
+	Title string `json:"title"`
+	URL   string `json:"url"`
+}
+
 type updateProfileRequest struct {
-	Name     *string `json:"name"`
-	Bio      *string `json:"bio"`
-	Username *string `json:"username"`
+	Name        *string      `json:"name"`
+	Bio         *string      `json:"bio"`
+	Username    *string      `json:"username"`
+	Theme       *string      `json:"theme"`
+	CustomLinks []customLink `json:"customLinks,omitempty"`
 }
 
 func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
@@ -110,6 +117,18 @@ func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		req.Bio = &trimmed
 	}
 
+	// Validate theme if provided
+	if req.Theme != nil {
+		validThemes := map[string]bool{
+			"default": true, "ocean": true, "sunset": true,
+			"forest": true, "midnight": true, "rose": true,
+		}
+		if !validThemes[*req.Theme] {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Invalid theme"})
+			return
+		}
+	}
+
 	// Validate username if provided
 	if req.Username != nil {
 		username := strings.ToLower(strings.TrimSpace(*req.Username))
@@ -131,9 +150,22 @@ func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := h.store.UpdateUserProfile(r.Context(), user.ID, req.Name, req.Bio, req.Username); err != nil {
+	if err := h.store.UpdateUserProfile(r.Context(), user.ID, req.Name, req.Bio, req.Username, req.Theme); err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Failed to update profile"})
 		return
+	}
+
+	// Update custom links if provided
+	if req.CustomLinks != nil {
+		if len(req.CustomLinks) > 10 {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Maximum 10 custom links"})
+			return
+		}
+		linksJSON, _ := json.Marshal(req.CustomLinks)
+		if err := h.store.UpdateUserCustomLinks(r.Context(), user.ID, linksJSON); err != nil {
+			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Failed to update links"})
+			return
+		}
 	}
 
 	recalcScore(r.Context(), h.store, user.ID)

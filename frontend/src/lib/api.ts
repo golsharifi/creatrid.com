@@ -49,6 +49,8 @@ export const api = {
       name?: string;
       bio?: string;
       username?: string;
+      theme?: string;
+      customLinks?: { title: string; url: string }[];
     }) =>
       request<{ success: boolean }>("/api/users/profile", {
         method: "PATCH",

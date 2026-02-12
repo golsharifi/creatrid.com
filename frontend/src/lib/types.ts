@@ -1,3 +1,8 @@
+export interface CustomLink {
+  title: string;
+  url: string;
+}
+
 export interface User {
   id: string;
   name: string | null;
@@ -10,6 +15,8 @@ export interface User {
   creatorScore: number | null;
   isVerified: boolean;
   onboarded: boolean;
+  theme: string;
+  customLinks: CustomLink[];
   createdAt: string;
   updatedAt: string;
 }
@@ -23,6 +30,8 @@ export interface PublicUser {
   role: "CREATOR" | "BRAND" | "ADMIN";
   creatorScore: number | null;
   isVerified: boolean;
+  theme: string;
+  customLinks: CustomLink[];
   createdAt: string;
 }
 

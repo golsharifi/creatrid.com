@@ -17,11 +17,11 @@ interface PlatformConfig {
 const PLATFORMS: PlatformConfig[] = [
   { key: "youtube", name: "YouTube", icon: "YT", available: true },
   { key: "github", name: "GitHub", icon: "GH", available: true },
-  { key: "twitter", name: "Twitter / X", icon: "𝕏", available: false },
-  { key: "linkedin", name: "LinkedIn", icon: "in", available: false },
-  { key: "instagram", name: "Instagram", icon: "IG", available: false },
-  { key: "behance", name: "Behance", icon: "Be", available: false },
-  { key: "dribbble", name: "Dribbble", icon: "Dr", available: false },
+  { key: "twitter", name: "Twitter / X", icon: "𝕏", available: true },
+  { key: "linkedin", name: "LinkedIn", icon: "in", available: true },
+  { key: "instagram", name: "Instagram", icon: "IG", available: true },
+  { key: "behance", name: "Behance", icon: "Be", available: true },
+  { key: "dribbble", name: "Dribbble", icon: "Dr", available: true },
 ];
 
 function ConnectionsContent() {

@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 type UserRole string
 
@@ -19,23 +22,27 @@ type User struct {
 	Username      *string    `json:"username"`
 	Bio           *string    `json:"bio"`
 	Role          UserRole   `json:"role"`
-	CreatorScore  *int       `json:"creatorScore"`
-	IsVerified    bool       `json:"isVerified"`
-	Onboarded     bool       `json:"onboarded"`
-	CreatedAt     time.Time  `json:"createdAt"`
-	UpdatedAt     time.Time  `json:"updatedAt"`
+	CreatorScore  *int             `json:"creatorScore"`
+	IsVerified    bool             `json:"isVerified"`
+	Onboarded     bool             `json:"onboarded"`
+	Theme         string           `json:"theme"`
+	CustomLinks   json.RawMessage  `json:"customLinks"`
+	CreatedAt     time.Time        `json:"createdAt"`
+	UpdatedAt     time.Time        `json:"updatedAt"`
 }
 
 type PublicUser struct {
-	ID           string   `json:"id"`
-	Name         *string  `json:"name"`
-	Username     *string  `json:"username"`
-	Bio          *string  `json:"bio"`
-	Image        *string  `json:"image"`
-	Role         UserRole `json:"role"`
-	CreatorScore *int     `json:"creatorScore"`
-	IsVerified   bool     `json:"isVerified"`
-	CreatedAt    time.Time `json:"createdAt"`
+	ID           string          `json:"id"`
+	Name         *string         `json:"name"`
+	Username     *string         `json:"username"`
+	Bio          *string         `json:"bio"`
+	Image        *string         `json:"image"`
+	Role         UserRole        `json:"role"`
+	CreatorScore *int            `json:"creatorScore"`
+	IsVerified   bool            `json:"isVerified"`
+	Theme        string          `json:"theme"`
+	CustomLinks  json.RawMessage `json:"customLinks"`
+	CreatedAt    time.Time       `json:"createdAt"`
 }
 
 func (u *User) ToPublic() *PublicUser {
@@ -48,6 +55,8 @@ func (u *User) ToPublic() *PublicUser {
 		Role:         u.Role,
 		CreatorScore: u.CreatorScore,
 		IsVerified:   u.IsVerified,
+		Theme:        u.Theme,
+		CustomLinks:  u.CustomLinks,
 		CreatedAt:    u.CreatedAt,
 	}
 }
