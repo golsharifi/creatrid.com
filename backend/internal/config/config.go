@@ -41,6 +41,12 @@ type Config struct {
 	AzureStorageAccount   string
 	AzureStorageKey       string
 	AzureStorageContainer string
+
+	SMTPHost     string
+	SMTPPort     string
+	SMTPUsername string
+	SMTPPassword string
+	SMTPFrom     string
 }
 
 func Load() (*Config, error) {
@@ -71,6 +77,12 @@ func Load() (*Config, error) {
 		AzureStorageAccount:   os.Getenv("AZURE_STORAGE_ACCOUNT"),
 		AzureStorageKey:       os.Getenv("AZURE_STORAGE_KEY"),
 		AzureStorageContainer: getEnv("AZURE_STORAGE_CONTAINER", "avatars"),
+
+		SMTPHost:     os.Getenv("SMTP_HOST"),
+		SMTPPort:     getEnv("SMTP_PORT", "587"),
+		SMTPUsername: os.Getenv("SMTP_USERNAME"),
+		SMTPPassword: os.Getenv("SMTP_PASSWORD"),
+		SMTPFrom:     getEnv("SMTP_FROM", "noreply@creatrid.com"),
 	}
 
 	cfg.GoogleRedirect = cfg.BackendURL + "/api/auth/google/callback"

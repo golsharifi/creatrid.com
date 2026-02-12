@@ -45,20 +45,23 @@ backend/
 ├── internal/
 │   ├── auth/                   # Google OAuth + JWT service
 │   ├── config/                 # Env var loading
-│   ├── handler/                # HTTP handlers (auth, user, connection, og, score, analytics, admin)
+│   ├── email/                  # SMTP email service + HTML templates
+│   ├── handler/                # HTTP handlers (auth, user, connection, og, score, analytics, admin, collaboration, digest)
 │   ├── middleware/              # CORS, RequireAuth, RequireAuthRedirect, RateLimit
 │   ├── model/                  # User, Account, Connection structs
 │   ├── platform/               # Provider interface + YouTube, GitHub, Twitter, LinkedIn, Instagram, Dribbble, Behance
 │   ├── score/                  # Creator Score calculation engine
 │   ├── storage/                # Azure Blob Storage client (image uploads)
 │   └── store/                  # PostgreSQL queries (pgx)
-├── migrations/                 # 001_initial, 002_connections, 003_profile_customization, 004_analytics
+├── migrations/                 # 001_initial, 002_connections, 003_profile_customization, 004_analytics, 005_collaborations
 
 frontend/
 ├── src/app/                    # Pages (all "use client" components)
 │   ├── admin/                  # Admin dashboard (stats, user management, verification)
+│   ├── collaborations/         # Collaboration inbox/outbox
 │   ├── connections/            # Connect/disconnect social accounts
 │   ├── dashboard/              # Main dashboard with score, analytics, share, QR
+│   ├── discover/               # Creator discovery with filters and collab requests
 │   ├── onboarding/             # First-time username setup
 │   ├── profile/                # Public profile with themes, links, connections
 │   ├── settings/               # Profile editor, avatar upload, theme picker, custom links
@@ -119,6 +122,16 @@ deploy/
 | GET | `/api/admin/stats` | Admin | Platform-wide stats |
 | GET | `/api/admin/users` | Admin | List all users (paginated) |
 | POST | `/api/admin/users/verify` | Admin | Set/unset verification badge |
+| POST | `/api/admin/digest` | Admin | Send weekly digest to all users |
+
+### Discovery & Collaboration
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/api/discover` | No | Discover creators (filters: minScore, platform) |
+| POST | `/api/collaborations` | Yes | Send collaboration request |
+| GET | `/api/collaborations/inbox` | Yes | Incoming requests |
+| GET | `/api/collaborations/outbox` | Yes | Sent requests |
+| POST | `/api/collaborations/{id}/respond` | Yes | Accept or decline request |
 
 ### Other
 | Method | Path | Auth | Description |
@@ -146,12 +159,12 @@ deploy/
 - [x] **Phase 14: Admin Dashboard** — `/admin` page, platform stats, user table with pagination, verify/unverify
 - [x] **Phase 15: Verification System** — Admin-managed verification badges, badge display on public profile
 - [x] **Phase 16: Token Refresh** — RefreshToken on all 7 providers, refresh endpoint, auto-update stored tokens
+- [x] **Phase 17: Email Notifications** — SMTP service, welcome email on onboard, connection alert, weekly digest (admin-triggered)
+- [x] **Phase 18: B2B Features** — Creator discovery with filters, collaboration requests (send/accept/decline), inbox/outbox
 
 ### Upcoming
 
 - [ ] **Custom Domain** — Point `creatrid.com` → Static Web Apps, `api.creatrid.com` → Container Apps
-- [ ] **Email Notifications** — Welcome email, connection alerts, weekly digest
-- [ ] **B2B Features** — Brand accounts, creator discovery, collaboration requests
 
 ## Key Design Decisions
 
@@ -165,4 +178,4 @@ deploy/
 
 ## Environment Variables
 
-See `.env.example` for the full list. Required: `DATABASE_URL`, `JWT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`. All social platform credentials are optional. Image upload requires `AZURE_STORAGE_ACCOUNT`, `AZURE_STORAGE_KEY`, `AZURE_STORAGE_CONTAINER`.
+See `.env.example` for the full list. Required: `DATABASE_URL`, `JWT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`. All social platform credentials are optional. Image upload requires `AZURE_STORAGE_ACCOUNT`, `AZURE_STORAGE_KEY`, `AZURE_STORAGE_CONTAINER`. Email requires `SMTP_HOST`, `SMTP_USERNAME`, `SMTP_PASSWORD`.

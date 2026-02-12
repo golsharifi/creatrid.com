@@ -3,10 +3,12 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"regexp"
 	"strings"
 
+	"github.com/creatrid/creatrid/internal/email"
 	"github.com/creatrid/creatrid/internal/middleware"
 	"github.com/creatrid/creatrid/internal/storage"
 	"github.com/creatrid/creatrid/internal/store"
@@ -28,10 +30,11 @@ var (
 type UserHandler struct {
 	store *store.Store
 	blob  *storage.BlobStorage
+	email *email.Service
 }
 
-func NewUserHandler(store *store.Store, blob *storage.BlobStorage) *UserHandler {
-	return &UserHandler{store: store, blob: blob}
+func NewUserHandler(store *store.Store, blob *storage.BlobStorage, emailSvc *email.Service) *UserHandler {
+	return &UserHandler{store: store, blob: blob, email: emailSvc}
 }
 
 type onboardRequest struct {
@@ -82,6 +85,18 @@ func (h *UserHandler) Onboard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	recalcScore(r.Context(), h.store, user.ID)
+
+	// Send welcome email (async, don't block response)
+	if h.email != nil {
+		go func() {
+			profileURL := "https://creatrid.com/profile?u=" + username
+			subj, body := email.WelcomeEmail(name, username, profileURL)
+			if err := h.email.Send(user.Email, subj, body); err != nil {
+				log.Printf("Failed to send welcome email to %s: %v", user.Email, err)
+			}
+		}()
+	}
+
 	writeJSON(w, http.StatusOK, map[string]bool{"success": true})
 }
 

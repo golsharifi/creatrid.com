@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/creatrid/creatrid/internal/config"
+	"github.com/creatrid/creatrid/internal/email"
 	"github.com/creatrid/creatrid/internal/middleware"
 	"github.com/creatrid/creatrid/internal/model"
 	"github.com/creatrid/creatrid/internal/platform"
@@ -20,9 +21,10 @@ type ConnectionHandler struct {
 	providers map[string]platform.Provider
 	store     *store.Store
 	config    *config.Config
+	email     *email.Service
 }
 
-func NewConnectionHandler(st *store.Store, cfg *config.Config, providers ...platform.Provider) *ConnectionHandler {
+func NewConnectionHandler(st *store.Store, cfg *config.Config, emailSvc *email.Service, providers ...platform.Provider) *ConnectionHandler {
 	pm := make(map[string]platform.Provider)
 	for _, p := range providers {
 		pm[p.Name()] = p
@@ -31,6 +33,7 @@ func NewConnectionHandler(st *store.Store, cfg *config.Config, providers ...plat
 		providers: pm,
 		store:     st,
 		config:    cfg,
+		email:     emailSvc,
 	}
 }
 
@@ -149,6 +152,21 @@ func (h *ConnectionHandler) Callback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	recalcScore(r.Context(), h.store, user.ID)
+
+	// Send connection alert email (async)
+	if h.email != nil && user.Name != nil {
+		go func() {
+			platformUsername := profile.Username
+			if platformUsername == "" {
+				platformUsername = profile.DisplayName
+			}
+			subj, body := email.ConnectionAlertEmail(*user.Name, platformName, platformUsername)
+			if err := h.email.Send(user.Email, subj, body); err != nil {
+				log.Printf("Failed to send connection alert email to %s: %v", user.Email, err)
+			}
+		}()
+	}
+
 	http.Redirect(w, r, h.config.FrontendURL+"/connections?connected="+platformName, http.StatusTemporaryRedirect)
 }
 

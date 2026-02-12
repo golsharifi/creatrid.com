@@ -143,5 +143,69 @@ export const api = {
         method: "POST",
         body: JSON.stringify({ userId, verified }),
       }),
+    sendDigest: () =>
+      request<{ sent: number }>("/api/admin/digest", { method: "POST" }),
+  },
+  discover: {
+    list: (params?: { limit?: number; offset?: number; minScore?: number; platform?: string }) => {
+      const p = new URLSearchParams();
+      if (params?.limit) p.set("limit", String(params.limit));
+      if (params?.offset) p.set("offset", String(params.offset));
+      if (params?.minScore) p.set("minScore", String(params.minScore));
+      if (params?.platform) p.set("platform", params.platform);
+      return request<{
+        creators: {
+          id: string;
+          name: string | null;
+          username: string | null;
+          image: string | null;
+          bio: string | null;
+          creatorScore: number | null;
+          isVerified: boolean;
+          connections: number;
+        }[];
+        total: number;
+      }>(`/api/discover?${p.toString()}`);
+    },
+  },
+  collaborations: {
+    send: (toUserId: string, message: string) =>
+      request<{ id: string }>("/api/collaborations", {
+        method: "POST",
+        body: JSON.stringify({ toUserId, message }),
+      }),
+    inbox: () =>
+      request<{
+        requests: {
+          id: string;
+          fromUserId: string;
+          toUserId: string;
+          message: string;
+          status: string;
+          createdAt: string;
+          fromName: string | null;
+          fromUsername: string | null;
+          fromImage: string | null;
+        }[];
+      }>("/api/collaborations/inbox"),
+    outbox: () =>
+      request<{
+        requests: {
+          id: string;
+          fromUserId: string;
+          toUserId: string;
+          message: string;
+          status: string;
+          createdAt: string;
+          toName: string | null;
+          toUsername: string | null;
+          toImage: string | null;
+        }[];
+      }>("/api/collaborations/outbox"),
+    respond: (id: string, action: "accept" | "decline") =>
+      request<{ status: string }>(`/api/collaborations/${id}/respond`, {
+        method: "POST",
+        body: JSON.stringify({ action }),
+      }),
   },
 };

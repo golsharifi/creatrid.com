@@ -13,6 +13,7 @@ import (
 
 	"github.com/creatrid/creatrid/internal/auth"
 	"github.com/creatrid/creatrid/internal/config"
+	"github.com/creatrid/creatrid/internal/email"
 	"github.com/creatrid/creatrid/internal/handler"
 	"github.com/creatrid/creatrid/internal/middleware"
 	"github.com/creatrid/creatrid/internal/platform"
@@ -87,13 +88,24 @@ func main() {
 		log.Println("Warning: AZURE_STORAGE_ACCOUNT or AZURE_STORAGE_KEY not set. Image upload will be unavailable.")
 	}
 
+	// Init email service (optional)
+	var emailSvc *email.Service
+	if cfg.SMTPHost != "" && cfg.SMTPUsername != "" {
+		emailSvc = email.NewService(cfg.SMTPHost, cfg.SMTPPort, cfg.SMTPUsername, cfg.SMTPPassword, cfg.SMTPFrom)
+		log.Println("Email service configured")
+	} else {
+		log.Println("Warning: SMTP not configured. Email notifications will be unavailable.")
+	}
+
 	// Init handlers
 	authHandler := handler.NewAuthHandler(googleSvc, jwtSvc, st, cfg)
-	userHandler := handler.NewUserHandler(st, blobStore)
-	connHandler := handler.NewConnectionHandler(st, cfg, providers...)
+	userHandler := handler.NewUserHandler(st, blobStore, emailSvc)
+	connHandler := handler.NewConnectionHandler(st, cfg, emailSvc, providers...)
 	ogHandler := handler.NewOGHandler(st, cfg)
 	analyticsHandler := handler.NewAnalyticsHandler(st)
 	adminHandler := handler.NewAdminHandler(st)
+	digestHandler := handler.NewDigestHandler(st, emailSvc)
+	collabHandler := handler.NewCollaborationHandler(st)
 
 	// Setup router
 	r := chi.NewRouter()
@@ -111,6 +123,7 @@ func main() {
 	r.Post("/api/users/{username}/view", analyticsHandler.TrackView)
 	r.Post("/api/users/{username}/click", analyticsHandler.TrackClick)
 	r.Get("/p/{username}", ogHandler.ProfilePage)
+	r.Get("/api/discover", collabHandler.Discover)
 
 	// Health check
 	r.Get("/api/health", func(w http.ResponseWriter, r *http.Request) {
@@ -137,6 +150,10 @@ func main() {
 		r.Delete("/api/connections/{platform}", connHandler.Disconnect)
 		r.Post("/api/connections/{platform}/refresh", connHandler.Refresh)
 		r.Get("/api/analytics", analyticsHandler.Summary)
+		r.Post("/api/collaborations", collabHandler.SendRequest)
+		r.Get("/api/collaborations/inbox", collabHandler.Inbox)
+		r.Get("/api/collaborations/outbox", collabHandler.Outbox)
+		r.Post("/api/collaborations/{id}/respond", collabHandler.Respond)
 	})
 
 	// Admin routes
@@ -146,6 +163,7 @@ func main() {
 		r.Get("/api/admin/stats", adminHandler.Stats)
 		r.Get("/api/admin/users", adminHandler.ListUsers)
 		r.Post("/api/admin/users/verify", adminHandler.SetVerified)
+		r.Post("/api/admin/digest", digestHandler.SendWeeklyDigest)
 	})
 
 	// Start server
