@@ -16,6 +16,7 @@ import (
 	"github.com/creatrid/creatrid/internal/handler"
 	"github.com/creatrid/creatrid/internal/middleware"
 	"github.com/creatrid/creatrid/internal/platform"
+	"github.com/creatrid/creatrid/internal/storage"
 	"github.com/creatrid/creatrid/internal/store"
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
@@ -73,11 +74,26 @@ func main() {
 		providers = append(providers, platform.NewBehanceProvider(cfg.BehanceClientID, cfg.BehanceSecret, cfg.BehanceRedirect))
 	}
 
+	// Init blob storage (optional)
+	var blobStore *storage.BlobStorage
+	if cfg.AzureStorageAccount != "" && cfg.AzureStorageKey != "" {
+		blobStore, err = storage.NewBlobStorage(cfg.AzureStorageAccount, cfg.AzureStorageKey, cfg.AzureStorageContainer)
+		if err != nil {
+			log.Printf("Warning: Failed to init blob storage: %v", err)
+		} else {
+			log.Println("Azure Blob Storage connected")
+		}
+	} else {
+		log.Println("Warning: AZURE_STORAGE_ACCOUNT or AZURE_STORAGE_KEY not set. Image upload will be unavailable.")
+	}
+
 	// Init handlers
 	authHandler := handler.NewAuthHandler(googleSvc, jwtSvc, st, cfg)
-	userHandler := handler.NewUserHandler(st)
+	userHandler := handler.NewUserHandler(st, blobStore)
 	connHandler := handler.NewConnectionHandler(st, cfg, providers...)
 	ogHandler := handler.NewOGHandler(st, cfg)
+	analyticsHandler := handler.NewAnalyticsHandler(st)
+	adminHandler := handler.NewAdminHandler(st)
 
 	// Setup router
 	r := chi.NewRouter()
@@ -85,12 +101,15 @@ func main() {
 	r.Use(chimw.Recoverer)
 	r.Use(chimw.RealIP)
 	r.Use(middleware.CORS(cfg.FrontendURL))
+	r.Use(middleware.RateLimit(20, 40)) // 20 req/s per IP, burst 40
 
 	// Public routes
 	r.Get("/api/auth/google", authHandler.GoogleLogin)
 	r.Get("/api/auth/google/callback", authHandler.GoogleCallback)
 	r.Get("/api/users/{username}", userHandler.PublicProfile)
 	r.Get("/api/users/{username}/connections", connHandler.PublicList)
+	r.Post("/api/users/{username}/view", analyticsHandler.TrackView)
+	r.Post("/api/users/{username}/click", analyticsHandler.TrackClick)
 	r.Get("/p/{username}", ogHandler.ProfilePage)
 
 	// Health check
@@ -113,8 +132,20 @@ func main() {
 		r.Post("/api/auth/logout", authHandler.Logout)
 		r.Post("/api/users/onboard", userHandler.Onboard)
 		r.Patch("/api/users/profile", userHandler.UpdateProfile)
+		r.Post("/api/users/profile/image", userHandler.UploadImage)
 		r.Get("/api/connections", connHandler.List)
 		r.Delete("/api/connections/{platform}", connHandler.Disconnect)
+		r.Post("/api/connections/{platform}/refresh", connHandler.Refresh)
+		r.Get("/api/analytics", analyticsHandler.Summary)
+	})
+
+	// Admin routes
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.RequireAuth(jwtSvc, st))
+		r.Use(handler.RequireAdmin)
+		r.Get("/api/admin/stats", adminHandler.Stats)
+		r.Get("/api/admin/users", adminHandler.ListUsers)
+		r.Post("/api/admin/users/verify", adminHandler.SetVerified)
 	})
 
 	// Start server

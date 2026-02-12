@@ -2,13 +2,16 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
 
 	"github.com/creatrid/creatrid/internal/middleware"
+	"github.com/creatrid/creatrid/internal/storage"
 	"github.com/creatrid/creatrid/internal/store"
 	"github.com/go-chi/chi/v5"
+	"github.com/nrednav/cuid2"
 )
 
 var (
@@ -24,10 +27,11 @@ var (
 
 type UserHandler struct {
 	store *store.Store
+	blob  *storage.BlobStorage
 }
 
-func NewUserHandler(store *store.Store) *UserHandler {
-	return &UserHandler{store: store}
+func NewUserHandler(store *store.Store, blob *storage.BlobStorage) *UserHandler {
+	return &UserHandler{store: store, blob: blob}
 }
 
 type onboardRequest struct {
@@ -190,6 +194,67 @@ func (h *UserHandler) PublicProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, map[string]interface{}{"user": user.ToPublic()})
+}
+
+var allowedImageTypes = map[string]string{
+	"image/jpeg": ".jpg",
+	"image/png":  ".png",
+	"image/webp": ".webp",
+}
+
+const maxImageSize = 5 << 20 // 5 MB
+
+func (h *UserHandler) UploadImage(w http.ResponseWriter, r *http.Request) {
+	user := middleware.UserFromContext(r.Context())
+	if user == nil {
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "Not authenticated"})
+		return
+	}
+
+	if h.blob == nil {
+		writeJSON(w, http.StatusServiceUnavailable, map[string]string{"error": "Image upload is not configured"})
+		return
+	}
+
+	r.Body = http.MaxBytesReader(w, r.Body, maxImageSize)
+	if err := r.ParseMultipartForm(maxImageSize); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "File too large (max 5 MB)"})
+		return
+	}
+
+	file, header, err := r.FormFile("image")
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "No image file provided"})
+		return
+	}
+	defer file.Close()
+
+	contentType := header.Header.Get("Content-Type")
+	ext, ok := allowedImageTypes[contentType]
+	if !ok {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Only JPEG, PNG, and WebP images are allowed"})
+		return
+	}
+
+	// Delete old image if it exists
+	if user.Image != nil && *user.Image != "" {
+		_ = h.blob.Delete(r.Context(), *user.Image)
+	}
+
+	blobName := fmt.Sprintf("avatars/%s%s", cuid2.Generate(), ext)
+	imageURL, err := h.blob.Upload(r.Context(), blobName, file, contentType)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Failed to upload image"})
+		return
+	}
+
+	if err := h.store.UpdateUserImage(r.Context(), user.ID, imageURL); err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Failed to save image"})
+		return
+	}
+
+	recalcScore(r.Context(), h.store, user.ID)
+	writeJSON(w, http.StatusOK, map[string]string{"image": imageURL})
 }
 
 func validateUsername(username string) string {

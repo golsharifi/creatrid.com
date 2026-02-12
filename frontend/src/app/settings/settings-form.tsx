@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Camera } from "lucide-react";
 import type { CustomLink } from "@/lib/types";
 
 const THEMES = [
@@ -29,6 +29,7 @@ export function SettingsForm({
   name,
   username,
   bio,
+  image,
   theme,
   customLinks,
 }: SettingsFormProps) {
@@ -38,6 +39,35 @@ export function SettingsForm({
   const [links, setLinks] = useState<CustomLink[]>(customLinks || []);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [imagePreview, setImagePreview] = useState(image || "");
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setError("Only JPEG, PNG, and WebP images are allowed");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Image must be under 5 MB");
+      return;
+    }
+
+    setUploading(true);
+    setError("");
+
+    const result = await api.users.uploadImage(file);
+    if (result.error) {
+      setError(result.error);
+    } else if (result.data) {
+      setImagePreview(result.data.image);
+      await refresh();
+    }
+    setUploading(false);
+  }
 
   const addLink = () => {
     if (links.length >= 10) return;
@@ -84,6 +114,42 @@ export function SettingsForm({
       {/* Profile Section */}
       <div className="space-y-6">
         <h2 className="text-lg font-semibold">Profile</h2>
+
+        {/* Avatar Upload */}
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            {imagePreview ? (
+              <img
+                src={imagePreview}
+                alt="Profile"
+                className="h-20 w-20 rounded-full object-cover"
+              />
+            ) : (
+              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-zinc-100 text-2xl font-bold text-zinc-400 dark:bg-zinc-800">
+                {(name || "?")[0].toUpperCase()}
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="absolute -bottom-1 -right-1 rounded-full border-2 border-white bg-zinc-900 p-1.5 text-white transition-colors hover:bg-zinc-700 dark:border-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+            >
+              <Camera className="h-3.5 w-3.5" />
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleImageUpload}
+              className="hidden"
+            />
+          </div>
+          <div className="text-sm">
+            <p className="font-medium">{uploading ? "Uploading..." : "Profile Photo"}</p>
+            <p className="text-xs text-zinc-500">JPEG, PNG, or WebP. Max 5 MB.</p>
+          </div>
+        </div>
 
         <div>
           <label

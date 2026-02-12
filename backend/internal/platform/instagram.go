@@ -36,6 +36,10 @@ func (i *InstagramProvider) Exchange(ctx context.Context, code string) (*oauth2.
 	return i.config.Exchange(ctx, code)
 }
 
+func (i *InstagramProvider) RefreshToken(ctx context.Context, refreshToken string) (*oauth2.Token, error) {
+	return refreshWithConfig(ctx, i.config, refreshToken)
+}
+
 func (i *InstagramProvider) FetchProfile(ctx context.Context, token *oauth2.Token) (*Profile, error) {
 	client := i.config.Client(ctx, token)
 

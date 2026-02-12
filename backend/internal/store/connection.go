@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"github.com/creatrid/creatrid/internal/model"
 	"github.com/jackc/pgx/v5"
@@ -93,6 +94,31 @@ func (s *Store) DeleteConnection(ctx context.Context, userID, platform string) e
 	_, err := s.pool.Exec(ctx,
 		`DELETE FROM connections WHERE user_id = $1 AND platform = $2`,
 		userID, platform,
+	)
+	return err
+}
+
+func (s *Store) UpdateConnectionTokens(ctx context.Context, userID, platform, accessToken, refreshToken string, expiresAt *time.Time) error {
+	_, err := s.pool.Exec(ctx,
+		`UPDATE connections SET
+			access_token = $1,
+			refresh_token = COALESCE($2, refresh_token),
+			token_expires_at = $3,
+			updated_at = NOW()
+		 WHERE user_id = $4 AND platform = $5`,
+		accessToken, refreshToken, expiresAt, userID, platform,
+	)
+	return err
+}
+
+func (s *Store) UpdateConnectionProfile(ctx context.Context, userID, platform string, followerCount *int, metadata []byte) error {
+	_, err := s.pool.Exec(ctx,
+		`UPDATE connections SET
+			follower_count = COALESCE($1, follower_count),
+			metadata = COALESCE($2, metadata),
+			updated_at = NOW()
+		 WHERE user_id = $3 AND platform = $4`,
+		followerCount, metadata, userID, platform,
 	)
 	return err
 }

@@ -56,6 +56,8 @@ function ProfileContent() {
         setConnections(result.data.connections || []);
       }
     });
+    // Track profile view
+    api.analytics.trackView(username);
   }, [username]);
 
   if (loading) {
@@ -142,6 +144,7 @@ function ProfileContent() {
                   href={conn.profileUrl || "#"}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => username && api.analytics.trackClick(username, "connection", conn.platform)}
                   className="flex items-center gap-3 rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900"
                 >
                   {conn.avatarUrl ? (
@@ -188,6 +191,7 @@ function ProfileContent() {
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => username && api.analytics.trackClick(username, "custom", link.url)}
                   className={`flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900 ${theme.badge}`}
                 >
                   <span className="text-sm font-medium">{link.title}</span>

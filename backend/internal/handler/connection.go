@@ -13,6 +13,7 @@ import (
 	"github.com/creatrid/creatrid/internal/store"
 	"github.com/go-chi/chi/v5"
 	"github.com/nrednav/cuid2"
+	"golang.org/x/oauth2"
 )
 
 type ConnectionHandler struct {
@@ -188,6 +189,65 @@ func (h *ConnectionHandler) Disconnect(w http.ResponseWriter, r *http.Request) {
 
 	recalcScore(r.Context(), h.store, user.ID)
 	writeJSON(w, http.StatusOK, map[string]bool{"success": true})
+}
+
+func (h *ConnectionHandler) Refresh(w http.ResponseWriter, r *http.Request) {
+	user := middleware.UserFromContext(r.Context())
+	if user == nil {
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "Not authenticated"})
+		return
+	}
+
+	platformName := chi.URLParam(r, "platform")
+	provider, ok := h.providers[platformName]
+	if !ok {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Unsupported platform"})
+		return
+	}
+
+	conn, err := h.store.FindConnectionByUserAndPlatform(r.Context(), user.ID, platformName)
+	if err != nil || conn == nil {
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": "Connection not found"})
+		return
+	}
+
+	// Try to refresh the token if we have a refresh token
+	var accessToken string
+	if conn.RefreshToken != nil && *conn.RefreshToken != "" {
+		newToken, err := provider.RefreshToken(r.Context(), *conn.RefreshToken)
+		if err != nil {
+			log.Printf("Token refresh failed for %s/%s: %v", user.ID, platformName, err)
+			writeJSON(w, http.StatusOK, map[string]string{"status": "refresh_failed", "error": "Token refresh failed — reconnect required"})
+			return
+		}
+		accessToken = newToken.AccessToken
+
+		if !newToken.Expiry.IsZero() {
+			exp := newToken.Expiry
+			_ = h.store.UpdateConnectionTokens(r.Context(), user.ID, platformName, newToken.AccessToken, newToken.RefreshToken, &exp)
+		} else {
+			_ = h.store.UpdateConnectionTokens(r.Context(), user.ID, platformName, newToken.AccessToken, newToken.RefreshToken, nil)
+		}
+	} else if conn.AccessToken != nil {
+		accessToken = *conn.AccessToken
+	} else {
+		writeJSON(w, http.StatusOK, map[string]string{"status": "no_token"})
+		return
+	}
+
+	// Re-fetch profile with the (possibly new) token
+	profile, err := provider.FetchProfile(r.Context(), &oauth2.Token{AccessToken: accessToken})
+	if err != nil {
+		log.Printf("Profile refresh failed for %s/%s: %v", user.ID, platformName, err)
+		writeJSON(w, http.StatusOK, map[string]string{"status": "fetch_failed"})
+		return
+	}
+
+	metadataJSON, _ := json.Marshal(profile.Metadata)
+	_ = h.store.UpdateConnectionProfile(r.Context(), user.ID, platformName, &profile.FollowerCount, metadataJSON)
+
+	recalcScore(r.Context(), h.store, user.ID)
+	writeJSON(w, http.StatusOK, map[string]string{"status": "refreshed"})
 }
 
 func (h *ConnectionHandler) PublicList(w http.ResponseWriter, r *http.Request) {

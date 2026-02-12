@@ -56,6 +56,22 @@ export const api = {
         method: "PATCH",
         body: JSON.stringify(data),
       }),
+    uploadImage: async (file: File): Promise<ApiResponse<{ image: string }>> => {
+      try {
+        const formData = new FormData();
+        formData.append("image", file);
+        const res = await fetch(`${API_URL}/api/users/profile/image`, {
+          method: "POST",
+          credentials: "include",
+          body: formData,
+        });
+        const json = await res.json();
+        if (!res.ok) return { error: json.error || "Upload failed" };
+        return { data: json };
+      } catch {
+        return { error: "Network error" };
+      }
+    },
     publicProfile: (username: string) =>
       request<{ user: PublicUser }>(`/api/users/${username}`),
     publicConnections: (username: string) =>
@@ -69,7 +85,63 @@ export const api = {
       request<{ success: boolean }>(`/api/connections/${platform}`, {
         method: "DELETE",
       }),
+    refresh: (platform: string) =>
+      request<{ status: string }>(`/api/connections/${platform}/refresh`, {
+        method: "POST",
+      }),
     connectUrl: (platform: string) =>
       `${API_URL}/api/connections/${platform}/connect`,
+  },
+  analytics: {
+    summary: () =>
+      request<{
+        totalViews: number;
+        viewsToday: number;
+        viewsThisWeek: number;
+        totalClicks: number;
+        clicksByType: Record<string, number>;
+        viewsByDay: { date: string; count: number }[];
+      }>("/api/analytics"),
+    trackView: (username: string) =>
+      request<{ ok: boolean }>(`/api/users/${username}/view`, {
+        method: "POST",
+      }),
+    trackClick: (username: string, type: string, value: string) =>
+      request<{ ok: boolean }>(`/api/users/${username}/click`, {
+        method: "POST",
+        body: JSON.stringify({ type, value }),
+      }),
+  },
+  admin: {
+    stats: () =>
+      request<{
+        totalUsers: number;
+        onboardedUsers: number;
+        verifiedUsers: number;
+        totalConnections: number;
+        totalViews: number;
+        totalClicks: number;
+      }>("/api/admin/stats"),
+    users: (limit = 50, offset = 0) =>
+      request<{
+        users: {
+          id: string;
+          name: string | null;
+          email: string;
+          username: string | null;
+          image: string | null;
+          role: string;
+          creatorScore: number | null;
+          isVerified: boolean;
+          onboarded: boolean;
+          connections: number;
+        }[];
+        total: number;
+      }>(`/api/admin/users?limit=${limit}&offset=${offset}`),
+    setVerified: (userId: string, verified: boolean) =>
+      request<{ success: boolean }>("/api/admin/users/verify", {
+        method: "POST",
+        body: JSON.stringify({ userId, verified }),
+      }),
   },
 };

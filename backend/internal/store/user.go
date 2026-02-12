@@ -96,6 +96,14 @@ func (s *Store) UpdateUserCustomLinks(ctx context.Context, id string, links []by
 	return err
 }
 
+func (s *Store) UpdateUserImage(ctx context.Context, id string, imageURL string) error {
+	_, err := s.pool.Exec(ctx,
+		`UPDATE users SET image = $1 WHERE id = $2`,
+		imageURL, id,
+	)
+	return err
+}
+
 func (s *Store) UpdateUserScore(ctx context.Context, id string, score int) error {
 	_, err := s.pool.Exec(ctx,
 		`UPDATE users SET creator_score = $1 WHERE id = $2`,

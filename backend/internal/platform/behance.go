@@ -38,6 +38,10 @@ func (b *BehanceProvider) Exchange(ctx context.Context, code string) (*oauth2.To
 	return b.config.Exchange(ctx, code)
 }
 
+func (b *BehanceProvider) RefreshToken(ctx context.Context, refreshToken string) (*oauth2.Token, error) {
+	return refreshWithConfig(ctx, b.config, refreshToken)
+}
+
 func (b *BehanceProvider) FetchProfile(ctx context.Context, token *oauth2.Token) (*Profile, error) {
 	client := b.config.Client(ctx, token)
 

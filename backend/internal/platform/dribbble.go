@@ -38,6 +38,10 @@ func (d *DribbbleProvider) Exchange(ctx context.Context, code string) (*oauth2.T
 	return d.config.Exchange(ctx, code)
 }
 
+func (d *DribbbleProvider) RefreshToken(ctx context.Context, refreshToken string) (*oauth2.Token, error) {
+	return refreshWithConfig(ctx, d.config, refreshToken)
+}
+
 func (d *DribbbleProvider) FetchProfile(ctx context.Context, token *oauth2.Token) (*Profile, error) {
 	client := d.config.Client(ctx, token)
 

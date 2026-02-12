@@ -43,6 +43,10 @@ func (t *TwitterProvider) Exchange(ctx context.Context, code string) (*oauth2.To
 	)
 }
 
+func (t *TwitterProvider) RefreshToken(ctx context.Context, refreshToken string) (*oauth2.Token, error) {
+	return refreshWithConfig(ctx, t.config, refreshToken)
+}
+
 func (t *TwitterProvider) FetchProfile(ctx context.Context, token *oauth2.Token) (*Profile, error) {
 	client := t.config.Client(ctx, token)
 

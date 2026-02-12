@@ -36,6 +36,10 @@ func (y *YouTubeProvider) Exchange(ctx context.Context, code string) (*oauth2.To
 	return y.config.Exchange(ctx, code)
 }
 
+func (y *YouTubeProvider) RefreshToken(ctx context.Context, refreshToken string) (*oauth2.Token, error) {
+	return refreshWithConfig(ctx, y.config, refreshToken)
+}
+
 func (y *YouTubeProvider) FetchProfile(ctx context.Context, token *oauth2.Token) (*Profile, error) {
 	client := y.config.Client(ctx, token)
 	resp, err := client.Get("https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&mine=true")

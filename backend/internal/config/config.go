@@ -37,6 +37,10 @@ type Config struct {
 	BehanceClientID  string
 	BehanceSecret    string
 	BehanceRedirect  string
+
+	AzureStorageAccount   string
+	AzureStorageKey       string
+	AzureStorageContainer string
 }
 
 func Load() (*Config, error) {
@@ -63,6 +67,10 @@ func Load() (*Config, error) {
 		DribbbleSecret:   os.Getenv("DRIBBBLE_CLIENT_SECRET"),
 		BehanceClientID:  os.Getenv("BEHANCE_CLIENT_ID"),
 		BehanceSecret:    os.Getenv("BEHANCE_CLIENT_SECRET"),
+
+		AzureStorageAccount:   os.Getenv("AZURE_STORAGE_ACCOUNT"),
+		AzureStorageKey:       os.Getenv("AZURE_STORAGE_KEY"),
+		AzureStorageContainer: getEnv("AZURE_STORAGE_CONTAINER", "avatars"),
 	}
 
 	cfg.GoogleRedirect = cfg.BackendURL + "/api/auth/google/callback"

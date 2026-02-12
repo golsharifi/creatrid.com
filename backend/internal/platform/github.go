@@ -36,6 +36,10 @@ func (g *GitHubProvider) Exchange(ctx context.Context, code string) (*oauth2.Tok
 	return g.config.Exchange(ctx, code)
 }
 
+func (g *GitHubProvider) RefreshToken(ctx context.Context, refreshToken string) (*oauth2.Token, error) {
+	return refreshWithConfig(ctx, g.config, refreshToken)
+}
+
 func (g *GitHubProvider) FetchProfile(ctx context.Context, token *oauth2.Token) (*Profile, error) {
 	client := g.config.Client(ctx, token)
 

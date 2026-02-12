@@ -36,6 +36,10 @@ func (l *LinkedInProvider) Exchange(ctx context.Context, code string) (*oauth2.T
 	return l.config.Exchange(ctx, code)
 }
 
+func (l *LinkedInProvider) RefreshToken(ctx context.Context, refreshToken string) (*oauth2.Token, error) {
+	return refreshWithConfig(ctx, l.config, refreshToken)
+}
+
 func (l *LinkedInProvider) FetchProfile(ctx context.Context, token *oauth2.Token) (*Profile, error) {
 	client := l.config.Client(ctx, token)
 

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import Link from "next/link";
-import { User, Link2, BarChart3, ArrowRight, QrCode } from "lucide-react";
+import { User, Link2, BarChart3, ArrowRight, QrCode, Eye, MousePointerClick } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { CopyLinkButton, ShareTwitterButton, ShareLinkedInButton } from "@/components/share-buttons";
 
@@ -18,6 +18,13 @@ export default function DashboardPage() {
 
   const [connectionCount, setConnectionCount] = useState(0);
   const [showQR, setShowQR] = useState(false);
+  const [analytics, setAnalytics] = useState<{
+    totalViews: number;
+    viewsToday: number;
+    viewsThisWeek: number;
+    totalClicks: number;
+    clicksByType: Record<string, number>;
+  } | null>(null);
 
   const profileUrl = user?.username
     ? `${PROFILE_BASE_URL}/profile?u=${user.username}`
@@ -33,6 +40,11 @@ export default function DashboardPage() {
       api.connections.list().then((result) => {
         if (result.data) {
           setConnectionCount(result.data.connections?.length || 0);
+        }
+      });
+      api.analytics.summary().then((result) => {
+        if (result.data) {
+          setAnalytics(result.data);
         }
       });
     }
@@ -134,6 +146,52 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
+
+      {/* Analytics */}
+      {analytics && (
+        <div className="mt-6 grid gap-6 sm:grid-cols-3">
+          <div className="rounded-xl border border-zinc-200 p-6 dark:border-zinc-800">
+            <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
+              <Eye className="h-5 w-5" />
+            </div>
+            <h3 className="font-semibold">Profile Views</h3>
+            <p className="mt-2 text-2xl font-bold">{analytics.totalViews}</p>
+            <p className="mt-1 text-xs text-zinc-500">
+              {analytics.viewsToday} today &middot; {analytics.viewsThisWeek} this week
+            </p>
+          </div>
+          <div className="rounded-xl border border-zinc-200 p-6 dark:border-zinc-800">
+            <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
+              <MousePointerClick className="h-5 w-5" />
+            </div>
+            <h3 className="font-semibold">Link Clicks</h3>
+            <p className="mt-2 text-2xl font-bold">{analytics.totalClicks}</p>
+            <div className="mt-1 flex flex-wrap gap-2 text-xs text-zinc-500">
+              {Object.entries(analytics.clicksByType).map(([type, count]) => (
+                <span key={type} className="capitalize">
+                  {type}: {count}
+                </span>
+              ))}
+              {Object.keys(analytics.clicksByType).length === 0 && (
+                <span>No clicks yet</span>
+              )}
+            </div>
+          </div>
+          <div className="rounded-xl border border-zinc-200 p-6 dark:border-zinc-800">
+            <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
+              <BarChart3 className="h-5 w-5" />
+            </div>
+            <h3 className="font-semibold">Engagement</h3>
+            <p className="mt-2 text-2xl font-bold">
+              {analytics.totalViews > 0
+                ? ((analytics.totalClicks / analytics.totalViews) * 100).toFixed(1)
+                : "0.0"}
+              <span className="text-sm font-normal text-zinc-400">%</span>
+            </p>
+            <p className="mt-1 text-xs text-zinc-500">Click-through rate</p>
+          </div>
+        </div>
+      )}
 
       {/* Public Profile Link */}
       {user.username && (
