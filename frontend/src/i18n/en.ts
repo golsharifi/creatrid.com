@@ -18,6 +18,7 @@ const en = {
     dashboard: "Dashboard",
     connections: "Connections",
     discover: "Discover",
+    analytics: "Analytics",
     settings: "Settings",
     logout: "Logout",
     toggleTheme: "Toggle theme",
@@ -77,6 +78,14 @@ const en = {
     qrCode: "QR Code",
     scanQR: "Scan this QR code to open your Creator Passport.",
     qrPerfectFor: "Perfect for business cards, portfolios, and events.",
+    verifyEmailTitle: "Verify your email",
+    verifyEmailDesc: "Verify your email to earn 10 bonus points on your Creator Score.",
+    verifyEmail: "Send Verification Email",
+    sending: "Sending...",
+    verificationSent: "Verification email sent!",
+    emailVerifiedSuccess: "Your email has been verified! Your Creator Score has been updated.",
+    getWidget: "Embeddable Widget",
+    getWidgetDesc: "Add your Creator Passport badge to your website.",
   },
 
   // Settings
@@ -217,6 +226,155 @@ const en = {
     notOnboarded: "Not onboarded",
     verify: "Verify",
     unverify: "Unverify",
+  },
+
+  // Landing Page
+  landing: {
+    // Hero
+    heroBadge: "Verified Creator Identity",
+    heroHeadline: "Your Creator Passport.",
+    heroHeadlineAccent: "One Link. Every Platform.",
+    heroSubtext:
+      "Build a verified digital identity that proves who you are across platforms. Connect your accounts, earn a Creator Score, and share one link with brands and collaborators.",
+    ctaDashboard: "Go to Dashboard",
+    ctaGetPassport: "Get Your Creator Passport",
+    ctaHowItWorks: "See how it works",
+
+    // Social Proof Bar
+    socialProofLabel: "Trusted by creators worldwide",
+    statCreators: "1,000+",
+    statCreatorsLabel: "Creators",
+    statPlatforms: "7",
+    statPlatformsLabel: "Platforms",
+    statConnections: "10,000+",
+    statConnectionsLabel: "Connections",
+
+    // How it Works
+    howTitle: "How it Works",
+    howSubtitle:
+      "Three simple steps to a verified creator identity that brands and collaborators can trust.",
+    step1Title: "Connect your accounts",
+    step1Desc:
+      "Link your YouTube, GitHub, Twitter, LinkedIn, Instagram, Dribbble, and Behance profiles with one-click OAuth.",
+    step2Title: "Build your Creator Score",
+    step2Desc:
+      "Our scoring engine evaluates your profile completeness, verified connections, and audience reach on a 0\u2013100 scale.",
+    step3Title: "Share your verified profile",
+    step3Desc:
+      "Get a single public link and QR code that showcases your verified identity, connections, and reputation.",
+
+    // Features Grid
+    featuresTitle: "Everything you need to prove who you are",
+    featuresSubtitle:
+      "A complete toolkit for building, managing, and sharing your verified creator identity.",
+    feature1Title: "Verified Identity",
+    feature1Desc:
+      "Connect your social accounts and prove you are who you say you are. No fakes, no impersonators.",
+    feature2Title: "Creator Score",
+    feature2Desc:
+      "A 0\u2013100 reputation score based on your profile, verified connections, and audience reach across platforms.",
+    feature3Title: "Cross-Platform Profiles",
+    feature3Desc:
+      "One beautiful profile that brings together all your platforms, stats, and content in a single link.",
+    feature4Title: "Brand Discovery",
+    feature4Desc:
+      "Get discovered by brands and agencies looking for verified creators to collaborate with.",
+    feature5Title: "Real-time Analytics",
+    feature5Desc:
+      "Track profile views, link clicks, and engagement in real time so you know who is paying attention.",
+    feature6Title: "Privacy First",
+    feature6Desc:
+      "You control what is shared. Choose which platforms and information appear on your public profile.",
+
+    // Platform Logos
+    platformsTitle: "Connect all your platforms",
+    platformsSubtitle:
+      "Creatrid supports seven major platforms today, with more on the way.",
+
+    // FAQ
+    faqTitle: "Frequently Asked Questions",
+    faqSubtitle: "Everything you need to know about Creatrid.",
+    faq1Q: "What is Creatrid?",
+    faq1A:
+      "Creatrid is a verified digital identity platform for creators. You connect your social accounts, build a Creator Score, and share a single public profile link that proves you are the real deal.",
+    faq2Q: "How is the Creator Score calculated?",
+    faq2A:
+      "Your Creator Score (0\u2013100) is based on four factors: profile completeness (20 points), verified email (10 points), number of connected platforms (up to 50 points), and a logarithmic bonus for audience reach (up to 20 points).",
+    faq3Q: "Is it free?",
+    faq3A:
+      "Yes. Creatrid is completely free for creators. Sign in with Google, connect your accounts, and start building your verified profile at no cost.",
+    faq4Q: "Can brands verify creators?",
+    faq4A:
+      "Absolutely. Brands and agencies can view any creator\u2019s public profile to see verified connections, Creator Score, and linked content \u2014 no login required.",
+
+    // Final CTA
+    ctaFinalHeadline: "Ready to prove who you are?",
+    ctaFinalSubtext:
+      "Join thousands of creators who use Creatrid to build trust, get discovered, and land collaborations.",
+  },
+
+  // API Keys
+  apiKeys: {
+    title: "API Keys",
+    subtitle: "Manage API keys for programmatic access to the verification API.",
+    createKey: "Create API Key",
+    creating: "Creating...",
+    keyName: "Key Name",
+    keyNamePlaceholder: "e.g. My Brand Integration",
+    noKeysYet: "No API keys yet. Create one to start using the verification API.",
+    prefix: "Prefix",
+    lastUsed: "Last used",
+    never: "Never",
+    created: "Created",
+    revoke: "Revoke",
+    revoking: "...",
+    newKeyTitle: "Your new API key",
+    newKeyWarning: "Save this key now. It will not be shown again.",
+    copied: "Copied!",
+    copy: "Copy",
+    docsTitle: "API Documentation",
+    docsBaseUrl: "Base URL",
+    docsAuth: "Authentication",
+    docsAuthDesc: "Include your API key in the Authorization header:",
+    docsEndpoints: "Endpoints",
+    docsVerifyTitle: "Full verification",
+    docsVerifyDesc: "Get complete creator profile, connections, and score.",
+    docsScoreTitle: "Score only",
+    docsScoreDesc: "Quick check for a creator's score and verification status.",
+    docsSearchTitle: "Search creators",
+    docsSearchDesc: "Search and filter creators by name, score, or platform.",
+    docsRateLimit: "Rate limit: 100 requests per minute per key.",
+  },
+
+  // Analytics
+  analytics: {
+    title: "Analytics",
+    subtitle: "Track your profile performance and audience engagement.",
+    totalViews: "Total Views",
+    todayViews: "{{count}} today",
+    totalClicks: "Total Clicks",
+    clickThrough: "Click-through Rate",
+    weekViews: "Views This Week",
+    viewsOverTime: "Views Over Time",
+    clicksOverTime: "Clicks Over Time",
+    topReferrers: "Top Referrers",
+    viewsByHour: "Views by Hour of Day",
+    clicksByType: "Clicks by Type",
+    noData: "No analytics data yet. Share your profile to start tracking.",
+    last30Days: "Last 30 days",
+  },
+
+  // Widget
+  widget: {
+    title: "Embeddable Widget",
+    subtitle: "Add your Creator Passport badge to your website or portfolio.",
+    preview: "Preview",
+    embedCode: "Embed Code",
+    htmlEmbed: "HTML Embed",
+    markdownBadge: "Markdown Badge",
+    directLink: "Direct Link",
+    copied: "Copied!",
+    copy: "Copy",
   },
 };
 

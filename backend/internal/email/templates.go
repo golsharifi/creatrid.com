@@ -86,6 +86,20 @@ func AccountDeletedEmail(name string) (subject, body string) {
 	return
 }
 
+func EmailVerificationEmail(name, verifyURL string) (subject, body string) {
+	subject = "Verify your email on Creatrid"
+	content := fmt.Sprintf(`
+<h2 style="margin:0 0 16px;color:#18181b;font-size:22px;">Verify Your Email</h2>
+<p style="color:#52525b;line-height:1.6;">Hi %s, please verify your email address to complete your Creator Passport and earn 10 bonus points on your Creator Score.</p>
+<div style="margin:24px 0;">
+<a href="%s" style="display:inline-block;background:#18181b;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">Verify Email</a>
+</div>
+<p style="color:#a1a1aa;font-size:13px;margin-top:24px;">This link expires in 24 hours. If you didn't request this, you can safely ignore this email.</p>
+`, name, verifyURL)
+	body = wrapHTML(subject, content)
+	return
+}
+
 func WeeklyDigestEmail(name string, totalViews, viewsThisWeek, totalClicks, connectionCount int, score *int) (subject, body string) {
 	subject = "Your weekly Creatrid digest"
 	scoreStr := "—"

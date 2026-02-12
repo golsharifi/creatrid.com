@@ -121,6 +121,9 @@ func main() {
 	adminHandler := handler.NewAdminHandler(st)
 	digestHandler := handler.NewDigestHandler(st, emailSvc)
 	collabHandler := handler.NewCollaborationHandler(st)
+	widgetHandler := handler.NewWidgetHandler(st)
+	apiKeyHandler := handler.NewAPIKeyHandler(st)
+	verifyHandler := handler.NewVerifyHandler(st)
 
 	// Start connection refresh scheduler
 	providerMap := make(map[string]platform.Provider)
@@ -150,12 +153,16 @@ func main() {
 	})
 
 	// Public routes
+	r.Get("/api/auth/verify-email/{token}", userHandler.VerifyEmail)
 	r.Get("/api/users/{username}", userHandler.PublicProfile)
 	r.Get("/api/users/{username}/connections", connHandler.PublicList)
 	r.Post("/api/users/{username}/view", analyticsHandler.TrackView)
 	r.Post("/api/users/{username}/click", analyticsHandler.TrackClick)
 	r.Get("/p/{username}", ogHandler.ProfilePage)
 	r.Get("/api/discover", collabHandler.Discover)
+	r.Get("/api/widget/{username}", widgetHandler.JSON)
+	r.Get("/api/widget/{username}/svg", widgetHandler.SVGBadge)
+	r.Get("/api/widget/{username}/html", widgetHandler.HTMLEmbed)
 
 	// Health check
 	r.Get("/api/health", func(w http.ResponseWriter, r *http.Request) {
@@ -176,6 +183,7 @@ func main() {
 		r.Use(middleware.RequireAuth(jwtSvc, st))
 		r.Get("/api/auth/me", authHandler.Me)
 		r.Post("/api/auth/logout", authHandler.Logout)
+		r.Post("/api/auth/verify-email/send", userHandler.SendEmailVerification)
 		r.Post("/api/users/onboard", userHandler.Onboard)
 		r.Patch("/api/users/profile", userHandler.UpdateProfile)
 		r.Post("/api/users/profile/image", userHandler.UploadImage)
@@ -189,6 +197,9 @@ func main() {
 		r.Get("/api/collaborations/inbox", collabHandler.Inbox)
 		r.Get("/api/collaborations/outbox", collabHandler.Outbox)
 		r.Post("/api/collaborations/{id}/respond", collabHandler.Respond)
+		r.Post("/api/keys", apiKeyHandler.Create)
+		r.Get("/api/keys", apiKeyHandler.List)
+		r.Delete("/api/keys/{id}", apiKeyHandler.Delete)
 	})
 
 	// Admin routes
@@ -199,6 +210,14 @@ func main() {
 		r.Get("/api/admin/users", adminHandler.ListUsers)
 		r.Post("/api/admin/users/verify", adminHandler.SetVerified)
 		r.Post("/api/admin/digest", digestHandler.SendWeeklyDigest)
+	})
+
+	// Third-party verification API (API key auth)
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.RequireAPIKey(st))
+		r.Get("/api/v1/verify/{username}", verifyHandler.Verify)
+		r.Get("/api/v1/verify/{username}/score", verifyHandler.Score)
+		r.Get("/api/v1/search", verifyHandler.Search)
 	})
 
 	// Start server

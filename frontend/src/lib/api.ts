@@ -40,6 +40,10 @@ export const api = {
     logout: () =>
       request<{ success: boolean }>("/api/auth/logout", { method: "POST" }),
     googleUrl: `${API_URL}/api/auth/google`,
+    sendVerificationEmail: () =>
+      request<{ success: boolean }>("/api/auth/verify-email/send", {
+        method: "POST",
+      }),
   },
   users: {
     onboard: (data: { username: string; name: string }) =>
@@ -108,6 +112,9 @@ export const api = {
         totalClicks: number;
         clicksByType: Record<string, number>;
         viewsByDay: { date: string; count: number }[];
+        clicksByDay: { date: string; count: number }[];
+        topReferrers: { referrer: string; count: number }[];
+        viewsByHour: { hour: number; count: number }[];
       }>("/api/analytics"),
     trackView: (username: string) =>
       request<{ ok: boolean }>(`/api/users/${username}/view`, {
@@ -215,5 +222,24 @@ export const api = {
         method: "POST",
         body: JSON.stringify({ action }),
       }),
+  },
+  apiKeys: {
+    create: (name: string) =>
+      request<{ id: string; name: string; key: string }>("/api/keys", {
+        method: "POST",
+        body: JSON.stringify({ name }),
+      }),
+    list: () =>
+      request<{
+        keys: {
+          id: string;
+          name: string;
+          keyPrefix: string;
+          lastUsedAt: string | null;
+          createdAt: string;
+        }[];
+      }>("/api/keys"),
+    delete: (id: string) =>
+      request<{ success: boolean }>(`/api/keys/${id}`, { method: "DELETE" }),
   },
 };

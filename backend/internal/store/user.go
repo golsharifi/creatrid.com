@@ -2,10 +2,21 @@ package store
 
 import (
 	"context"
+	"time"
 
 	"github.com/creatrid/creatrid/internal/model"
 	"github.com/jackc/pgx/v5"
 )
+
+// EmailVerification represents a pending or completed email verification.
+type EmailVerification struct {
+	ID         string
+	UserID     string
+	Token      string
+	ExpiresAt  time.Time
+	VerifiedAt *time.Time
+	CreatedAt  time.Time
+}
 
 func (s *Store) FindUserByID(ctx context.Context, id string) (*model.User, error) {
 	var u model.User
@@ -129,6 +140,42 @@ func (s *Store) LogDeletion(ctx context.Context, id, email string) error {
 	_, err := s.pool.Exec(ctx,
 		`INSERT INTO deletion_log (id, user_email) VALUES ($1, $2)`,
 		id, email,
+	)
+	return err
+}
+
+func (s *Store) CreateEmailVerification(ctx context.Context, id, userID, token string, expiresAt time.Time) error {
+	_, err := s.pool.Exec(ctx,
+		`INSERT INTO email_verifications (id, user_id, token, expires_at) VALUES ($1, $2, $3, $4)`,
+		id, userID, token, expiresAt,
+	)
+	return err
+}
+
+func (s *Store) FindEmailVerification(ctx context.Context, token string) (*EmailVerification, error) {
+	var ev EmailVerification
+	err := s.pool.QueryRow(ctx,
+		`SELECT id, user_id, token, expires_at, verified_at, created_at
+		 FROM email_verifications WHERE token = $1`, token,
+	).Scan(&ev.ID, &ev.UserID, &ev.Token, &ev.ExpiresAt, &ev.VerifiedAt, &ev.CreatedAt)
+	if err == pgx.ErrNoRows {
+		return nil, nil
+	}
+	return &ev, err
+}
+
+func (s *Store) MarkEmailVerified(ctx context.Context, token string, verifiedAt time.Time) error {
+	_, err := s.pool.Exec(ctx,
+		`UPDATE email_verifications SET verified_at = $1 WHERE token = $2`,
+		verifiedAt, token,
+	)
+	return err
+}
+
+func (s *Store) SetUserEmailVerified(ctx context.Context, userID string, verifiedAt time.Time) error {
+	_, err := s.pool.Exec(ctx,
+		`UPDATE users SET email_verified = $1 WHERE id = $2`,
+		verifiedAt, userID,
 	)
 	return err
 }

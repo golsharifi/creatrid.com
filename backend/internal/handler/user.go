@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -354,4 +356,95 @@ func validateUsername(username string) string {
 		return "This username is reserved"
 	}
 	return ""
+}
+
+func (h *UserHandler) SendEmailVerification(w http.ResponseWriter, r *http.Request) {
+	user := middleware.UserFromContext(r.Context())
+	if user == nil {
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "Not authenticated"})
+		return
+	}
+
+	if user.EmailVerified != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Email is already verified"})
+		return
+	}
+
+	// Generate a cryptographically random token
+	tokenBytes := make([]byte, 32)
+	if _, err := rand.Read(tokenBytes); err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Failed to generate verification token"})
+		return
+	}
+	token := hex.EncodeToString(tokenBytes)
+
+	id := cuid2.Generate()
+	expiresAt := time.Now().Add(24 * time.Hour)
+
+	if err := h.store.CreateEmailVerification(r.Context(), id, user.ID, token, expiresAt); err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Failed to create verification record"})
+		return
+	}
+
+	// Send verification email
+	if h.email != nil {
+		go func() {
+			name := "Creator"
+			if user.Name != nil && *user.Name != "" {
+				name = *user.Name
+			}
+			verifyURL := h.config.FrontendURL + "/verify-email?token=" + token
+			subj, body := email.EmailVerificationEmail(name, verifyURL)
+			if err := h.email.Send(user.Email, subj, body); err != nil {
+				log.Printf("Failed to send verification email to %s: %v", user.Email, err)
+			}
+		}()
+	}
+
+	writeJSON(w, http.StatusOK, map[string]bool{"success": true})
+}
+
+func (h *UserHandler) VerifyEmail(w http.ResponseWriter, r *http.Request) {
+	token := chi.URLParam(r, "token")
+	if token == "" {
+		http.Error(w, "Missing verification token", http.StatusBadRequest)
+		return
+	}
+
+	ev, err := h.store.FindEmailVerification(r.Context(), token)
+	if err != nil {
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+	if ev == nil {
+		http.Redirect(w, r, h.config.FrontendURL+"/dashboard?verified=invalid", http.StatusFound)
+		return
+	}
+
+	if ev.VerifiedAt != nil {
+		http.Redirect(w, r, h.config.FrontendURL+"/dashboard?verified=already", http.StatusFound)
+		return
+	}
+
+	if time.Now().After(ev.ExpiresAt) {
+		http.Redirect(w, r, h.config.FrontendURL+"/dashboard?verified=expired", http.StatusFound)
+		return
+	}
+
+	now := time.Now()
+
+	if err := h.store.MarkEmailVerified(r.Context(), token, now); err != nil {
+		http.Error(w, "Failed to verify email", http.StatusInternalServerError)
+		return
+	}
+
+	if err := h.store.SetUserEmailVerified(r.Context(), ev.UserID, now); err != nil {
+		http.Error(w, "Failed to update user", http.StatusInternalServerError)
+		return
+	}
+
+	// Recalculate creator score (email verified adds 10 points)
+	recalcScore(r.Context(), h.store, ev.UserID)
+
+	http.Redirect(w, r, h.config.FrontendURL+"/dashboard?verified=true", http.StatusFound)
 }
