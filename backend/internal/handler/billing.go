@@ -213,6 +213,12 @@ func (h *BillingHandler) handleCheckoutCompleted(r *http.Request, event stripe.E
 		return
 	}
 
+	// Check if this is a license purchase
+	if session.Metadata != nil && session.Metadata["type"] == "license" {
+		h.handleLicensePurchaseCompleted(r, session)
+		return
+	}
+
 	customerID := session.Customer.ID
 	subscriptionID := ""
 	if session.Subscription != nil {
@@ -257,6 +263,57 @@ func (h *BillingHandler) handleCheckoutCompleted(r *http.Request, event stripe.E
 	if err := h.store.UpsertSubscription(r.Context(), sub); err != nil {
 		log.Printf("Stripe webhook: failed to upsert subscription: %v", err)
 	}
+}
+
+func (h *BillingHandler) handleLicensePurchaseCompleted(r *http.Request, session stripe.CheckoutSession) {
+	offeringID := session.Metadata["offering_id"]
+	contentID := session.Metadata["content_id"]
+	buyerUserID := session.Metadata["buyer_user_id"]
+
+	if offeringID == "" || contentID == "" || buyerUserID == "" {
+		log.Printf("Stripe webhook: license purchase missing metadata (offering=%s, content=%s, buyer=%s)", offeringID, contentID, buyerUserID)
+		return
+	}
+
+	// Get offering for price details
+	offering, err := h.store.FindOfferingByID(r.Context(), offeringID)
+	if err != nil || offering == nil {
+		log.Printf("Stripe webhook: failed to find offering %s: %v", offeringID, err)
+		return
+	}
+
+	// Get buyer email
+	buyerEmail := ""
+	buyer, err := h.store.FindUserByID(r.Context(), buyerUserID)
+	if err == nil && buyer != nil {
+		buyerEmail = buyer.Email
+	}
+
+	amountCents := offering.PriceCents
+	platformFeeCents := amountCents * 15 / 100
+	creatorPayoutCents := amountCents - platformFeeCents
+
+	stripeSessionID := session.ID
+	purchase := &store.LicensePurchase{
+		ID:                 cuid2.Generate(),
+		OfferingID:         offeringID,
+		ContentID:          contentID,
+		BuyerUserID:        &buyerUserID,
+		BuyerEmail:         buyerEmail,
+		StripeSessionID:    &stripeSessionID,
+		AmountCents:        amountCents,
+		PlatformFeeCents:   platformFeeCents,
+		CreatorPayoutCents: creatorPayoutCents,
+		Status:             "completed",
+		CreatedAt:          time.Now(),
+	}
+
+	if err := h.store.CreateLicensePurchase(r.Context(), purchase); err != nil {
+		log.Printf("Stripe webhook: failed to create license purchase: %v", err)
+		return
+	}
+
+	log.Printf("License purchase created: buyer=%s content=%s offering=%s amount=%d", buyerUserID, contentID, offeringID, amountCents)
 }
 
 func (h *BillingHandler) handleSubscriptionUpdated(r *http.Request, event stripe.Event) {

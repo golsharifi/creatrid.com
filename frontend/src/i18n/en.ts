@@ -21,6 +21,10 @@ const en = {
     analytics: "Analytics",
     vault: "Vault",
     marketplace: "Marketplace",
+    earnings: "Earnings",
+    collections: "Collections",
+    search: "Search",
+    notifications: "Notifications",
     settings: "Settings",
     logout: "Logout",
     toggleTheme: "Toggle theme",
@@ -527,6 +531,81 @@ const en = {
     directLink: "Direct Link",
     copied: "Copied!",
     copy: "Copy",
+  },
+
+  // Notifications
+  notifications: {
+    bell: "Notifications",
+    title: "Notifications",
+    markAllRead: "Mark all read",
+    empty: "No notifications yet.",
+    viewAll: "View all notifications",
+    pageTitle: "Notifications",
+    pageDescription: "Stay up to date with your activity.",
+    emptyState: "No notifications yet. They'll appear here when you get them.",
+  },
+
+  // Content Analytics
+  contentAnalytics: {
+    title: "Content Analytics",
+    subtitle: "Track views, downloads, and revenue across your content.",
+    totalViews: "Total Views",
+    totalDownloads: "Total Downloads",
+    totalRevenue: "Total Revenue",
+    content: "Content",
+    views: "Views",
+    downloads: "Downloads",
+    revenue: "Revenue",
+    noData: "No analytics data yet. Upload content to start tracking.",
+  },
+
+  // Earnings
+  earnings: {
+    title: "Earnings",
+    subtitle: "Track your revenue and manage payouts.",
+    connectStripe: "Connect Stripe",
+    connectDesc: "Connect your Stripe account to receive payouts from license sales.",
+    connectButton: "Connect with Stripe",
+    totalEarned: "Total Earned",
+    totalPaid: "Total Paid",
+    pending: "Pending",
+    payoutHistory: "Payout History",
+    noPayouts: "No payouts yet.",
+    amount: "Amount",
+    status: "Status",
+    date: "Date",
+  },
+
+  // Collections
+  collections: {
+    title: "Collections",
+    subtitle: "Organize your content into collections.",
+    create: "New Collection",
+    titleLabel: "Title",
+    titlePlaceholder: "Collection name",
+    descriptionLabel: "Description",
+    descriptionPlaceholder: "What is this collection about?",
+    publicLabel: "Make this collection public",
+    createButton: "Create Collection",
+    empty: "No collections yet. Create one to organize your content.",
+    itemCount: "{{count}} items",
+    notFound: "Collection not found.",
+    backToCollections: "Back to Collections",
+    noItems: "No items in this collection yet.",
+  },
+
+  // Search
+  search: {
+    title: "Search",
+    subtitle: "Find content and creators across the platform.",
+    placeholder: "Search for content, creators, tags...",
+    searchButton: "Search",
+    tabAll: "All",
+    tabContent: "Content",
+    tabCreators: "Creators",
+    contentResults: "Content",
+    creatorResults: "Creators",
+    noResults: "No results found. Try a different search term.",
   },
 };
 

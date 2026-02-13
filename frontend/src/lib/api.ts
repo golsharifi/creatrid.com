@@ -332,4 +332,75 @@ export const api = {
         body: JSON.stringify(data),
       }),
   },
+  notifications: {
+    list: (limit = 20, offset = 0) =>
+      request<{ notifications: any[]; total: number }>(`/api/notifications?limit=${limit}&offset=${offset}`),
+    unreadCount: () =>
+      request<{ count: number }>("/api/notifications/unread-count"),
+    markRead: (id: string) =>
+      request<{ success: boolean }>(`/api/notifications/${id}/read`, { method: "POST" }),
+    markAllRead: () =>
+      request<{ success: boolean }>("/api/notifications/read-all", { method: "POST" }),
+  },
+  contentAnalytics: {
+    trackView: (contentId: string) =>
+      request<{ ok: boolean }>(`/api/content/${contentId}/view`, { method: "POST" }),
+    item: (contentId: string) =>
+      request<any>(`/api/content/${contentId}/analytics`),
+    summary: () =>
+      request<{ items: any[]; totalRevenue: number }>("/api/content-analytics"),
+  },
+  payouts: {
+    connect: () =>
+      request<{ url: string }>("/api/payouts/connect", { method: "POST" }),
+    connectStatus: () =>
+      request<{ connected: boolean; onboarded: boolean }>("/api/payouts/connect/status"),
+    dashboard: () =>
+      request<{ totalEarnedCents: number; totalPaidCents: number; pendingCents: number }>("/api/payouts/dashboard"),
+    list: (limit = 20, offset = 0) =>
+      request<{ payouts: any[]; total: number }>(`/api/payouts?limit=${limit}&offset=${offset}`),
+  },
+  collections: {
+    create: (title: string, description?: string, isPublic = true) =>
+      request<any>("/api/collections", {
+        method: "POST",
+        body: JSON.stringify({ title, description, isPublic }),
+      }),
+    list: (limit = 20, offset = 0) =>
+      request<{ collections: any[]; total: number }>(`/api/collections?limit=${limit}&offset=${offset}`),
+    get: (id: string) =>
+      request<{ collection: any; items: any[] }>(`/api/collections/${id}`),
+    update: (id: string, data: { title?: string; description?: string; isPublic?: boolean }) =>
+      request<{ success: boolean }>(`/api/collections/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
+    delete: (id: string) =>
+      request<{ success: boolean }>(`/api/collections/${id}`, { method: "DELETE" }),
+    addItem: (collectionId: string, contentId: string, position = 0) =>
+      request<{ success: boolean }>(`/api/collections/${collectionId}/items`, {
+        method: "POST",
+        body: JSON.stringify({ contentId, position }),
+      }),
+    removeItem: (collectionId: string, contentId: string) =>
+      request<{ success: boolean }>(`/api/collections/${collectionId}/items/${contentId}`, {
+        method: "DELETE",
+      }),
+    items: (collectionId: string) =>
+      request<{ items: any[] }>(`/api/collections/${collectionId}/items`),
+    publicList: (username: string, limit = 20, offset = 0) =>
+      request<{ collections: any[]; total: number }>(`/api/users/${username}/collections?limit=${limit}&offset=${offset}`),
+  },
+  search: {
+    query: (q: string, type?: string, limit = 20, offset = 0) => {
+      const p = new URLSearchParams();
+      p.set("q", q);
+      if (type) p.set("type", type);
+      p.set("limit", String(limit));
+      p.set("offset", String(offset));
+      return request<any>(`/api/search?${p.toString()}`);
+    },
+    suggestions: (q: string) =>
+      request<{ suggestions: string[] }>(`/api/search/suggestions?q=${encodeURIComponent(q)}`),
+  },
 };

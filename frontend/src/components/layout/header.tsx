@@ -19,8 +19,12 @@ import {
   Globe,
   Archive,
   ShoppingBag,
+  DollarSign,
+  Search,
+  FolderOpen,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { NotificationBell } from "@/components/notification-bell";
 
 const LANGUAGES = [
   { code: "en", label: "English" },
@@ -140,6 +144,19 @@ export function Header() {
                 <ShoppingBag className="h-5 w-5" />
               </Link>
               <Link
+                href="/earnings"
+                className="rounded-lg p-2 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+              >
+                <DollarSign className="h-5 w-5" />
+              </Link>
+              <Link
+                href="/search"
+                className="rounded-lg p-2 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+              >
+                <Search className="h-5 w-5" />
+              </Link>
+              <NotificationBell />
+              <Link
                 href="/settings"
                 className="rounded-lg p-2 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
               >
@@ -204,6 +221,38 @@ export function Header() {
                     >
                       <ShoppingBag className="h-4 w-4" />
                       {t("header.marketplace")}
+                    </Link>
+                    <Link
+                      href="/earnings"
+                      onClick={() => setMobileOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                    >
+                      <DollarSign className="h-4 w-4" />
+                      {t("header.earnings")}
+                    </Link>
+                    <Link
+                      href="/collections"
+                      onClick={() => setMobileOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                    >
+                      <FolderOpen className="h-4 w-4" />
+                      {t("header.collections")}
+                    </Link>
+                    <Link
+                      href="/search"
+                      onClick={() => setMobileOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                    >
+                      <Search className="h-4 w-4" />
+                      {t("header.search")}
+                    </Link>
+                    <Link
+                      href="/notifications"
+                      onClick={() => setMobileOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                    >
+                      <BarChart3 className="h-4 w-4" />
+                      {t("header.notifications")}
                     </Link>
                     <Link
                       href="/connections"

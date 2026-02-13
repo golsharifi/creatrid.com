@@ -129,6 +129,11 @@ func main() {
 	licenseHandler := handler.NewLicenseHandler(st, cfg)
 	marketplaceHandler := handler.NewMarketplaceHandler(st)
 	dmcaHandler := handler.NewDMCAHandler(st)
+	notificationHandler := handler.NewNotificationHandler(st)
+	contentAnalyticsHandler := handler.NewContentAnalyticsHandler(st)
+	payoutHandler := handler.NewPayoutHandler(st, cfg)
+	collectionHandler := handler.NewCollectionHandler(st)
+	searchHandler := handler.NewSearchHandler(st)
 
 	// Start connection refresh scheduler
 	providerMap := make(map[string]platform.Provider)
@@ -175,6 +180,10 @@ func main() {
 	r.Get("/api/marketplace", marketplaceHandler.Browse)
 	r.Get("/api/marketplace/{id}", marketplaceHandler.Detail)
 	r.Post("/api/content/{id}/report", dmcaHandler.Report)
+	r.Post("/api/content/{id}/view", contentAnalyticsHandler.TrackView)
+	r.Get("/api/search", searchHandler.Search)
+	r.Get("/api/search/suggestions", searchHandler.Suggestions)
+	r.Get("/api/users/{username}/collections", collectionHandler.PublicList)
 
 	// Health check
 	r.Get("/api/health", func(w http.ResponseWriter, r *http.Request) {
@@ -188,6 +197,7 @@ func main() {
 		r.Use(middleware.RequireAuthRedirect(jwtSvc, st, cfg.FrontendURL))
 		r.Get("/api/connections/{platform}/connect", connHandler.Connect)
 		r.Get("/api/connections/{platform}/callback", connHandler.Callback)
+		r.Get("/api/payouts/connect/callback", payoutHandler.ConnectCallback)
 	})
 
 	// Protected routes (JSON API)
@@ -231,6 +241,32 @@ func main() {
 		r.Post("/api/licenses/{id}/checkout", licenseHandler.Checkout)
 		r.Get("/api/licenses/purchases", licenseHandler.Purchases)
 		r.Get("/api/licenses/sales", licenseHandler.Sales)
+
+		// Notifications
+		r.Get("/api/notifications", notificationHandler.List)
+		r.Get("/api/notifications/unread-count", notificationHandler.UnreadCount)
+		r.Post("/api/notifications/{id}/read", notificationHandler.MarkRead)
+		r.Post("/api/notifications/read-all", notificationHandler.MarkAllRead)
+
+		// Content Analytics
+		r.Get("/api/content/{id}/analytics", contentAnalyticsHandler.ItemAnalytics)
+		r.Get("/api/content-analytics", contentAnalyticsHandler.CreatorSummary)
+
+		// Payouts / Stripe Connect
+		r.Post("/api/payouts/connect", payoutHandler.ConnectOnboard)
+		r.Get("/api/payouts/connect/status", payoutHandler.ConnectStatus)
+		r.Get("/api/payouts/dashboard", payoutHandler.Dashboard)
+		r.Get("/api/payouts", payoutHandler.ListPayouts)
+
+		// Collections
+		r.Post("/api/collections", collectionHandler.Create)
+		r.Get("/api/collections", collectionHandler.List)
+		r.Get("/api/collections/{id}", collectionHandler.Get)
+		r.Patch("/api/collections/{id}", collectionHandler.Update)
+		r.Delete("/api/collections/{id}", collectionHandler.Delete)
+		r.Post("/api/collections/{id}/items", collectionHandler.AddItem)
+		r.Delete("/api/collections/{id}/items/{contentId}", collectionHandler.RemoveItem)
+		r.Get("/api/collections/{id}/items", collectionHandler.ListItems)
 	})
 
 	// Admin routes
