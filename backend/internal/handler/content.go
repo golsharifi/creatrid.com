@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/creatrid/creatrid/internal/config"
+	"github.com/creatrid/creatrid/internal/email"
 	"github.com/creatrid/creatrid/internal/imaging"
 	"github.com/creatrid/creatrid/internal/middleware"
 	"github.com/creatrid/creatrid/internal/moderation"
@@ -26,16 +27,18 @@ import (
 const maxContentSize = 500 << 20 // 500 MB
 
 type ContentHandler struct {
-	store  *store.Store
-	blob   *storage.BlobStorage
-	config *config.Config
+	store    *store.Store
+	blob     *storage.BlobStorage
+	config   *config.Config
+	emailSvc *email.Service
 }
 
-func NewContentHandler(st *store.Store, blob *storage.BlobStorage, cfg *config.Config) *ContentHandler {
+func NewContentHandler(st *store.Store, blob *storage.BlobStorage, cfg *config.Config, emailSvc *email.Service) *ContentHandler {
 	return &ContentHandler{
-		store:  st,
-		blob:   blob,
-		config: cfg,
+		store:    st,
+		blob:     blob,
+		config:   cfg,
+		emailSvc: emailSvc,
 	}
 }
 
@@ -209,6 +212,19 @@ func (h *ContentHandler) Upload(w http.ResponseWriter, r *http.Request) {
 			flagID := cuid2.Generate()
 			if err := h.store.CreateModerationFlag(r.Context(), flagID, contentID, reason, "auto-detected on upload"); err != nil {
 				log.Printf("Failed to create moderation flag: %v", err)
+			}
+		}
+		// Send email notification to the creator about the flagged content
+		if h.emailSvc != nil {
+			creatorName := "Creator"
+			if user.Name != nil {
+				creatorName = *user.Name
+			}
+			reasonStr := strings.Join(reasons, ", ")
+			vaultURL := "https://creatrid.com/dashboard"
+			subj, body := email.ContentFlaggedEmail(creatorName, title, reasonStr, vaultURL)
+			if err := h.emailSvc.Send(user.Email, subj, body); err != nil {
+				log.Printf("Failed to send content flagged email: %v", err)
 			}
 		}
 	}

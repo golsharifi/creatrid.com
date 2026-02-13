@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import { Plus, Trash2, Camera, Download, AlertTriangle } from "lucide-react";
+import { Plus, Trash2, Camera, Download, AlertTriangle, Shield, Copy, Check } from "lucide-react";
 import type { CustomLink, EmailPrefs } from "@/lib/types";
 import { useTranslation } from "react-i18next";
 
@@ -34,6 +34,7 @@ interface SettingsFormProps {
   theme: string;
   customLinks: CustomLink[];
   emailPrefs: EmailPrefs;
+  totpEnabled: boolean;
 }
 
 export function SettingsForm({
@@ -44,6 +45,7 @@ export function SettingsForm({
   theme,
   customLinks,
   emailPrefs: initialEmailPrefs,
+  totpEnabled: initialTotpEnabled,
 }: SettingsFormProps) {
   const router = useRouter();
   const { refresh } = useAuth();
@@ -59,6 +61,17 @@ export function SettingsForm({
   const [imagePreview, setImagePreview] = useState(image || "");
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 2FA state
+  const [twoFAEnabled, setTwoFAEnabled] = useState(initialTotpEnabled);
+  const [twoFASetup, setTwoFASetup] = useState<{ secret: string; qrUrl: string } | null>(null);
+  const [twoFACode, setTwoFACode] = useState("");
+  const [twoFABackupCodes, setTwoFABackupCodes] = useState<string[] | null>(null);
+  const [twoFALoading, setTwoFALoading] = useState(false);
+  const [twoFAError, setTwoFAError] = useState("");
+  const [twoFADisableCode, setTwoFADisableCode] = useState("");
+  const [showDisable2FA, setShowDisable2FA] = useState(false);
+  const [backupCodesCopied, setBackupCodesCopied] = useState(false);
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -360,6 +373,218 @@ export function SettingsForm({
             </label>
           ))}
         </div>
+      </div>
+
+      {/* Security: Two-Factor Authentication */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Shield className="h-5 w-5" />
+          <h2 className="text-lg font-semibold">{t("twoFA.title")}</h2>
+        </div>
+        <p className="text-sm text-zinc-500">{t("twoFA.subtitle")}</p>
+
+        {twoFABackupCodes ? (
+          // Show backup codes after successful setup
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-green-600 dark:text-green-400">{t("twoFA.enabled")}</p>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">{t("twoFA.backupCodesDesc")}</p>
+            <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/50">
+              <div className="mb-2 flex items-center justify-between">
+                <p className="text-sm font-medium">{t("twoFA.backupCodes")}</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(twoFABackupCodes.join("\n"));
+                    setBackupCodesCopied(true);
+                    setTimeout(() => setBackupCodesCopied(false), 2000);
+                  }}
+                  className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+                >
+                  {backupCodesCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                  {backupCodesCopied ? t("common.copied") : t("common.copy")}
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-1 font-mono text-sm">
+                {twoFABackupCodes.map((code, i) => (
+                  <span key={i} className="text-zinc-700 dark:text-zinc-300">{code}</span>
+                ))}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setTwoFABackupCodes(null);
+                setTwoFAEnabled(true);
+                setTwoFASetup(null);
+                setTwoFACode("");
+                refresh();
+              }}
+              className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+            >
+              {t("common.save")}
+            </button>
+          </div>
+        ) : twoFASetup ? (
+          // Show QR code and verification input
+          <div className="space-y-4">
+            <p className="text-sm">{t("twoFA.scanQR")}</p>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(twoFASetup.qrUrl)}`}
+              alt="2FA QR Code"
+              className="mx-auto h-48 w-48 rounded-lg border border-zinc-200 dark:border-zinc-700"
+              width={200}
+              height={200}
+            />
+            <div>
+              <p className="mb-1 text-xs text-zinc-500">{t("twoFA.secretKey")}</p>
+              <code className="block break-all rounded bg-zinc-100 px-3 py-2 text-xs dark:bg-zinc-800">
+                {twoFASetup.secret}
+              </code>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                {t("twoFA.enterCode")}
+              </label>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={6}
+                value={twoFACode}
+                onChange={(e) => setTwoFACode(e.target.value.replace(/[^0-9]/g, ""))}
+                placeholder="000000"
+                className="mt-1 block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-center text-lg tracking-[0.5em] focus:border-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:border-zinc-700 dark:bg-zinc-800"
+              />
+            </div>
+            {twoFAError && <p className="text-sm text-red-500">{twoFAError}</p>}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                disabled={twoFALoading || twoFACode.length !== 6}
+                onClick={async () => {
+                  setTwoFALoading(true);
+                  setTwoFAError("");
+                  const result = await api.auth.confirm2FA(twoFACode);
+                  if (result.error) {
+                    setTwoFAError(result.error);
+                  } else if (result.data) {
+                    setTwoFABackupCodes(result.data.backupCodes);
+                  }
+                  setTwoFALoading(false);
+                }}
+                className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+              >
+                {twoFALoading ? t("common.loading") : t("twoFA.verify")}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setTwoFASetup(null);
+                  setTwoFACode("");
+                  setTwoFAError("");
+                }}
+                className="rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+              >
+                {t("common.cancel")}
+              </button>
+            </div>
+          </div>
+        ) : twoFAEnabled ? (
+          // 2FA is enabled — show status and disable option
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-800 dark:bg-green-950">
+              <Shield className="h-4 w-4 text-green-600 dark:text-green-400" />
+              <p className="text-sm font-medium text-green-700 dark:text-green-300">{t("twoFA.enabled")}</p>
+            </div>
+            {showDisable2FA ? (
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    {t("twoFA.enterCode")}
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={6}
+                    value={twoFADisableCode}
+                    onChange={(e) => setTwoFADisableCode(e.target.value.replace(/[^0-9]/g, ""))}
+                    placeholder="000000"
+                    className="mt-1 block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-center text-lg tracking-[0.5em] focus:border-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:border-zinc-700 dark:bg-zinc-800"
+                  />
+                </div>
+                {twoFAError && <p className="text-sm text-red-500">{twoFAError}</p>}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    disabled={twoFALoading || twoFADisableCode.length !== 6}
+                    onClick={async () => {
+                      setTwoFALoading(true);
+                      setTwoFAError("");
+                      const result = await api.auth.disable2FA(twoFADisableCode);
+                      if (result.error) {
+                        setTwoFAError(result.error);
+                      } else {
+                        setTwoFAEnabled(false);
+                        setShowDisable2FA(false);
+                        setTwoFADisableCode("");
+                        await refresh();
+                      }
+                      setTwoFALoading(false);
+                    }}
+                    className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {twoFALoading ? t("common.loading") : t("twoFA.disable")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowDisable2FA(false);
+                      setTwoFADisableCode("");
+                      setTwoFAError("");
+                    }}
+                    className="rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+                  >
+                    {t("common.cancel")}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowDisable2FA(true)}
+                className="rounded-lg border border-red-300 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950"
+              >
+                {t("twoFA.disable")}
+              </button>
+            )}
+          </div>
+        ) : (
+          // 2FA is disabled — show enable button
+          <div className="space-y-3">
+            <p className="text-sm text-zinc-500">{t("twoFA.disabled")}</p>
+            <button
+              type="button"
+              disabled={twoFALoading}
+              onClick={async () => {
+                setTwoFALoading(true);
+                setTwoFAError("");
+                const result = await api.auth.setup2FA();
+                if (result.error) {
+                  setTwoFAError(result.error);
+                } else if (result.data) {
+                  setTwoFASetup(result.data);
+                }
+                setTwoFALoading(false);
+              }}
+              className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+            >
+              {twoFALoading ? t("common.loading") : t("twoFA.enable")}
+            </button>
+            {twoFAError && <p className="text-sm text-red-500">{twoFAError}</p>}
+          </div>
+        )}
       </div>
 
       {/* Export Data */}

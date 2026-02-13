@@ -25,6 +25,7 @@ func (s *Store) FindUserByID(ctx context.Context, id string) (*model.User, error
 		        creator_score, is_verified, onboarded, theme, custom_links, email_prefs,
 		        stripe_connect_account_id, COALESCE(stripe_connect_onboarded, false),
 		        creator_tier, referral_code, referred_by,
+		        COALESCE(totp_enabled, false),
 		        created_at, updated_at
 		 FROM users WHERE id = $1`, id,
 	).Scan(
@@ -33,6 +34,7 @@ func (s *Store) FindUserByID(ctx context.Context, id string) (*model.User, error
 		&u.IsVerified, &u.Onboarded, &u.Theme, &u.CustomLinks, &u.EmailPrefsRaw,
 		&u.StripeConnectAccountID, &u.StripeConnectOnboarded,
 		&u.CreatorTier, &u.ReferralCode, &u.ReferredBy,
+		&u.TOTPEnabled,
 		&u.CreatedAt, &u.UpdatedAt,
 	)
 	if err == pgx.ErrNoRows {
@@ -48,6 +50,7 @@ func (s *Store) FindUserByEmail(ctx context.Context, email string) (*model.User,
 		        creator_score, is_verified, onboarded, theme, custom_links, email_prefs,
 		        stripe_connect_account_id, COALESCE(stripe_connect_onboarded, false),
 		        creator_tier, referral_code, referred_by,
+		        COALESCE(totp_enabled, false),
 		        created_at, updated_at
 		 FROM users WHERE email = $1`, email,
 	).Scan(
@@ -56,6 +59,7 @@ func (s *Store) FindUserByEmail(ctx context.Context, email string) (*model.User,
 		&u.IsVerified, &u.Onboarded, &u.Theme, &u.CustomLinks, &u.EmailPrefsRaw,
 		&u.StripeConnectAccountID, &u.StripeConnectOnboarded,
 		&u.CreatorTier, &u.ReferralCode, &u.ReferredBy,
+		&u.TOTPEnabled,
 		&u.CreatedAt, &u.UpdatedAt,
 	)
 	if err == pgx.ErrNoRows {
@@ -71,6 +75,7 @@ func (s *Store) FindUserByUsername(ctx context.Context, username string) (*model
 		        creator_score, is_verified, onboarded, theme, custom_links, email_prefs,
 		        stripe_connect_account_id, COALESCE(stripe_connect_onboarded, false),
 		        creator_tier, referral_code, referred_by,
+		        COALESCE(totp_enabled, false),
 		        created_at, updated_at
 		 FROM users WHERE username = $1`, username,
 	).Scan(
@@ -79,6 +84,7 @@ func (s *Store) FindUserByUsername(ctx context.Context, username string) (*model
 		&u.IsVerified, &u.Onboarded, &u.Theme, &u.CustomLinks, &u.EmailPrefsRaw,
 		&u.StripeConnectAccountID, &u.StripeConnectOnboarded,
 		&u.CreatorTier, &u.ReferralCode, &u.ReferredBy,
+		&u.TOTPEnabled,
 		&u.CreatedAt, &u.UpdatedAt,
 	)
 	if err == pgx.ErrNoRows {

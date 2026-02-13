@@ -33,16 +33,16 @@ func ParseUserAgent(ua string) UAResult {
 		r.DeviceType = "Mobile"
 	}
 
-	// Detect OS
+	// Detect OS (check mobile OS before desktop to avoid iPad matching "Mac OS X")
 	switch {
-	case strings.Contains(lower, "windows"):
-		r.OS = "Windows"
-	case strings.Contains(lower, "mac os x") || strings.Contains(lower, "macintosh"):
-		r.OS = "macOS"
 	case strings.Contains(lower, "iphone") || strings.Contains(lower, "ipad"):
 		r.OS = "iOS"
 	case strings.Contains(lower, "android"):
 		r.OS = "Android"
+	case strings.Contains(lower, "windows"):
+		r.OS = "Windows"
+	case strings.Contains(lower, "mac os x") || strings.Contains(lower, "macintosh"):
+		r.OS = "macOS"
 	case strings.Contains(lower, "linux"):
 		r.OS = "Linux"
 	case strings.Contains(lower, "cros"):

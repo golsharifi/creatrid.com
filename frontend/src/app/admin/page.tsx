@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import { Users, BarChart3, Eye, MousePointerClick, Link2, CheckCircle, Shield, ClipboardList, AlertTriangle } from "lucide-react";
+import { Users, BarChart3, Eye, MousePointerClick, Link2, CheckCircle, Shield, ClipboardList, AlertTriangle, Flag } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 type AdminStats = {
@@ -37,7 +37,7 @@ export default function AdminPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
-  const [activeTab, setActiveTab] = useState<"users" | "audit" | "errors">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "audit" | "errors" | "moderation">("users");
   const [auditEntries, setAuditEntries] = useState<any[]>([]);
   const [auditTotal, setAuditTotal] = useState(0);
   const [auditPage, setAuditPage] = useState(0);
@@ -45,6 +45,13 @@ export default function AdminPage() {
   const [errorTotal, setErrorTotal] = useState(0);
   const [errorPage, setErrorPage] = useState(0);
   const [errorSource, setErrorSource] = useState("");
+  const [modFlags, setModFlags] = useState<any[]>([]);
+  const [modTotal, setModTotal] = useState(0);
+  const [modPage, setModPage] = useState(0);
+  const [modStatus, setModStatus] = useState("");
+  const [modActionId, setModActionId] = useState<string | null>(null);
+  const [modActionType, setModActionType] = useState<"resolved" | "dismissed">("resolved");
+  const [modNotes, setModNotes] = useState("");
 
   useEffect(() => {
     if (!loading && !user) router.push("/sign-in");
@@ -91,6 +98,29 @@ export default function AdminPage() {
       });
     }
   }, [user, activeTab, errorPage, errorSource]);
+
+  useEffect(() => {
+    if (user?.role === "ADMIN" && activeTab === "moderation") {
+      api.adminModeration.list(modStatus || undefined, 20, modPage * 20).then((r) => {
+        if (r.data) {
+          setModFlags(r.data.flags || []);
+          setModTotal(r.data.total);
+        }
+      });
+    }
+  }, [user, activeTab, modPage, modStatus]);
+
+  async function handleModResolve() {
+    if (!modActionId) return;
+    const result = await api.adminModeration.resolve(modActionId, modActionType, modNotes);
+    if (result.data) {
+      setModFlags((prev) =>
+        prev.map((f) => (f.id === modActionId ? { ...f, status: modActionType } : f))
+      );
+      setModActionId(null);
+      setModNotes("");
+    }
+  }
 
   async function toggleVerified(userId: string, current: boolean) {
     const result = await api.admin.setVerified(userId, !current);
@@ -149,6 +179,13 @@ export default function AdminPage() {
         >
           <AlertTriangle className="mr-1.5 inline h-4 w-4" />
           {t("admin.errorLog")}
+        </button>
+        <button
+          onClick={() => setActiveTab("moderation")}
+          className={`border-b-2 px-4 py-2 text-sm font-medium ${activeTab === "moderation" ? "border-zinc-900 text-zinc-900 dark:border-zinc-100 dark:text-zinc-100" : "border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"}`}
+        >
+          <Flag className="mr-1.5 inline h-4 w-4" />
+          {t("admin.moderation.title")}
         </button>
       </div>
 
@@ -247,6 +284,117 @@ export default function AdminPage() {
               <button onClick={() => setErrorPage((p) => Math.max(0, p - 1))} disabled={errorPage === 0} className="rounded-lg border border-zinc-200 px-3 py-1 text-xs font-medium disabled:opacity-50 dark:border-zinc-700">{t("common.previous")}</button>
               <span className="text-xs text-zinc-500">{t("common.page", { current: errorPage + 1, total: Math.ceil(errorTotal / 50) })}</span>
               <button onClick={() => setErrorPage((p) => p + 1)} disabled={(errorPage + 1) * 50 >= errorTotal} className="rounded-lg border border-zinc-200 px-3 py-1 text-xs font-medium disabled:opacity-50 dark:border-zinc-700">{t("common.next")}</button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Moderation */}
+      {activeTab === "moderation" && (
+        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800">
+          <div className="flex items-center justify-between border-b border-zinc-200 px-6 py-4 dark:border-zinc-800">
+            <h2 className="font-semibold">{t("admin.moderation.title")} ({modTotal})</h2>
+            <select
+              value={modStatus}
+              onChange={(e) => { setModStatus(e.target.value); setModPage(0); }}
+              className="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs dark:border-zinc-700 dark:bg-zinc-900"
+            >
+              <option value="">{t("admin.moderation.all")}</option>
+              <option value="pending">{t("admin.moderation.pending")}</option>
+              <option value="resolved">{t("admin.moderation.resolved")}</option>
+              <option value="dismissed">{t("admin.moderation.dismissed")}</option>
+            </select>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="border-b border-zinc-200 text-xs text-zinc-500 dark:border-zinc-800">
+                <tr>
+                  <th className="px-6 py-3 font-medium">{t("admin.moderation.time")}</th>
+                  <th className="px-6 py-3 font-medium">{t("admin.moderation.content")}</th>
+                  <th className="px-6 py-3 font-medium">{t("admin.moderation.reason")}</th>
+                  <th className="px-6 py-3 font-medium">{t("admin.moderation.status")}</th>
+                  <th className="px-6 py-3 font-medium">{t("admin.moderation.actions")}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+                {modFlags.map((flag: any) => (
+                  <tr key={flag.id}>
+                    <td className="px-6 py-3 text-xs text-zinc-500 whitespace-nowrap">{new Date(flag.createdAt).toLocaleString()}</td>
+                    <td className="max-w-xs truncate px-6 py-3 text-xs" title={flag.contentSnippet}>{flag.contentSnippet}</td>
+                    <td className="px-6 py-3 text-xs">{flag.reason}</td>
+                    <td className="px-6 py-3">
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                        flag.status === "pending" ? "bg-yellow-50 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400" :
+                        flag.status === "resolved" ? "bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400" :
+                        "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
+                      }`}>{flag.status}</span>
+                    </td>
+                    <td className="px-6 py-3">
+                      {flag.status === "pending" ? (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => { setModActionId(flag.id); setModActionType("resolved"); }}
+                            className="rounded-lg border border-green-200 px-3 py-1 text-xs font-medium text-green-600 transition-colors hover:bg-green-50 dark:border-green-800 dark:text-green-400 dark:hover:bg-green-900/30"
+                          >
+                            {t("admin.moderation.resolve")}
+                          </button>
+                          <button
+                            onClick={() => { setModActionId(flag.id); setModActionType("dismissed"); }}
+                            className="rounded-lg border border-zinc-200 px-3 py-1 text-xs font-medium transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+                          >
+                            {t("admin.moderation.dismiss")}
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-zinc-400">{t("common.noData")}</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+                {modFlags.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-8 text-center text-sm text-zinc-500">{t("admin.moderation.noFlags")}</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+          {modTotal > 20 && (
+            <div className="flex items-center justify-between border-t border-zinc-200 px-6 py-3 dark:border-zinc-800">
+              <button onClick={() => setModPage((p) => Math.max(0, p - 1))} disabled={modPage === 0} className="rounded-lg border border-zinc-200 px-3 py-1 text-xs font-medium disabled:opacity-50 dark:border-zinc-700">{t("common.previous")}</button>
+              <span className="text-xs text-zinc-500">{t("common.page", { current: modPage + 1, total: Math.ceil(modTotal / 20) })}</span>
+              <button onClick={() => setModPage((p) => p + 1)} disabled={(modPage + 1) * 20 >= modTotal} className="rounded-lg border border-zinc-200 px-3 py-1 text-xs font-medium disabled:opacity-50 dark:border-zinc-700">{t("common.next")}</button>
+            </div>
+          )}
+          {/* Resolve/Dismiss Modal */}
+          {modActionId && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+              <div className="w-full max-w-md rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+                <h3 className="text-lg font-semibold">
+                  {modActionType === "resolved" ? t("admin.moderation.resolve") : t("admin.moderation.dismiss")}
+                </h3>
+                <textarea
+                  value={modNotes}
+                  onChange={(e) => setModNotes(e.target.value)}
+                  placeholder={t("admin.moderation.notesPlaceholder")}
+                  className="mt-4 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+                  rows={3}
+                />
+                <div className="mt-4 flex justify-end gap-2">
+                  <button
+                    onClick={() => { setModActionId(null); setModNotes(""); }}
+                    className="rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+                  >
+                    {t("common.cancel")}
+                  </button>
+                  <button
+                    onClick={handleModResolve}
+                    className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+                  >
+                    {t("admin.moderation.confirm")}
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>

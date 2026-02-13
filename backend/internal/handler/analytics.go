@@ -8,17 +8,19 @@ import (
 	"time"
 
 	"github.com/creatrid/creatrid/internal/analytics"
+	"github.com/creatrid/creatrid/internal/geoip"
 	"github.com/creatrid/creatrid/internal/middleware"
 	"github.com/creatrid/creatrid/internal/store"
 	"github.com/go-chi/chi/v5"
 )
 
 type AnalyticsHandler struct {
-	store *store.Store
+	store  *store.Store
+	geoSvc *geoip.Service
 }
 
-func NewAnalyticsHandler(st *store.Store) *AnalyticsHandler {
-	return &AnalyticsHandler{store: st}
+func NewAnalyticsHandler(st *store.Store, geoSvc *geoip.Service) *AnalyticsHandler {
+	return &AnalyticsHandler{store: st, geoSvc: geoSvc}
 }
 
 // TrackView records a public profile view (called from frontend)
@@ -37,7 +39,14 @@ func (h *AnalyticsHandler) TrackView(w http.ResponseWriter, r *http.Request) {
 	referrer := r.Header.Get("Referer")
 	ua := analytics.ParseUserAgent(r.Header.Get("User-Agent"))
 
-	_ = h.store.RecordProfileView(r.Context(), user.ID, ip, referrer, ua.Browser, ua.OS, ua.DeviceType, "", "")
+	var country, city string
+	if h.geoSvc != nil {
+		geo := h.geoSvc.Lookup(ip)
+		country = geo.Country
+		city = geo.City
+	}
+
+	_ = h.store.RecordProfileView(r.Context(), user.ID, ip, referrer, ua.Browser, ua.OS, ua.DeviceType, country, city)
 	writeJSON(w, http.StatusOK, map[string]bool{"ok": true})
 }
 

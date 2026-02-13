@@ -22,6 +22,7 @@ export interface User {
   creatorScore: number | null;
   creatorTier: string;
   isVerified: boolean;
+  totpEnabled: boolean;
   onboarded: boolean;
   theme: string;
   customLinks: CustomLink[];

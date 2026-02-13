@@ -44,6 +44,25 @@ export const api = {
       request<{ success: boolean }>("/api/auth/verify-email/send", {
         method: "POST",
       }),
+    setup2FA: () =>
+      request<{ secret: string; qrUrl: string }>("/api/auth/2fa/setup", {
+        method: "POST",
+      }),
+    verify2FA: (code: string) =>
+      request<{ success: boolean }>("/api/auth/2fa/validate", {
+        method: "POST",
+        body: JSON.stringify({ code }),
+      }),
+    confirm2FA: (code: string) =>
+      request<{ success: boolean; backupCodes: string[] }>("/api/auth/2fa/verify", {
+        method: "POST",
+        body: JSON.stringify({ code }),
+      }),
+    disable2FA: (code: string) =>
+      request<{ success: boolean }>("/api/auth/2fa/disable", {
+        method: "POST",
+        body: JSON.stringify({ code }),
+      }),
   },
   users: {
     onboard: (data: { username: string; name: string }) =>
@@ -445,6 +464,29 @@ export const api = {
           sharedPlatforms: number;
         }[];
       }>("/api/recommendations"),
+  },
+  adminModeration: {
+    list: async (status?: string, limit = 20, offset = 0) => {
+      const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+      if (status) params.set("status", status);
+      return request<{
+        flags: {
+          id: string;
+          contentSnippet: string;
+          reason: string;
+          status: string;
+          createdAt: string;
+          reporterName: string | null;
+        }[];
+        total: number;
+      }>(`/api/admin/moderation?${params}`);
+    },
+    resolve: async (id: string, status: string, notes: string) => {
+      return request<{ success: boolean }>(`/api/admin/moderation/${id}/resolve`, {
+        method: "POST",
+        body: JSON.stringify({ status, notes }),
+      });
+    },
   },
   adminErrors: {
     list: (source?: string, limit = 50, offset = 0) => {

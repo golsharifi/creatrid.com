@@ -35,6 +35,7 @@ type User struct {
 	Theme         string          `json:"theme"`
 	CustomLinks             json.RawMessage `json:"customLinks"`
 	EmailPrefsRaw           json.RawMessage `json:"emailPrefs"`
+	TOTPEnabled             bool            `json:"totpEnabled"`
 	StripeConnectAccountID  *string         `json:"-"`
 	StripeConnectOnboarded  bool            `json:"-"`
 	CreatorTier             string          `json:"creatorTier"`

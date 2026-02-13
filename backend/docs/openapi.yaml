@@ -1,0 +1,3800 @@
+openapi: 3.0.3
+info:
+  title: Creatrid API
+  description: |
+    Creatrid is a verified digital identity platform for creators. Connect social
+    accounts, build a Creator Score, manage content licensing, and share a public
+    profile.
+
+    ## Authentication
+    Most endpoints require authentication via an HTTP-only cookie named `token`
+    that contains a JWT issued after Google OAuth sign-in.
+
+    Third-party verification endpoints use API key authentication via the
+    `X-API-Key` header.
+  version: 1.0.0
+  contact:
+    name: Creatrid
+    url: https://creatrid.com
+
+servers:
+  - url: https://creatrid-api.bluewave-351c9003.westeurope.azurecontainerapps.io
+    description: Production
+  - url: http://localhost:8080
+    description: Local development
+
+tags:
+  - name: Health
+    description: Health check
+  - name: Auth
+    description: Google OAuth, session management
+  - name: Users
+    description: Onboarding, profile management, public profiles
+  - name: Connections
+    description: Social platform connections (YouTube, GitHub, Twitter, LinkedIn, Instagram, Dribbble, Behance)
+  - name: Analytics
+    description: Profile view and click analytics
+  - name: Content
+    description: Content Vault - upload, manage, and share digital content
+  - name: Licensing
+    description: License offerings and purchases for content items
+  - name: Marketplace
+    description: Browse and purchase licensed content
+  - name: Collections
+    description: Organize content into collections
+  - name: Collaborations
+    description: Send and manage collaboration requests between creators
+  - name: Notifications
+    description: In-app notifications and real-time SSE stream
+  - name: Billing
+    description: Subscription management via Stripe
+  - name: Payouts
+    description: Stripe Connect payouts for content creators
+  - name: Webhooks
+    description: Developer webhook endpoints for event notifications
+  - name: Referrals
+    description: Referral program management
+  - name: Recommendations
+    description: Creator recommendations based on connected platforms
+  - name: Search
+    description: Unified search across creators and content
+  - name: Discovery
+    description: Discover creators with filters
+  - name: Widget
+    description: Embeddable creator widgets (JSON, SVG, HTML)
+  - name: DMCA
+    description: Content takedown reports
+  - name: Admin
+    description: Admin dashboard, user management, moderation, audit log
+  - name: Verification API
+    description: Third-party verification endpoints (API key auth)
+  - name: Errors
+    description: Client error reporting
+
+paths:
+  # ──────────────────────────────────────────────
+  # Health
+  # ──────────────────────────────────────────────
+  /api/health:
+    get:
+      operationId: healthCheck
+      tags: [Health]
+      summary: Health check
+      description: Returns server health status.
+      responses:
+        "200":
+          description: Server is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  # ──────────────────────────────────────────────
+  # Auth
+  # ──────────────────────────────────────────────
+  /api/auth/google:
+    get:
+      operationId: googleLogin
+      tags: [Auth]
+      summary: Start Google OAuth flow
+      description: Redirects the user to Google's OAuth consent screen. Sets an `oauth_state` cookie for CSRF protection.
+      responses:
+        "307":
+          description: Redirect to Google OAuth
+
+  /api/auth/google/callback:
+    get:
+      operationId: googleCallback
+      tags: [Auth]
+      summary: Google OAuth callback
+      description: |
+        Handles the OAuth callback from Google. Validates state, exchanges the
+        authorization code for tokens, finds or creates the user, issues a JWT
+        cookie, and redirects to the frontend.
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Authorization code from Google
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+          description: CSRF state parameter
+      responses:
+        "307":
+          description: Redirect to frontend (dashboard or onboarding)
+
+  /api/auth/me:
+    get:
+      operationId: getCurrentUser
+      tags: [Auth]
+      summary: Get current user
+      description: Returns the currently authenticated user's full profile.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/auth/logout:
+    post:
+      operationId: logout
+      tags: [Auth]
+      summary: Log out
+      description: Clears the JWT cookie to end the session.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Successfully logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/auth/verify-email/send:
+    post:
+      operationId: sendEmailVerification
+      tags: [Auth]
+      summary: Send email verification
+      description: Sends a verification email to the authenticated user's email address.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Verification email sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Email already verified
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/auth/verify-email/{token}:
+    get:
+      operationId: verifyEmail
+      tags: [Auth]
+      summary: Verify email address
+      description: Verifies the user's email address using the token from the verification email. Redirects to the frontend.
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Email verification token
+      responses:
+        "302":
+          description: Redirect to frontend with verification status
+
+  # ──────────────────────────────────────────────
+  # Users
+  # ──────────────────────────────────────────────
+  /api/users/onboard:
+    post:
+      operationId: onboardUser
+      tags: [Users]
+      summary: Complete onboarding
+      description: Sets the user's username and display name during first-time onboarding.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, name]
+              properties:
+                username:
+                  type: string
+                  pattern: "^[a-zA-Z0-9_-]{3,30}$"
+                  description: Unique username (3-30 chars, letters, numbers, hyphens, underscores)
+                  example: johndoe
+                name:
+                  type: string
+                  description: Display name
+                  example: John Doe
+      responses:
+        "200":
+          description: Onboarding complete
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Validation error (invalid username, taken, etc.)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/users/profile:
+    patch:
+      operationId: updateProfile
+      tags: [Users]
+      summary: Update profile
+      description: Updates the authenticated user's profile fields. All fields are optional.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Display name
+                bio:
+                  type: string
+                  description: Bio text
+                username:
+                  type: string
+                  pattern: "^[a-zA-Z0-9_-]{3,30}$"
+                  description: New username
+                theme:
+                  type: string
+                  enum: [default, ocean, sunset, forest, midnight, rose]
+                  description: Profile theme
+                customLinks:
+                  type: array
+                  maxItems: 10
+                  items:
+                    $ref: "#/components/schemas/CustomLink"
+                  description: Custom links (max 10)
+                emailPrefs:
+                  $ref: "#/components/schemas/EmailPrefs"
+      responses:
+        "200":
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/users/profile/image:
+    post:
+      operationId: uploadProfileImage
+      tags: [Users]
+      summary: Upload profile image
+      description: Uploads a new profile photo. Accepts JPEG, PNG, and WebP up to 5 MB. Images are resized to 512x512.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image]
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: Image file (JPEG, PNG, or WebP, max 5 MB)
+      responses:
+        "200":
+          description: Image uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  image:
+                    type: string
+                    format: uri
+                    description: URL of the uploaded image
+        "400":
+          description: Invalid file or file too large
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "503":
+          description: Image upload not configured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/users/account:
+    delete:
+      operationId: deleteAccount
+      tags: [Users]
+      summary: Delete account
+      description: Permanently deletes the authenticated user's account and all associated data.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Account deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: boolean
+                    example: true
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/users/export:
+    get:
+      operationId: exportProfile
+      tags: [Users]
+      summary: Export profile data
+      description: Downloads the authenticated user's profile data as a JSON file (GDPR data export).
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Profile data export
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: "#/components/schemas/PublicUser"
+                  connections:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PublicConnection"
+                  exportedAt:
+                    type: string
+                    format: date-time
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/users/{username}:
+    get:
+      operationId: getPublicProfile
+      tags: [Users]
+      summary: Get public profile
+      description: Returns the public profile for a creator by username.
+      parameters:
+        - $ref: "#/components/parameters/Username"
+      responses:
+        "200":
+          description: Public profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: "#/components/schemas/PublicUser"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/users/{username}/connections:
+    get:
+      operationId: getPublicConnections
+      tags: [Users]
+      summary: Get public connections
+      description: Returns the social platform connections for a creator by username.
+      parameters:
+        - $ref: "#/components/parameters/Username"
+      responses:
+        "200":
+          description: Public connections
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  connections:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PublicConnection"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/users/{username}/content:
+    get:
+      operationId: getPublicContent
+      tags: [Users]
+      summary: Get public content
+      description: Returns the public content items for a creator by username.
+      parameters:
+        - $ref: "#/components/parameters/Username"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [image, video, audio, text, other]
+          description: Filter by content type
+        - name: q
+          in: query
+          schema:
+            type: string
+          description: Search query for title or description
+      responses:
+        "200":
+          description: Public content list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ContentItemPublic"
+                  total:
+                    type: integer
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/users/{username}/collections:
+    get:
+      operationId: getPublicCollections
+      tags: [Users]
+      summary: Get public collections
+      description: Returns the public collections for a creator by username.
+      parameters:
+        - $ref: "#/components/parameters/Username"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+      responses:
+        "200":
+          description: Public collections
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  collections:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Collection"
+                  total:
+                    type: integer
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ──────────────────────────────────────────────
+  # Connections
+  # ──────────────────────────────────────────────
+  /api/connections:
+    get:
+      operationId: listConnections
+      tags: [Connections]
+      summary: List connections
+      description: Returns the authenticated user's social platform connections.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Connections list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  connections:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PublicConnection"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/connections/{platform}/connect:
+    get:
+      operationId: connectPlatform
+      tags: [Connections]
+      summary: Start platform connection
+      description: |
+        Redirects the user to the platform's OAuth consent screen. Requires browser-based
+        authentication (redirect auth middleware).
+      parameters:
+        - $ref: "#/components/parameters/Platform"
+      security:
+        - cookieAuth: []
+      responses:
+        "307":
+          description: Redirect to platform OAuth
+
+  /api/connections/{platform}/callback:
+    get:
+      operationId: platformCallback
+      tags: [Connections]
+      summary: Platform OAuth callback
+      description: Handles the OAuth callback from the social platform. Exchanges the code, fetches the profile, and stores the connection.
+      parameters:
+        - $ref: "#/components/parameters/Platform"
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+      security:
+        - cookieAuth: []
+      responses:
+        "307":
+          description: Redirect to frontend connections page
+
+  /api/connections/{platform}:
+    delete:
+      operationId: disconnectPlatform
+      tags: [Connections]
+      summary: Disconnect platform
+      description: Removes the connection for the specified platform.
+      parameters:
+        - $ref: "#/components/parameters/Platform"
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Platform disconnected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/connections/{platform}/refresh:
+    post:
+      operationId: refreshConnection
+      tags: [Connections]
+      summary: Refresh connection
+      description: Refreshes the token and re-fetches the profile data for a platform connection.
+      parameters:
+        - $ref: "#/components/parameters/Platform"
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Connection refresh result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [refreshed, refresh_failed, fetch_failed, no_token]
+                    description: Result of the refresh attempt
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ──────────────────────────────────────────────
+  # Analytics
+  # ──────────────────────────────────────────────
+  /api/analytics:
+    get:
+      operationId: getAnalyticsSummary
+      tags: [Analytics]
+      summary: Get analytics summary
+      description: Returns profile view and click analytics for the authenticated user.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Analytics summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyticsSummary"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/analytics/export:
+    get:
+      operationId: exportAnalyticsCSV
+      tags: [Analytics]
+      summary: Export analytics as CSV
+      description: Downloads profile analytics as a CSV file.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: CSV file
+          content:
+            text/csv:
+              schema:
+                type: string
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/users/{username}/view:
+    post:
+      operationId: trackProfileView
+      tags: [Analytics]
+      summary: Track profile view
+      description: Records a profile view for the specified user. Called by the frontend when a public profile is loaded.
+      parameters:
+        - $ref: "#/components/parameters/Username"
+      responses:
+        "200":
+          description: View tracked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/users/{username}/click:
+    post:
+      operationId: trackLinkClick
+      tags: [Analytics]
+      summary: Track link click
+      description: Records a link click on a creator's public profile.
+      parameters:
+        - $ref: "#/components/parameters/Username"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type, value]
+              properties:
+                type:
+                  type: string
+                  enum: [connection, custom, share]
+                  description: Type of link clicked
+                value:
+                  type: string
+                  description: Link identifier or URL
+      responses:
+        "200":
+          description: Click tracked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+        "400":
+          description: Invalid click type
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ──────────────────────────────────────────────
+  # Content
+  # ──────────────────────────────────────────────
+  /api/content:
+    post:
+      operationId: uploadContent
+      tags: [Content]
+      summary: Upload content
+      description: Uploads a new content item to the vault. Supports images, videos, audio, PDFs, and other files up to 500 MB.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, title]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: File to upload (max 500 MB)
+                title:
+                  type: string
+                  description: Content title
+                description:
+                  type: string
+                  description: Content description
+                tags:
+                  type: string
+                  description: Comma-separated tags
+                is_public:
+                  type: string
+                  enum: ["true", "false"]
+                  description: Whether the content is publicly visible (default true)
+      responses:
+        "201":
+          description: Content uploaded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContentItem"
+        "400":
+          description: File too large or missing fields
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "503":
+          description: File upload not configured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    get:
+      operationId: listContent
+      tags: [Content]
+      summary: List my content
+      description: Returns the authenticated user's content items (both public and private).
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+      responses:
+        "200":
+          description: Content list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ContentItem"
+                  total:
+                    type: integer
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/content/{id}:
+    get:
+      operationId: getContent
+      tags: [Content]
+      summary: Get content item
+      description: Returns a single content item. Only the owner can access it.
+      parameters:
+        - $ref: "#/components/parameters/ContentID"
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Content item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContentItem"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      operationId: updateContent
+      tags: [Content]
+      summary: Update content metadata
+      description: Updates the title, description, tags, and visibility of a content item.
+      parameters:
+        - $ref: "#/components/parameters/ContentID"
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title]
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                  nullable: true
+                tags:
+                  type: array
+                  items:
+                    type: string
+                isPublic:
+                  type: boolean
+      responses:
+        "200":
+          description: Content updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: deleteContent
+      tags: [Content]
+      summary: Delete content
+      description: Deletes a content item and its associated blob storage file.
+      parameters:
+        - $ref: "#/components/parameters/ContentID"
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Content deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: boolean
+                    example: true
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/content/{id}/download:
+    get:
+      operationId: downloadContent
+      tags: [Content]
+      summary: Download content file
+      description: Downloads the original file for a content item. The user must be the owner or hold a valid license.
+      parameters:
+        - $ref: "#/components/parameters/ContentID"
+      security:
+        - cookieAuth: []
+      responses:
+        "302":
+          description: Redirect to file URL
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/content/{id}/proof:
+    get:
+      operationId: getContentProof
+      tags: [Content]
+      summary: Get ownership proof
+      description: Returns the SHA-256 hash and timestamp for a content item, serving as proof of ownership.
+      parameters:
+        - $ref: "#/components/parameters/ContentID"
+      responses:
+        "200":
+          description: Ownership proof
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  hashSha256:
+                    type: string
+                    description: SHA-256 hash of the original file
+                  createdAt:
+                    type: string
+                    format: date-time
+                  title:
+                    type: string
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/content/{id}/view:
+    post:
+      operationId: trackContentView
+      tags: [Content]
+      summary: Track content view
+      description: Records a view event for a public content item.
+      parameters:
+        - $ref: "#/components/parameters/ContentID"
+      responses:
+        "200":
+          description: View tracked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+
+  /api/content/{id}/analytics:
+    get:
+      operationId: getContentItemAnalytics
+      tags: [Content]
+      summary: Get content item analytics
+      description: Returns view, download, and revenue analytics for a single content item owned by the user.
+      parameters:
+        - $ref: "#/components/parameters/ContentID"
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Content item analytics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContentAnalytics"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/content-analytics:
+    get:
+      operationId: getCreatorContentAnalytics
+      tags: [Content]
+      summary: Get creator content analytics
+      description: Returns aggregated analytics across all content items for the authenticated user.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Creator content analytics summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ContentAnalytics"
+                  totalRevenue:
+                    type: integer
+                    description: Total revenue in cents
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/content-analytics/export:
+    get:
+      operationId: exportContentAnalyticsCSV
+      tags: [Content]
+      summary: Export content analytics as CSV
+      description: Downloads content analytics as a CSV file.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: CSV file
+          content:
+            text/csv:
+              schema:
+                type: string
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # ──────────────────────────────────────────────
+  # Licensing
+  # ──────────────────────────────────────────────
+  /api/content/{id}/licenses:
+    get:
+      operationId: listLicenseOfferings
+      tags: [Licensing]
+      summary: List license offerings
+      description: Returns all active license offerings for a content item.
+      parameters:
+        - $ref: "#/components/parameters/ContentID"
+      responses:
+        "200":
+          description: License offerings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  offerings:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/LicenseOffering"
+    post:
+      operationId: createLicenseOffering
+      tags: [Licensing]
+      summary: Create license offering
+      description: Creates a new license offering for a content item the user owns.
+      parameters:
+        - $ref: "#/components/parameters/ContentID"
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [licenseType, priceCents]
+              properties:
+                licenseType:
+                  type: string
+                  enum: [personal, commercial, editorial, ai_training]
+                  description: Type of license
+                priceCents:
+                  type: integer
+                  minimum: 1
+                  description: Price in cents (USD)
+                termsText:
+                  type: string
+                  nullable: true
+                  description: Custom license terms
+      responses:
+        "201":
+          description: License offering created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LicenseOffering"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          description: Offering for this license type already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/licenses/{id}:
+    patch:
+      operationId: updateLicenseOffering
+      tags: [Licensing]
+      summary: Update license offering
+      description: Updates a license offering's price, active status, or terms.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: License offering ID
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                priceCents:
+                  type: integer
+                  minimum: 1
+                isActive:
+                  type: boolean
+                termsText:
+                  type: string
+                  nullable: true
+      responses:
+        "200":
+          description: Offering updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: updated
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: deleteLicenseOffering
+      tags: [Licensing]
+      summary: Delete license offering
+      description: Deletes a license offering.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: License offering ID
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Offering deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/licenses/{id}/checkout:
+    post:
+      operationId: checkoutLicense
+      tags: [Licensing]
+      summary: Purchase a license
+      description: Creates a Stripe checkout session for a one-time license purchase.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: License offering ID
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Stripe checkout URL
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    format: uri
+                    description: Stripe checkout session URL
+        "400":
+          description: Cannot purchase own content or offering inactive
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Already have a license for this content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/licenses/purchases:
+    get:
+      operationId: listPurchases
+      tags: [Licensing]
+      summary: List my purchases
+      description: Returns license purchases made by the authenticated user.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Purchase list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  purchases:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/LicensePurchase"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/licenses/sales:
+    get:
+      operationId: listSales
+      tags: [Licensing]
+      summary: List my sales
+      description: Returns license sales for the authenticated user's content.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Sales list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sales:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/LicensePurchase"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # ──────────────────────────────────────────────
+  # Marketplace
+  # ──────────────────────────────────────────────
+  /api/marketplace:
+    get:
+      operationId: browseMarketplace
+      tags: [Marketplace]
+      summary: Browse marketplace
+      description: Returns a paginated list of public content items that have active license offerings.
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [image, video, audio, text, other]
+          description: Filter by content type
+        - name: q
+          in: query
+          schema:
+            type: string
+          description: Search query
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [newest, popular]
+            default: newest
+          description: Sort order
+      responses:
+        "200":
+          description: Marketplace listings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/MarketplaceItem"
+                  total:
+                    type: integer
+
+  /api/marketplace/{id}:
+    get:
+      operationId: getMarketplaceDetail
+      tags: [Marketplace]
+      summary: Get marketplace item detail
+      description: Returns a single public content item with its license offerings and creator info.
+      parameters:
+        - $ref: "#/components/parameters/ContentID"
+      responses:
+        "200":
+          description: Marketplace item detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    $ref: "#/components/schemas/ContentItem"
+                  offerings:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/LicenseOffering"
+                  creatorName:
+                    type: string
+                    nullable: true
+                  creatorUsername:
+                    type: string
+                    nullable: true
+                  creatorImage:
+                    type: string
+                    nullable: true
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ──────────────────────────────────────────────
+  # Collections
+  # ──────────────────────────────────────────────
+  /api/collections:
+    post:
+      operationId: createCollection
+      tags: [Collections]
+      summary: Create collection
+      description: Creates a new content collection.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title]
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                  nullable: true
+                isPublic:
+                  type: boolean
+                  default: false
+      responses:
+        "201":
+          description: Collection created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Collection"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    get:
+      operationId: listCollections
+      tags: [Collections]
+      summary: List my collections
+      description: Returns the authenticated user's collections.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+      responses:
+        "200":
+          description: Collections list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  collections:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Collection"
+                  total:
+                    type: integer
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/collections/{id}:
+    get:
+      operationId: getCollection
+      tags: [Collections]
+      summary: Get collection
+      description: Returns a collection with its items. Public collections are accessible to all; private collections require ownership.
+      parameters:
+        - $ref: "#/components/parameters/CollectionID"
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Collection with items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  collection:
+                    $ref: "#/components/schemas/Collection"
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ContentItem"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      operationId: updateCollection
+      tags: [Collections]
+      summary: Update collection
+      description: Updates a collection's title, description, and visibility.
+      parameters:
+        - $ref: "#/components/parameters/CollectionID"
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title]
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                  nullable: true
+                isPublic:
+                  type: boolean
+      responses:
+        "200":
+          description: Collection updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: deleteCollection
+      tags: [Collections]
+      summary: Delete collection
+      description: Deletes a collection. Content items are not deleted.
+      parameters:
+        - $ref: "#/components/parameters/CollectionID"
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Collection deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: boolean
+                    example: true
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/collections/{id}/items:
+    post:
+      operationId: addItemToCollection
+      tags: [Collections]
+      summary: Add item to collection
+      description: Adds a content item to a collection.
+      parameters:
+        - $ref: "#/components/parameters/CollectionID"
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [contentId]
+              properties:
+                contentId:
+                  type: string
+                  description: Content item ID to add
+                position:
+                  type: integer
+                  description: Position in the collection
+      responses:
+        "200":
+          description: Item added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    get:
+      operationId: listCollectionItems
+      tags: [Collections]
+      summary: List collection items
+      description: Returns the content items in a collection. Public collections are accessible to all.
+      parameters:
+        - $ref: "#/components/parameters/CollectionID"
+      responses:
+        "200":
+          description: Collection items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ContentItem"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/collections/{id}/items/{contentId}:
+    delete:
+      operationId: removeItemFromCollection
+      tags: [Collections]
+      summary: Remove item from collection
+      description: Removes a content item from a collection.
+      parameters:
+        - $ref: "#/components/parameters/CollectionID"
+        - name: contentId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Content item ID
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Item removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ──────────────────────────────────────────────
+  # Collaborations
+  # ──────────────────────────────────────────────
+  /api/collaborations:
+    post:
+      operationId: sendCollaboration
+      tags: [Collaborations]
+      summary: Send collaboration request
+      description: Sends a collaboration request to another creator.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [toUserId]
+              properties:
+                toUserId:
+                  type: string
+                  description: ID of the user to collaborate with
+                message:
+                  type: string
+                  maxLength: 1000
+                  description: Message to include with the request
+      responses:
+        "201":
+          description: Request sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Collaboration request ID
+        "400":
+          description: Validation error (missing toUserId, self-request, message too long)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          description: Request already sent to this user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/collaborations/inbox:
+    get:
+      operationId: getCollabInbox
+      tags: [Collaborations]
+      summary: Collaboration inbox
+      description: Returns incoming collaboration requests for the authenticated user.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Incoming requests
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  requests:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Collaboration"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/collaborations/outbox:
+    get:
+      operationId: getCollabOutbox
+      tags: [Collaborations]
+      summary: Collaboration outbox
+      description: Returns outgoing collaboration requests sent by the authenticated user.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Outgoing requests
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  requests:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Collaboration"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/collaborations/{id}/respond:
+    post:
+      operationId: respondCollaboration
+      tags: [Collaborations]
+      summary: Respond to collaboration
+      description: Accepts or declines a collaboration request. Only the recipient can respond.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Collaboration request ID
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action:
+                  type: string
+                  enum: [accept, decline]
+                  description: Response action
+      responses:
+        "200":
+          description: Response recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [accepted, declined]
+        "400":
+          description: Invalid action or request already responded to
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ──────────────────────────────────────────────
+  # Notifications
+  # ──────────────────────────────────────────────
+  /api/notifications:
+    get:
+      operationId: listNotifications
+      tags: [Notifications]
+      summary: List notifications
+      description: Returns paginated notifications for the authenticated user.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+      responses:
+        "200":
+          description: Notifications list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  notifications:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Notification"
+                  total:
+                    type: integer
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/notifications/unread-count:
+    get:
+      operationId: getUnreadCount
+      tags: [Notifications]
+      summary: Get unread count
+      description: Returns the number of unread notifications for the authenticated user.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Unread notification count
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/notifications/{id}/read:
+    post:
+      operationId: markNotificationRead
+      tags: [Notifications]
+      summary: Mark notification as read
+      description: Marks a single notification as read.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Notification ID
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Notification marked as read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/notifications/read-all:
+    post:
+      operationId: markAllNotificationsRead
+      tags: [Notifications]
+      summary: Mark all notifications as read
+      description: Marks all unread notifications as read for the authenticated user.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: All notifications marked as read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/notifications/stream:
+    get:
+      operationId: notificationStream
+      tags: [Notifications]
+      summary: Notification SSE stream
+      description: |
+        Server-Sent Events endpoint that pushes real-time notifications to the
+        authenticated user. Sends a keepalive comment every 30 seconds.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: SSE event stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                description: Stream of JSON notification events
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # ──────────────────────────────────────────────
+  # Billing
+  # ──────────────────────────────────────────────
+  /api/billing/checkout:
+    post:
+      operationId: createBillingCheckout
+      tags: [Billing]
+      summary: Create checkout session
+      description: Creates a Stripe checkout session for a Pro or Business subscription.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [plan]
+              properties:
+                plan:
+                  type: string
+                  enum: [pro, business]
+                  description: Subscription plan
+      responses:
+        "200":
+          description: Stripe checkout URL
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    format: uri
+        "400":
+          description: Invalid plan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/billing/subscription:
+    get:
+      operationId: getSubscription
+      tags: [Billing]
+      summary: Get subscription status
+      description: Returns the current subscription for the authenticated user.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Subscription status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Subscription"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/billing/portal:
+    post:
+      operationId: createBillingPortal
+      tags: [Billing]
+      summary: Create billing portal session
+      description: Creates a Stripe billing portal session to manage the subscription.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Stripe portal URL
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    format: uri
+        "400":
+          description: No active subscription
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/billing/webhook:
+    post:
+      operationId: handleBillingWebhook
+      tags: [Billing]
+      summary: Stripe webhook
+      description: Handles incoming Stripe webhook events (checkout.session.completed, subscription updates, payment failures).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Webhook processed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  # ──────────────────────────────────────────────
+  # Payouts
+  # ──────────────────────────────────────────────
+  /api/payouts/connect:
+    post:
+      operationId: connectOnboard
+      tags: [Payouts]
+      summary: Start Stripe Connect onboarding
+      description: Creates a Stripe Connect account and returns the onboarding URL.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Stripe Connect onboarding URL
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    format: uri
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/payouts/connect/status:
+    get:
+      operationId: getConnectStatus
+      tags: [Payouts]
+      summary: Get Stripe Connect status
+      description: Returns whether the user has connected and onboarded their Stripe account.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Connect status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  connected:
+                    type: boolean
+                  onboarded:
+                    type: boolean
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/payouts/connect/callback:
+    get:
+      operationId: connectCallback
+      tags: [Payouts]
+      summary: Stripe Connect callback
+      description: Handles the return from Stripe Connect onboarding. Redirects to the frontend.
+      security:
+        - cookieAuth: []
+      responses:
+        "307":
+          description: Redirect to frontend earnings page
+
+  /api/payouts/dashboard:
+    get:
+      operationId: getPayoutDashboard
+      tags: [Payouts]
+      summary: Get payout dashboard
+      description: Returns the payout dashboard with earnings summary.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Payout dashboard data
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Payout dashboard summary
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/payouts:
+    get:
+      operationId: listPayouts
+      tags: [Payouts]
+      summary: List payouts
+      description: Returns paginated payouts for the authenticated user.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+      responses:
+        "200":
+          description: Payouts list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payouts:
+                    type: array
+                    items:
+                      type: object
+                      description: Payout record
+                  total:
+                    type: integer
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # ──────────────────────────────────────────────
+  # Webhooks
+  # ──────────────────────────────────────────────
+  /api/webhooks:
+    post:
+      operationId: createWebhook
+      tags: [Webhooks]
+      summary: Create webhook endpoint
+      description: |
+        Registers a webhook endpoint to receive event notifications.
+        Valid events: `license.sold`, `content.uploaded`, `profile.viewed`,
+        `collaboration.received`, `payout.completed`.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url, events]
+              properties:
+                url:
+                  type: string
+                  format: uri
+                  description: Webhook delivery URL
+                events:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - license.sold
+                      - content.uploaded
+                      - profile.viewed
+                      - collaboration.received
+                      - payout.completed
+                  description: Events to subscribe to
+      responses:
+        "201":
+          description: Webhook created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  url:
+                    type: string
+                  events:
+                    type: array
+                    items:
+                      type: string
+                  secret:
+                    type: string
+                    description: Signing secret (shown only once)
+        "400":
+          description: Invalid URL or event type
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    get:
+      operationId: listWebhooks
+      tags: [Webhooks]
+      summary: List webhook endpoints
+      description: Returns the authenticated user's webhook endpoints.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Webhook endpoints
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  endpoints:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/WebhookEndpoint"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/webhooks/{id}:
+    patch:
+      operationId: updateWebhook
+      tags: [Webhooks]
+      summary: Update webhook endpoint
+      description: Updates a webhook endpoint's URL, events, or active status.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Webhook endpoint ID
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  format: uri
+                events:
+                  type: array
+                  items:
+                    type: string
+                isActive:
+                  type: boolean
+      responses:
+        "200":
+          description: Webhook updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: deleteWebhook
+      tags: [Webhooks]
+      summary: Delete webhook endpoint
+      description: Deletes a webhook endpoint.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Webhook endpoint ID
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Webhook deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/webhooks/{id}/deliveries:
+    get:
+      operationId: listWebhookDeliveries
+      tags: [Webhooks]
+      summary: List webhook deliveries
+      description: Returns delivery logs for a webhook endpoint.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Webhook endpoint ID
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Delivery logs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deliveries:
+                    type: array
+                    items:
+                      type: object
+                      description: Webhook delivery record
+                  total:
+                    type: integer
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ──────────────────────────────────────────────
+  # Referrals
+  # ──────────────────────────────────────────────
+  /api/referrals/code:
+    get:
+      operationId: getReferralCode
+      tags: [Referrals]
+      summary: Get referral code
+      description: Returns the user's referral code, generating one if it does not exist.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Referral code
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: ab12cd34
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/referrals:
+    get:
+      operationId: listReferrals
+      tags: [Referrals]
+      summary: List referrals
+      description: Returns the user's referral history and stats.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Referral data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  referrals:
+                    type: array
+                    items:
+                      type: object
+                      description: Referral reward record
+                  stats:
+                    type: object
+                    description: Referral statistics
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # ──────────────────────────────────────────────
+  # Recommendations
+  # ──────────────────────────────────────────────
+  /api/recommendations:
+    get:
+      operationId: listRecommendations
+      tags: [Recommendations]
+      summary: Get recommended creators
+      description: Returns creator recommendations based on the user's connected platforms and score.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Recommended creators
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  creators:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PublicUser"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # ──────────────────────────────────────────────
+  # Search
+  # ──────────────────────────────────────────────
+  /api/search:
+    get:
+      operationId: search
+      tags: [Search]
+      summary: Search creators and content
+      description: Unified search across creators and content. Returns both by default, or filter by type.
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Search query
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [content, creators]
+          description: Restrict search to a specific type
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ContentItem"
+                  contentTotal:
+                    type: integer
+                  creators:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PublicUser"
+                  creatorsTotal:
+                    type: integer
+        "400":
+          description: Missing query parameter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/search/suggestions:
+    get:
+      operationId: searchSuggestions
+      tags: [Search]
+      summary: Search suggestions
+      description: Returns typeahead search suggestions.
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Search query prefix
+      responses:
+        "200":
+          description: Suggestions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  suggestions:
+                    type: array
+                    items:
+                      type: string
+
+  # ──────────────────────────────────────────────
+  # Discovery
+  # ──────────────────────────────────────────────
+  /api/discover:
+    get:
+      operationId: discoverCreators
+      tags: [Discovery]
+      summary: Discover creators
+      description: Returns a paginated list of creators with optional filters for score, platform, and search.
+      parameters:
+        - name: minScore
+          in: query
+          schema:
+            type: integer
+          description: Minimum Creator Score filter
+        - name: platform
+          in: query
+          schema:
+            type: string
+            enum: [youtube, github, twitter, linkedin, instagram, dribbble, behance]
+          description: Filter by connected platform
+        - name: q
+          in: query
+          schema:
+            type: string
+          description: Search by name or username
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+      responses:
+        "200":
+          description: Creators list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  creators:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PublicUser"
+                  total:
+                    type: integer
+
+  # ──────────────────────────────────────────────
+  # Widget
+  # ──────────────────────────────────────────────
+  /api/widget/{username}:
+    get:
+      operationId: widgetJSON
+      tags: [Widget]
+      summary: Widget JSON data
+      description: Returns creator data as JSON for embedding. CORS-enabled for any origin.
+      parameters:
+        - $ref: "#/components/parameters/Username"
+      responses:
+        "200":
+          description: Widget data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  username:
+                    type: string
+                  score:
+                    type: integer
+                  verified:
+                    type: boolean
+                  image:
+                    type: string
+                  connections:
+                    type: integer
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/widget/{username}/svg:
+    get:
+      operationId: widgetSVG
+      tags: [Widget]
+      summary: Widget SVG badge
+      description: Returns an SVG badge image with the creator's score. Suitable for embedding in READMEs.
+      parameters:
+        - $ref: "#/components/parameters/Username"
+      responses:
+        "200":
+          description: SVG badge
+          content:
+            image/svg+xml:
+              schema:
+                type: string
+
+  /api/widget/{username}/html:
+    get:
+      operationId: widgetHTML
+      tags: [Widget]
+      summary: Widget HTML embed
+      description: Returns a self-contained HTML widget for embedding a creator card.
+      parameters:
+        - $ref: "#/components/parameters/Username"
+      responses:
+        "200":
+          description: HTML widget
+          content:
+            text/html:
+              schema:
+                type: string
+
+  # ──────────────────────────────────────────────
+  # DMCA
+  # ──────────────────────────────────────────────
+  /api/content/{id}/report:
+    post:
+      operationId: reportContent
+      tags: [DMCA]
+      summary: Report content (DMCA takedown)
+      description: Submits a DMCA takedown request for a content item.
+      parameters:
+        - $ref: "#/components/parameters/ContentID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reporterEmail, reporterName, reason]
+              properties:
+                reporterEmail:
+                  type: string
+                  format: email
+                reporterName:
+                  type: string
+                reason:
+                  type: string
+                evidenceUrl:
+                  type: string
+                  format: uri
+                  nullable: true
+      responses:
+        "201":
+          description: Report submitted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  status:
+                    type: string
+                    example: pending
+        "400":
+          description: Missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ──────────────────────────────────────────────
+  # API Keys
+  # ──────────────────────────────────────────────
+  /api/keys:
+    post:
+      operationId: createAPIKey
+      tags: [Verification API]
+      summary: Create API key
+      description: Generates a new API key for third-party verification. The raw key is shown only once.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                  description: Human-readable name for the key
+      responses:
+        "201":
+          description: API key created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  key:
+                    type: string
+                    description: Raw API key (shown only once, starts with crk_)
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    get:
+      operationId: listAPIKeys
+      tags: [Verification API]
+      summary: List API keys
+      description: Returns the authenticated user's API keys (prefix only, not the full key).
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: API keys
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  keys:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/APIKey"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/keys/{id}:
+    delete:
+      operationId: deleteAPIKey
+      tags: [Verification API]
+      summary: Delete API key
+      description: Revokes and deletes an API key.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: API key ID
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: API key deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # ──────────────────────────────────────────────
+  # Verification API (API key auth)
+  # ──────────────────────────────────────────────
+  /api/v1/verify/{username}:
+    get:
+      operationId: verifyCreator
+      tags: [Verification API]
+      summary: Verify a creator
+      description: Returns full verification data for a creator, including profile and connections. Requires API key authentication.
+      parameters:
+        - $ref: "#/components/parameters/Username"
+      security:
+        - apiKeyAuth: []
+      responses:
+        "200":
+          description: Verification data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: "#/components/schemas/PublicUser"
+                  connections:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PublicConnection"
+                  connectionCount:
+                    type: integer
+        "401":
+          description: Invalid or missing API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/verify/{username}/score:
+    get:
+      operationId: getCreatorScore
+      tags: [Verification API]
+      summary: Get creator score
+      description: Returns just the Creator Score for a username. Requires API key authentication.
+      parameters:
+        - $ref: "#/components/parameters/Username"
+      security:
+        - apiKeyAuth: []
+      responses:
+        "200":
+          description: Creator score
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                  score:
+                    type: integer
+                  verified:
+                    type: boolean
+        "401":
+          description: Invalid or missing API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/search:
+    get:
+      operationId: searchCreatorsV1
+      tags: [Verification API]
+      summary: Search creators (API)
+      description: Searches for creators with filters. Requires API key authentication.
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+          description: Search query
+        - name: minScore
+          in: query
+          schema:
+            type: integer
+          description: Minimum Creator Score
+        - name: platform
+          in: query
+          schema:
+            type: string
+          description: Filter by platform
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+      security:
+        - apiKeyAuth: []
+      responses:
+        "200":
+          description: Creator search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  creators:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PublicUser"
+                  total:
+                    type: integer
+        "401":
+          description: Invalid or missing API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ──────────────────────────────────────────────
+  # Admin
+  # ──────────────────────────────────────────────
+  /api/admin/stats:
+    get:
+      operationId: adminStats
+      tags: [Admin]
+      summary: Platform statistics
+      description: Returns platform-wide statistics. Requires admin role.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Platform stats
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Platform-wide statistics (user count, connections, views, etc.)
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/admin/users:
+    get:
+      operationId: adminListUsers
+      tags: [Admin]
+      summary: List all users
+      description: Returns a paginated list of all users. Requires admin role.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+      responses:
+        "200":
+          description: Users list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/User"
+                  total:
+                    type: integer
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/admin/users/verify:
+    post:
+      operationId: adminSetVerified
+      tags: [Admin]
+      summary: Set verification status
+      description: Grants or revokes a verification badge for a user. Requires admin role.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, verified]
+              properties:
+                userId:
+                  type: string
+                verified:
+                  type: boolean
+      responses:
+        "200":
+          description: Verification status updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Missing userId
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/admin/digest:
+    post:
+      operationId: adminSendDigest
+      tags: [Admin]
+      summary: Send weekly digest
+      description: Triggers sending the weekly digest email to all users. Requires admin role.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Digest sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sent:
+                    type: integer
+                    description: Number of emails sent
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/admin/audit:
+    get:
+      operationId: adminAuditLog
+      tags: [Admin]
+      summary: Admin audit log
+      description: Returns the admin audit log. Requires admin role.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+      responses:
+        "200":
+          description: Audit log entries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  entries:
+                    type: array
+                    items:
+                      type: object
+                      description: Audit log entry
+                  total:
+                    type: integer
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/admin/takedowns:
+    get:
+      operationId: adminListTakedowns
+      tags: [Admin]
+      summary: List takedown requests
+      description: Returns DMCA takedown requests. Requires admin role.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, approved, denied]
+          description: Filter by status
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+      responses:
+        "200":
+          description: Takedown requests
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  requests:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TakedownRequest"
+                  total:
+                    type: integer
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/admin/takedowns/{id}/resolve:
+    post:
+      operationId: adminResolveTakedown
+      tags: [Admin]
+      summary: Resolve takedown request
+      description: Resolves a DMCA takedown request. Requires admin role.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Takedown request ID
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [approved, denied]
+                notes:
+                  type: string
+      responses:
+        "200":
+          description: Takedown resolved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+        "400":
+          description: Invalid status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/admin/moderation:
+    get:
+      operationId: adminListModerationFlags
+      tags: [Admin]
+      summary: List moderation flags
+      description: Returns paginated moderation flags for content. Requires admin role.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+          description: Filter by status (e.g. pending, resolved, dismissed)
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+      responses:
+        "200":
+          description: Moderation flags
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  flags:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ModerationFlag"
+                  total:
+                    type: integer
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/admin/moderation/{id}/resolve:
+    post:
+      operationId: adminResolveModerationFlag
+      tags: [Admin]
+      summary: Resolve moderation flag
+      description: Resolves a moderation flag on a content item. Requires admin role.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Moderation flag ID
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  description: Resolution status (e.g. resolved, dismissed)
+                notes:
+                  type: string
+                  description: Admin notes
+      responses:
+        "200":
+          description: Flag resolved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Missing status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/admin/errors:
+    get:
+      operationId: adminListErrors
+      tags: [Admin]
+      summary: List error logs
+      description: Returns client-reported error logs. Requires admin role.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Error log entries
+          content:
+            application/json:
+              schema:
+                type: object
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  # ──────────────────────────────────────────────
+  # Errors
+  # ──────────────────────────────────────────────
+  /api/errors:
+    post:
+      operationId: reportError
+      tags: [Errors]
+      summary: Report client error
+      description: Receives client-side error reports for monitoring.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Error reported
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # ──────────────────────────────────────────────
+  # OG Meta Tags
+  # ──────────────────────────────────────────────
+  /p/{username}:
+    get:
+      operationId: ogProfilePage
+      tags: [Widget]
+      summary: OG meta tags page
+      description: Returns an HTML page with Open Graph meta tags for social sharing previews.
+      parameters:
+        - $ref: "#/components/parameters/Username"
+      responses:
+        "200":
+          description: HTML page with OG meta tags
+          content:
+            text/html:
+              schema:
+                type: string
+
+# ════════════════════════════════════════════════
+# Components
+# ════════════════════════════════════════════════
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
+      description: JWT token set as an HTTP-only cookie after Google OAuth sign-in
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for third-party verification endpoints (starts with crk_)
+
+  parameters:
+    Username:
+      name: username
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Creator username
+    Platform:
+      name: platform
+      in: path
+      required: true
+      schema:
+        type: string
+        enum: [youtube, github, twitter, linkedin, instagram, dribbble, behance]
+      description: Social platform name
+    ContentID:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Content item ID
+    CollectionID:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Collection ID
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        default: 20
+        minimum: 1
+        maximum: 100
+      description: Number of items to return (default 20, max 100)
+    Offset:
+      name: offset
+      in: query
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+      description: Number of items to skip
+
+  responses:
+    Unauthorized:
+      description: Not authenticated
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: Not authenticated
+    Forbidden:
+      description: Not authorized
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: Not authorized
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: Not found
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+          nullable: true
+        email:
+          type: string
+          format: email
+        emailVerified:
+          type: string
+          format: date-time
+          nullable: true
+        image:
+          type: string
+          nullable: true
+        username:
+          type: string
+          nullable: true
+        bio:
+          type: string
+          nullable: true
+        role:
+          type: string
+          enum: [CREATOR, BRAND, ADMIN]
+        creatorScore:
+          type: integer
+          nullable: true
+        creatorTier:
+          type: string
+        isVerified:
+          type: boolean
+        onboarded:
+          type: boolean
+        theme:
+          type: string
+          enum: [default, ocean, sunset, forest, midnight, rose]
+        customLinks:
+          type: array
+          items:
+            $ref: "#/components/schemas/CustomLink"
+        emailPrefs:
+          $ref: "#/components/schemas/EmailPrefs"
+        totpEnabled:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PublicUser:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+          nullable: true
+        username:
+          type: string
+          nullable: true
+        bio:
+          type: string
+          nullable: true
+        image:
+          type: string
+          nullable: true
+        role:
+          type: string
+          enum: [CREATOR, BRAND, ADMIN]
+        creatorScore:
+          type: integer
+          nullable: true
+        creatorTier:
+          type: string
+        isVerified:
+          type: boolean
+        theme:
+          type: string
+        customLinks:
+          type: array
+          items:
+            $ref: "#/components/schemas/CustomLink"
+        createdAt:
+          type: string
+          format: date-time
+
+    CustomLink:
+      type: object
+      properties:
+        title:
+          type: string
+        url:
+          type: string
+          format: uri
+
+    EmailPrefs:
+      type: object
+      properties:
+        welcome:
+          type: boolean
+        connectionAlert:
+          type: boolean
+        weeklyDigest:
+          type: boolean
+        collaborations:
+          type: boolean
+
+    PublicConnection:
+      type: object
+      properties:
+        platform:
+          type: string
+          enum: [youtube, github, twitter, linkedin, instagram, dribbble, behance]
+        username:
+          type: string
+          nullable: true
+        displayName:
+          type: string
+          nullable: true
+        avatarUrl:
+          type: string
+          nullable: true
+        profileUrl:
+          type: string
+          nullable: true
+        followerCount:
+          type: integer
+          nullable: true
+        metadata:
+          type: object
+          description: Platform-specific metadata
+        connectedAt:
+          type: string
+          format: date-time
+
+    AnalyticsSummary:
+      type: object
+      description: Profile analytics summary with views and clicks broken down by day, referrer, browser, device, and location.
+
+    ContentItem:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        contentType:
+          type: string
+          enum: [image, video, audio, text, other]
+        mimeType:
+          type: string
+        fileSize:
+          type: integer
+          format: int64
+          description: File size in bytes
+        fileUrl:
+          type: string
+          format: uri
+        thumbnailUrl:
+          type: string
+          format: uri
+          nullable: true
+        hashSha256:
+          type: string
+          description: SHA-256 hash of the original file
+        isPublic:
+          type: boolean
+        tags:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ContentItemPublic:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        contentType:
+          type: string
+          enum: [image, video, audio, text, other]
+        mimeType:
+          type: string
+        fileSize:
+          type: integer
+          format: int64
+        thumbnailUrl:
+          type: string
+          format: uri
+          nullable: true
+        hashSha256:
+          type: string
+        isPublic:
+          type: boolean
+        tags:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ContentAnalytics:
+      type: object
+      properties:
+        contentId:
+          type: string
+        title:
+          type: string
+        totalViews:
+          type: integer
+        totalDownloads:
+          type: integer
+        revenueCents:
+          type: integer
+          description: Total revenue in cents
+
+    LicenseOffering:
+      type: object
+      properties:
+        id:
+          type: string
+        contentId:
+          type: string
+        licenseType:
+          type: string
+          enum: [personal, commercial, editorial, ai_training]
+        priceCents:
+          type: integer
+          description: Price in cents (USD)
+        currency:
+          type: string
+          example: usd
+        isActive:
+          type: boolean
+        termsText:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    LicensePurchase:
+      type: object
+      properties:
+        id:
+          type: string
+        offeringId:
+          type: string
+        contentId:
+          type: string
+        buyerUserId:
+          type: string
+          nullable: true
+        buyerEmail:
+          type: string
+        amountCents:
+          type: integer
+        platformFeeCents:
+          type: integer
+        creatorPayoutCents:
+          type: integer
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    MarketplaceItem:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        contentType:
+          type: string
+        thumbnailUrl:
+          type: string
+          nullable: true
+        creatorName:
+          type: string
+          nullable: true
+        creatorUsername:
+          type: string
+          nullable: true
+        offerings:
+          type: array
+          items:
+            $ref: "#/components/schemas/LicenseOffering"
+
+    Collection:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        isPublic:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Collaboration:
+      type: object
+      properties:
+        id:
+          type: string
+        fromUserId:
+          type: string
+        toUserId:
+          type: string
+        message:
+          type: string
+        status:
+          type: string
+          enum: [pending, accepted, declined]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        type:
+          type: string
+          description: "Notification type (e.g. collab_request, collab_response, license_sale)"
+        title:
+          type: string
+        message:
+          type: string
+        data:
+          type: object
+          description: Additional structured data
+        readAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    Subscription:
+      type: object
+      properties:
+        plan:
+          type: string
+          enum: [free, pro, business]
+        status:
+          type: string
+          enum: [active, past_due, canceled]
+        currentPeriodEnd:
+          type: string
+          format: date-time
+          nullable: true
+
+    TakedownRequest:
+      type: object
+      properties:
+        id:
+          type: string
+        reporterEmail:
+          type: string
+        reporterName:
+          type: string
+        contentId:
+          type: string
+        reason:
+          type: string
+        evidenceUrl:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [pending, approved, denied]
+        createdAt:
+          type: string
+          format: date-time
+
+    ModerationFlag:
+      type: object
+      properties:
+        id:
+          type: string
+        contentId:
+          type: string
+        reason:
+          type: string
+        details:
+          type: string
+        status:
+          type: string
+        resolvedBy:
+          type: string
+          nullable: true
+        resolvedNotes:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    WebhookEndpoint:
+      type: object
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+          format: uri
+        events:
+          type: array
+          items:
+            type: string
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    APIKey:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        keyPrefix:
+          type: string
+          description: First 12 characters of the key
+        lastUsedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time

@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/creatrid/creatrid/internal/email"
 	"github.com/creatrid/creatrid/internal/middleware"
 	"github.com/creatrid/creatrid/internal/store"
 	"github.com/go-chi/chi/v5"
@@ -15,12 +16,13 @@ import (
 )
 
 type CollaborationHandler struct {
-	store *store.Store
-	hub   *SSEHub
+	store    *store.Store
+	hub      *SSEHub
+	emailSvc *email.Service
 }
 
-func NewCollaborationHandler(st *store.Store, hub *SSEHub) *CollaborationHandler {
-	return &CollaborationHandler{store: st, hub: hub}
+func NewCollaborationHandler(st *store.Store, hub *SSEHub, emailSvc *email.Service) *CollaborationHandler {
+	return &CollaborationHandler{store: st, hub: hub, emailSvc: emailSvc}
 }
 
 // Discover returns a paginated list of creators with optional filters
@@ -108,6 +110,29 @@ func (h *CollaborationHandler) SendRequest(w http.ResponseWriter, r *http.Reques
 	if h.hub != nil {
 		if data, err := json.Marshal(notif); err == nil {
 			h.hub.Notify(req.ToUserID, data)
+		}
+	}
+
+	// Send email notification to recipient
+	if h.emailSvc != nil {
+		recipient, err := h.store.FindUserByID(r.Context(), req.ToUserID)
+		if err == nil && recipient != nil {
+			prefs := recipient.GetEmailPrefs()
+			if prefs.Collaborations {
+				recipientName := "Creator"
+				if recipient.Name != nil {
+					recipientName = *recipient.Name
+				}
+				senderUsername := ""
+				if user.Username != nil {
+					senderUsername = *user.Username
+				}
+				inboxURL := "https://creatrid.com/collaborations"
+				subj, body := email.CollaborationRequestEmail(recipientName, senderName, senderUsername, req.Message, inboxURL)
+				if err := h.emailSvc.Send(recipient.Email, subj, body); err != nil {
+					log.Printf("Failed to send collab request email: %v", err)
+				}
+			}
 		}
 	}
 
@@ -218,6 +243,25 @@ func (h *CollaborationHandler) Respond(w http.ResponseWriter, r *http.Request) {
 	if h.hub != nil {
 		if data, err := json.Marshal(notif); err == nil {
 			h.hub.Notify(cr.FromUserID, data)
+		}
+	}
+
+	// Send email notification to the original sender
+	if h.emailSvc != nil {
+		sender, err := h.store.FindUserByID(r.Context(), cr.FromUserID)
+		if err == nil && sender != nil {
+			prefs := sender.GetEmailPrefs()
+			if prefs.Collaborations {
+				senderName := "Creator"
+				if sender.Name != nil {
+					senderName = *sender.Name
+				}
+				collabURL := "https://creatrid.com/collaborations"
+				subj, body := email.CollaborationResponseEmail(senderName, responderName, status, collabURL)
+				if err := h.emailSvc.Send(sender.Email, subj, body); err != nil {
+					log.Printf("Failed to send collab response email: %v", err)
+				}
+			}
 		}
 	}
 

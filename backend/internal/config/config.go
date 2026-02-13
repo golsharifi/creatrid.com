@@ -50,6 +50,7 @@ type Config struct {
 	SMTPFrom     string
 
 	RefreshInterval  string
+	MaxMindDBPath    string
 
 	StripeSecretKey     string
 	StripeWebhookSecret string
@@ -94,6 +95,7 @@ func Load() (*Config, error) {
 		SMTPFrom:     getEnv("SMTP_FROM", "noreply@creatrid.com"),
 
 		RefreshInterval: getEnv("REFRESH_INTERVAL", "6h"),
+		MaxMindDBPath:   os.Getenv("MAXMIND_DB_PATH"),
 
 		StripeSecretKey:     os.Getenv("STRIPE_SECRET_KEY"),
 		StripeWebhookSecret: os.Getenv("STRIPE_WEBHOOK_SECRET"),

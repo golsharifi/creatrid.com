@@ -5,11 +5,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import { api } from "@/lib/api";
 import Link from "next/link";
-import { User, Link2, BarChart3, ArrowRight, QrCode, Eye, MousePointerClick, Mail, CheckCircle, Code, Archive, Users } from "lucide-react";
+import { User, Link2, BarChart3, ArrowRight, QrCode, Eye, MousePointerClick, Mail, CheckCircle, Code, Archive, Users, Upload, Share2, TrendingUp, Activity, Inbox } from "lucide-react";
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
 import { TierBadge } from "@/components/tier-badge";
 import { QRCodeSVG } from "qrcode.react";
 import { CopyLinkButton, ShareTwitterButton, ShareLinkedInButton } from "@/components/share-buttons";
+import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { useTranslation } from "react-i18next";
 
 const PROFILE_BASE_URL =
@@ -33,8 +34,13 @@ function DashboardContent() {
     viewsThisWeek: number;
     totalClicks: number;
     clicksByType: Record<string, number>;
+    viewsByDay: { date: string; count: number }[];
   } | null>(null);
   const [recommendations, setRecommendations] = useState<any[]>([]);
+  const [pendingCollabCount, setPendingCollabCount] = useState(0);
+  const [recentNotifications, setRecentNotifications] = useState<any[]>([]);
+  const [copiedProfile, setCopiedProfile] = useState(false);
+  const [connections, setConnections] = useState<any[]>([]);
 
   const profileUrl = user?.username
     ? `${PROFILE_BASE_URL}/profile?u=${user.username}`
@@ -50,6 +56,7 @@ function DashboardContent() {
       api.connections.list().then((result) => {
         if (result.data) {
           setConnectionCount(result.data.connections?.length || 0);
+          setConnections(result.data.connections || []);
         }
       });
       api.analytics.summary().then((result) => {
@@ -65,6 +72,19 @@ function DashboardContent() {
       api.recommendations.list().then((result) => {
         if (result.data) {
           setRecommendations(result.data.creators || []);
+        }
+      });
+      api.collaborations.inbox().then((result) => {
+        if (result.data) {
+          const pending = (result.data.requests || []).filter(
+            (r: any) => r.status === "pending"
+          );
+          setPendingCollabCount(pending.length);
+        }
+      });
+      api.notifications.list(5, 0).then((result) => {
+        if (result.data) {
+          setRecentNotifications(result.data.notifications || []);
         }
       });
     }
@@ -300,6 +320,137 @@ function DashboardContent() {
         </div>
       )}
 
+      {/* Mini Views Trend + Score Breakdown */}
+      {analytics && (
+        <div className="mt-6 grid gap-6 sm:grid-cols-2">
+          {/* Mini Views Trend Chart */}
+          <div className="rounded-xl border border-zinc-200 p-6 dark:border-zinc-800">
+            <h3 className="mb-4 text-sm font-semibold">{t("dashboard.viewsTrend")}</h3>
+            {analytics.viewsByDay && analytics.viewsByDay.length > 0 ? (
+              <ResponsiveContainer width="100%" height={120}>
+                <AreaChart data={analytics.viewsByDay.slice(-7)}>
+                  <defs>
+                    <linearGradient id="viewsGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#18181b" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#18181b" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fontSize: 10, fill: "#71717a" }}
+                    tickFormatter={(d: string) => new Date(d).toLocaleDateString(undefined, { weekday: "short" })}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip
+                    labelFormatter={(d) => new Date(String(d)).toLocaleDateString()}
+                    contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #e4e4e7" }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="count"
+                    stroke="#18181b"
+                    fill="url(#viewsGradient)"
+                    strokeWidth={2}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-xs text-zinc-400">{t("analytics.noData")}</p>
+            )}
+          </div>
+
+          {/* Creator Score Breakdown */}
+          <div className="rounded-xl border border-zinc-200 p-6 dark:border-zinc-800">
+            <h3 className="mb-4 text-sm font-semibold">{t("dashboard.scoreBreakdown")}</h3>
+            <ScoreBreakdown user={user} connectionCount={connectionCount} connections={connections} />
+          </div>
+        </div>
+      )}
+
+      {/* Pending Collaborations + Quick Actions */}
+      <div className="mt-6 grid gap-6 sm:grid-cols-2">
+        {/* Pending Collaborations Card */}
+        <div className="rounded-xl border border-zinc-200 p-6 dark:border-zinc-800">
+          <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
+            <Inbox className="h-5 w-5" />
+          </div>
+          <h3 className="font-semibold">{t("dashboard.pendingCollabs")}</h3>
+          <p className="mt-2 text-2xl font-bold">{pendingCollabCount}</p>
+          <Link
+            href="/collaborations"
+            className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+          >
+            {t("dashboard.viewInbox")}
+            <ArrowRight className="h-3 w-3" />
+          </Link>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="rounded-xl border border-zinc-200 p-6 dark:border-zinc-800">
+          <h3 className="mb-4 font-semibold">{t("dashboard.quickActions")}</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <Link
+              href="/vault/upload"
+              className="flex items-center gap-2 rounded-lg border border-zinc-200 px-3 py-2.5 text-xs font-medium transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+            >
+              <Upload className="h-4 w-4 text-zinc-500" />
+              {t("dashboard.uploadContent")}
+            </Link>
+            <Link
+              href="/connections"
+              className="flex items-center gap-2 rounded-lg border border-zinc-200 px-3 py-2.5 text-xs font-medium transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+            >
+              <Link2 className="h-4 w-4 text-zinc-500" />
+              {t("dashboard.connectPlatform")}
+            </Link>
+            <button
+              onClick={() => {
+                if (profileUrl) {
+                  navigator.clipboard.writeText(profileUrl);
+                  setCopiedProfile(true);
+                  setTimeout(() => setCopiedProfile(false), 2000);
+                }
+              }}
+              className="flex items-center gap-2 rounded-lg border border-zinc-200 px-3 py-2.5 text-xs font-medium transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+            >
+              <Share2 className="h-4 w-4 text-zinc-500" />
+              {copiedProfile ? t("dashboard.profileCopied") : t("dashboard.shareProfile")}
+            </button>
+            <Link
+              href="/analytics"
+              className="flex items-center gap-2 rounded-lg border border-zinc-200 px-3 py-2.5 text-xs font-medium transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+            >
+              <TrendingUp className="h-4 w-4 text-zinc-500" />
+              {t("dashboard.viewAnalytics")}
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Activity Feed */}
+      <div className="mt-6 rounded-xl border border-zinc-200 p-6 dark:border-zinc-800">
+        <div className="mb-4 flex items-center gap-2">
+          <Activity className="h-4 w-4 text-zinc-500" />
+          <h3 className="font-semibold">{t("dashboard.recentActivity")}</h3>
+        </div>
+        {recentNotifications.length > 0 ? (
+          <ul className="space-y-3">
+            {recentNotifications.slice(0, 5).map((n: any) => (
+              <li key={n.id} className="flex items-start gap-3 text-sm">
+                <div className={`mt-1 h-2 w-2 rounded-full ${n.readAt ? "bg-zinc-300 dark:bg-zinc-600" : "bg-zinc-900 dark:bg-zinc-100"}`} />
+                <div>
+                  <p className="text-zinc-700 dark:text-zinc-300">{n.title || n.message}</p>
+                  <p className="text-xs text-zinc-400">{new Date(n.createdAt).toLocaleString()}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-zinc-400">{t("dashboard.noRecentActivity")}</p>
+        )}
+      </div>
+
       {/* Widget Card */}
       {user.username && (
         <div className="mt-6">
@@ -398,6 +549,51 @@ function DashboardContent() {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+function ScoreBreakdown({ user, connectionCount, connections }: { user: any; connectionCount: number; connections: any[] }) {
+  const { t } = useTranslation();
+
+  // Profile completeness: has avatar + bio = 20, one missing = 10, both missing = 0
+  const hasAvatar = !!user.image;
+  const hasBio = !!user.bio;
+  const profilePts = (hasAvatar ? 10 : 0) + (hasBio ? 10 : 0);
+
+  // Email verified: 10 pts
+  const emailPts = user.emailVerified ? 10 : 0;
+
+  // Connections: 10 per connection, max 50
+  const connectionsPts = Math.min(connectionCount * 10, 50);
+
+  // Followers bonus: logarithmic, max 20
+  const totalFollowers = connections.reduce((sum: number, c: any) => sum + (c.followerCount || 0), 0);
+  const followersPts = totalFollowers > 0 ? Math.min(Math.round(Math.log10(totalFollowers) * 5), 20) : 0;
+
+  const bars = [
+    { label: t("dashboard.profileScore"), value: profilePts, max: 20 },
+    { label: t("dashboard.emailScore"), value: emailPts, max: 10 },
+    { label: t("dashboard.connectionsScore"), value: connectionsPts, max: 50 },
+    { label: t("dashboard.followersScore"), value: followersPts, max: 20 },
+  ];
+
+  return (
+    <div className="space-y-3">
+      {bars.map((bar) => (
+        <div key={bar.label}>
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-zinc-600 dark:text-zinc-400">{bar.label}</span>
+            <span className="font-medium">{bar.value}/{bar.max}</span>
+          </div>
+          <div className="mt-1 h-2 rounded-full bg-zinc-100 dark:bg-zinc-800">
+            <div
+              className="h-2 rounded-full bg-zinc-900 transition-all dark:bg-zinc-100"
+              style={{ width: `${(bar.value / bar.max) * 100}%` }}
+            />
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

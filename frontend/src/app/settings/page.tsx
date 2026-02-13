@@ -33,6 +33,7 @@ export default function SettingsPage() {
           theme={user.theme || "default"}
           customLinks={user.customLinks || []}
           emailPrefs={user.emailPrefs || { welcome: true, connectionAlert: true, weeklyDigest: true, collaborations: true }}
+          totpEnabled={user.totpEnabled || false}
         />
       </div>
     </div>

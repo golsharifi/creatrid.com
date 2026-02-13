@@ -157,6 +157,20 @@ func (h *AuthHandler) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		log.Printf("DB error upserting account: %v", err)
 	}
 
+	// Check if user has 2FA enabled
+	if user.TOTPEnabled {
+		// Generate temp JWT (5 min, 2fa:pending)
+		tempToken, err := h.jwt.GenerateTempToken(user.ID)
+		if err != nil {
+			log.Printf("Temp JWT generation error: %v", err)
+			http.Redirect(w, r, h.config.FrontendURL+"/sign-in?error=token_error", http.StatusTemporaryRedirect)
+			return
+		}
+		h.jwt.SetTempTokenCookie(w, tempToken, h.config.CookieDomain, h.config.CookieSecure)
+		http.Redirect(w, r, h.config.FrontendURL+"/sign-in/2fa", http.StatusTemporaryRedirect)
+		return
+	}
+
 	// Generate JWT
 	jwtToken, err := h.jwt.Generate(user.ID)
 	if err != nil {

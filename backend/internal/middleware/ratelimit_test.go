@@ -5,6 +5,8 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestRateLimiter_Allow(t *testing.T) {
@@ -226,4 +228,54 @@ func TestRateLimitMiddleware(t *testing.T) {
 			t.Errorf("different X-Real-Ip should succeed, got %d", rr3.Code)
 		}
 	})
+}
+
+func TestRateLimit_WithinLimit_Assert(t *testing.T) {
+	handler := RateLimit(5, 5)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("ok"))
+	}))
+
+	for i := 0; i < 5; i++ {
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		req.RemoteAddr = "192.168.10.1:12345"
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+		assert.Equal(t, http.StatusOK, rec.Code, "request %d should be allowed within burst", i+1)
+	}
+}
+
+func TestRateLimit_ExceedingLimit_Assert(t *testing.T) {
+	handler := RateLimit(1, 3)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	var lastCode int
+	for i := 0; i < 10; i++ {
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		req.RemoteAddr = "10.10.0.1:12345"
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+		lastCode = rec.Code
+	}
+	assert.Equal(t, http.StatusTooManyRequests, lastCode, "should be rate limited after exceeding burst")
+}
+
+func TestRateLimit_RetryAfterHeader_Assert(t *testing.T) {
+	handler := RateLimit(1, 1)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.RemoteAddr = "10.10.0.99:12345"
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+	assert.Equal(t, http.StatusOK, rec.Code)
+
+	req2 := httptest.NewRequest(http.MethodGet, "/", nil)
+	req2.RemoteAddr = "10.10.0.99:12345"
+	rec2 := httptest.NewRecorder()
+	handler.ServeHTTP(rec2, req2)
+	assert.Equal(t, http.StatusTooManyRequests, rec2.Code)
+	assert.Equal(t, "1", rec2.Header().Get("Retry-After"))
 }

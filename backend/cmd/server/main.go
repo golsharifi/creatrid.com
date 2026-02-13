@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -14,6 +15,7 @@ import (
 	"github.com/creatrid/creatrid/internal/auth"
 	"github.com/creatrid/creatrid/internal/config"
 	"github.com/creatrid/creatrid/internal/email"
+	"github.com/creatrid/creatrid/internal/geoip"
 	"github.com/creatrid/creatrid/internal/handler"
 	"github.com/creatrid/creatrid/internal/middleware"
 	"github.com/creatrid/creatrid/internal/platform"
@@ -98,6 +100,17 @@ func main() {
 		log.Println("Warning: SMTP not configured. Email notifications will be unavailable.")
 	}
 
+	// Init GeoIP service (optional)
+	geoSvc, err := geoip.New(cfg.MaxMindDBPath)
+	if err != nil {
+		log.Printf("Warning: Failed to init GeoIP service: %v", err)
+	} else if geoSvc != nil {
+		log.Println("GeoIP service loaded")
+		defer geoSvc.Close()
+	} else {
+		log.Println("Warning: MAXMIND_DB_PATH not set. GeoIP lookups will be unavailable.")
+	}
+
 	// Init SSE hub for real-time notifications
 	sseHub := handler.NewSSEHub()
 
@@ -106,15 +119,15 @@ func main() {
 	userHandler := handler.NewUserHandler(st, blobStore, emailSvc, jwtSvc, cfg)
 	connHandler := handler.NewConnectionHandler(st, cfg, emailSvc, providers...)
 	ogHandler := handler.NewOGHandler(st, cfg)
-	analyticsHandler := handler.NewAnalyticsHandler(st)
+	analyticsHandler := handler.NewAnalyticsHandler(st, geoSvc)
 	adminHandler := handler.NewAdminHandler(st)
 	digestHandler := handler.NewDigestHandler(st, emailSvc)
-	collabHandler := handler.NewCollaborationHandler(st, sseHub)
+	collabHandler := handler.NewCollaborationHandler(st, sseHub, emailSvc)
 	widgetHandler := handler.NewWidgetHandler(st)
 	apiKeyHandler := handler.NewAPIKeyHandler(st)
 	verifyHandler := handler.NewVerifyHandler(st)
 	billingHandler := handler.NewBillingHandler(st, cfg, sseHub)
-	contentHandler := handler.NewContentHandler(st, blobStore, cfg)
+	contentHandler := handler.NewContentHandler(st, blobStore, cfg, emailSvc)
 	licenseHandler := handler.NewLicenseHandler(st, cfg)
 	marketplaceHandler := handler.NewMarketplaceHandler(st)
 	dmcaHandler := handler.NewDMCAHandler(st)
@@ -128,6 +141,8 @@ func main() {
 	recommendHandler := handler.NewRecommendHandler(st)
 	moderationHandler := handler.NewModerationHandler(st)
 	errorLogHandler := handler.NewErrorLogHandler(st)
+	totpSvc := auth.NewTOTPService()
+	twoFAHandler := handler.NewTwoFAHandler(st, totpSvc, jwtSvc, cfg)
 
 	// Start connection refresh scheduler
 	providerMap := make(map[string]platform.Provider)
@@ -191,6 +206,7 @@ func main() {
 		r.Use(middleware.RateLimit(5, 10)) // 5 req/s per IP, burst 10
 		r.Get("/api/auth/google", authHandler.GoogleLogin)
 		r.Get("/api/auth/google/callback", authHandler.GoogleCallback)
+		r.Post("/api/auth/2fa/validate", twoFAHandler.Validate) // No auth — uses temp token
 	})
 
 	// Public routes (standard rate limit)
@@ -223,6 +239,34 @@ func main() {
 			w.Header().Set("Content-Type", "application/json")
 			w.Write([]byte(`{"status":"ok"}`))
 		})
+
+		// API Documentation
+		r.Get("/api/docs/openapi.yaml", func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/yaml")
+			http.ServeFile(w, r, "docs/openapi.yaml")
+		})
+		r.Get("/api/docs", func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "text/html")
+			fmt.Fprint(w, `<!DOCTYPE html>
+<html>
+<head>
+    <title>Creatrid API Documentation</title>
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+</head>
+<body>
+    <div id="swagger-ui"></div>
+    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+    <script>
+        SwaggerUIBundle({
+            url: '/api/docs/openapi.yaml',
+            dom_id: '#swagger-ui',
+            presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset],
+            layout: "BaseLayout"
+        });
+    </script>
+</body>
+</html>`)
+		})
 	})
 
 	// Connection OAuth routes (redirect-based auth, stricter rate limit)
@@ -240,6 +284,9 @@ func main() {
 		r.Use(middleware.RateLimitUser(10, 20))
 		r.Get("/api/auth/me", authHandler.Me)
 		r.Post("/api/auth/logout", authHandler.Logout)
+		r.Post("/api/auth/2fa/setup", twoFAHandler.Setup)
+		r.Post("/api/auth/2fa/verify", twoFAHandler.Verify)
+		r.Post("/api/auth/2fa/disable", twoFAHandler.Disable)
 		r.Post("/api/auth/verify-email/send", userHandler.SendEmailVerification)
 		r.Post("/api/users/onboard", userHandler.Onboard)
 		r.Patch("/api/users/profile", userHandler.UpdateProfile)

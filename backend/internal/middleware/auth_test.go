@@ -9,6 +9,7 @@ import (
 
 	"github.com/creatrid/creatrid/internal/auth"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/stretchr/testify/assert"
 )
 
 const testSecret = "test-secret-key-for-unit-tests"
@@ -216,4 +217,90 @@ func TestJWTService_GenerateAndValidate(t *testing.T) {
 			t.Error("expected error for token signed with different key")
 		}
 	})
+}
+
+// Additional tests using testify/assert
+
+func TestRequireAuth_MissingCookie_Assert(t *testing.T) {
+	jwtSvc := auth.NewJWTService(testSecret)
+	handler := RequireAuth(jwtSvc, nil)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Error("handler should not be called")
+	}))
+
+	req := httptest.NewRequest("GET", "/api/test", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusUnauthorized, rr.Code)
+	var body map[string]string
+	json.NewDecoder(rr.Body).Decode(&body)
+	assert.Equal(t, "Not authenticated", body["error"])
+}
+
+func TestRequireAuth_InvalidJWT_Assert(t *testing.T) {
+	jwtSvc := auth.NewJWTService(testSecret)
+	handler := RequireAuth(jwtSvc, nil)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Error("handler should not be called")
+	}))
+
+	req := httptest.NewRequest("GET", "/api/test", nil)
+	req.AddCookie(&http.Cookie{Name: "token", Value: "invalid-jwt-garbage"})
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusUnauthorized, rr.Code)
+}
+
+func TestRequireAuth_ExpiredJWT_Assert(t *testing.T) {
+	jwtSvc := auth.NewJWTService(testSecret)
+
+	claims := jwt.RegisteredClaims{
+		Subject:   "user-expired",
+		IssuedAt:  jwt.NewNumericDate(time.Now().Add(-2 * time.Hour)),
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(-1 * time.Hour)),
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	expiredToken, err := token.SignedString([]byte(testSecret))
+	assert.NoError(t, err)
+
+	handler := RequireAuth(jwtSvc, nil)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Error("handler should not be called")
+	}))
+
+	req := httptest.NewRequest("GET", "/api/test", nil)
+	req.AddCookie(&http.Cookie{Name: "token", Value: expiredToken})
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusUnauthorized, rr.Code)
+}
+
+func TestRequireAuth_ValidJWT_PassesThrough_Assert(t *testing.T) {
+	jwtSvc := auth.NewJWTService(testSecret)
+
+	validToken, err := jwtSvc.Generate("user-123")
+	assert.NoError(t, err)
+
+	// A valid JWT with nil store will panic when the middleware tries to call
+	// st.FindUserByID. The panic proves the JWT was accepted and the middleware
+	// progressed past the token validation step.
+	handler := RequireAuth(jwtSvc, nil)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := httptest.NewRequest("GET", "/api/test", nil)
+	req.AddCookie(&http.Cookie{Name: "token", Value: validToken})
+	rr := httptest.NewRecorder()
+
+	panicked := false
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				panicked = true
+			}
+		}()
+		handler.ServeHTTP(rr, req)
+	}()
+
+	assert.True(t, panicked, "valid JWT should cause the middleware to proceed to store lookup, which panics with nil store")
 }

@@ -15,10 +15,19 @@ func titleCase(s string) string {
 }
 
 func wrapHTML(title, content string) string {
+	return wrapHTMLWithPreheader(title, "", content)
+}
+
+func wrapHTMLWithPreheader(title, preheader, content string) string {
+	preheaderHTML := ""
+	if preheader != "" {
+		preheaderHTML = fmt.Sprintf(`<div style="display:none;font-size:1px;color:#f4f4f5;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">%s</div>`, preheader)
+	}
 	return fmt.Sprintf(`<!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8"><title>%s</title></head>
 <body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f4f4f5;">
+%s
 <div style="max-width:560px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;">
 <div style="background:#18181b;padding:24px 32px;">
 <h1 style="margin:0;color:#fff;font-size:20px;font-weight:700;">Creatrid</h1>
@@ -27,11 +36,12 @@ func wrapHTML(title, content string) string {
 %s
 </div>
 <div style="padding:16px 32px;background:#fafafa;text-align:center;">
-<p style="margin:0;font-size:12px;color:#a1a1aa;">Creatrid — Creator Passport</p>
+<p style="margin:0 0 8px;font-size:12px;color:#a1a1aa;">Creatrid &mdash; Creator Passport</p>
+<p style="margin:0;font-size:11px;color:#d4d4d8;">You received this email because you have a Creatrid account. To manage your email preferences, visit your <a href="https://creatrid.com/settings" style="color:#a1a1aa;text-decoration:underline;">account settings</a>.</p>
 </div>
 </div>
 </body>
-</html>`, title, content)
+</html>`, title, preheaderHTML, content)
 }
 
 func WelcomeEmail(name, username, profileURL string) (subject, body string) {
@@ -140,5 +150,97 @@ func WeeklyDigestEmail(name string, totalViews, viewsThisWeek, totalClicks, conn
 </div>
 `, name, viewsThisWeek, totalViews, totalClicks, connectionCount, scoreStr)
 	body = wrapHTML(subject, content)
+	return
+}
+
+func CollaborationRequestEmail(recipientName, senderName, senderUsername, message, inboxURL string) (subject, body string) {
+	subject = fmt.Sprintf("You have a new collaboration request from %s", senderName)
+	msgHTML := ""
+	if message != "" {
+		msgHTML = fmt.Sprintf(`
+<div style="margin:16px 0;padding:16px;background:#fafafa;border-radius:8px;border-left:4px solid #18181b;">
+<p style="margin:0;color:#52525b;line-height:1.6;font-style:italic;">"%s"</p>
+</div>`, message)
+	}
+	content := fmt.Sprintf(`
+<h2 style="margin:0 0 16px;color:#18181b;font-size:22px;">New Collaboration Request</h2>
+<p style="color:#52525b;line-height:1.6;">Hi %s, <strong>%s</strong> (@%s) wants to collaborate with you!</p>
+%s
+<div style="margin:24px 0;">
+<a href="%s" style="display:inline-block;background:#18181b;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">View Request</a>
+</div>
+<p style="color:#a1a1aa;font-size:13px;margin-top:24px;">You can accept or decline this request from your collaboration inbox.</p>
+`, recipientName, senderName, senderUsername, msgHTML, inboxURL)
+	body = wrapHTMLWithPreheader(subject, fmt.Sprintf("%s wants to collaborate with you on Creatrid", senderName), content)
+	return
+}
+
+func CollaborationResponseEmail(senderName, recipientName, status, collabURL string) (subject, body string) {
+	subject = fmt.Sprintf("%s %s your collaboration request", recipientName, status)
+	color := "#ef4444"
+	if status == "accepted" {
+		color = "#22c55e"
+	}
+	content := fmt.Sprintf(`
+<h2 style="margin:0 0 16px;color:#18181b;font-size:22px;">Collaboration %s</h2>
+<p style="color:#52525b;line-height:1.6;">Hi %s, <strong>%s</strong> has <span style="color:%s;font-weight:600;">%s</span> your collaboration request.</p>
+<div style="margin:24px 0;">
+<a href="%s" style="display:inline-block;background:#18181b;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">View Details</a>
+</div>
+`, titleCase(status), senderName, recipientName, color, status, collabURL)
+	body = wrapHTMLWithPreheader(subject, fmt.Sprintf("%s %s your collaboration request", recipientName, status), content)
+	return
+}
+
+func ContentFlaggedEmail(creatorName, contentTitle, reason, vaultURL string) (subject, body string) {
+	subject = fmt.Sprintf("Your content '%s' has been flagged", contentTitle)
+	content := fmt.Sprintf(`
+<h2 style="margin:0 0 16px;color:#18181b;font-size:22px;">Content Flagged</h2>
+<p style="color:#52525b;line-height:1.6;">Hi %s, your content <strong>%s</strong> has been flagged for review.</p>
+<div style="margin:16px 0;padding:16px;background:#fef2f2;border-radius:8px;border-left:4px solid #ef4444;">
+<p style="margin:0;color:#991b1b;line-height:1.6;"><strong>Reason:</strong> %s</p>
+</div>
+<p style="color:#52525b;line-height:1.6;">Our team will review the flagged content. If it violates our community guidelines, it may be removed. You can update your content metadata to address the issue.</p>
+<div style="margin:24px 0;">
+<a href="%s" style="display:inline-block;background:#18181b;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">Go to Content Vault</a>
+</div>
+`, creatorName, contentTitle, reason, vaultURL)
+	body = wrapHTMLWithPreheader(subject, fmt.Sprintf("Your content '%s' needs attention", contentTitle), content)
+	return
+}
+
+func LicensePurchasedEmail(sellerName, buyerName, contentTitle, licenseType string, priceCents int, earningsURL string) (subject, body string) {
+	subject = "Someone purchased a license for your content"
+	priceStr := fmt.Sprintf("$%.2f", float64(priceCents)/100)
+	content := fmt.Sprintf(`
+<h2 style="margin:0 0 16px;color:#18181b;font-size:22px;">License Purchased!</h2>
+<p style="color:#52525b;line-height:1.6;">Hi %s, great news! <strong>%s</strong> just purchased a <strong>%s</strong> license for your content:</p>
+<div style="margin:16px 0;padding:16px;background:#f0fdf4;border-radius:8px;border-left:4px solid #22c55e;">
+<p style="margin:0 0 8px;color:#18181b;font-weight:600;">%s</p>
+<p style="margin:0;color:#52525b;">License type: %s</p>
+<p style="margin:4px 0 0;color:#22c55e;font-weight:700;font-size:18px;">%s</p>
+</div>
+<div style="margin:24px 0;">
+<a href="%s" style="display:inline-block;background:#18181b;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">View Earnings</a>
+</div>
+`, sellerName, buyerName, licenseType, contentTitle, licenseType, priceStr, earningsURL)
+	body = wrapHTMLWithPreheader(subject, fmt.Sprintf("%s purchased a %s license for '%s'", buyerName, licenseType, contentTitle), content)
+	return
+}
+
+func ProfileMilestoneEmail(name, milestone, dashboardURL string) (subject, body string) {
+	subject = fmt.Sprintf("Congratulations! You've reached %s", milestone)
+	content := fmt.Sprintf(`
+<h2 style="margin:0 0 16px;color:#18181b;font-size:22px;">Milestone Reached!</h2>
+<p style="color:#52525b;line-height:1.6;">Hi %s, congratulations on reaching a new milestone:</p>
+<div style="margin:16px 0;padding:24px;background:linear-gradient(135deg,#fafafa,#f0f0f0);border-radius:12px;text-align:center;">
+<p style="margin:0;font-size:28px;font-weight:700;color:#18181b;">%s</p>
+</div>
+<p style="color:#52525b;line-height:1.6;">Keep building your Creator Passport to unlock even more achievements. Connect more platforms, engage with your audience, and grow your Creator Score.</p>
+<div style="margin:24px 0;">
+<a href="%s" style="display:inline-block;background:#18181b;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">View Dashboard</a>
+</div>
+`, name, milestone, dashboardURL)
+	body = wrapHTMLWithPreheader(subject, fmt.Sprintf("You've reached %s on Creatrid!", milestone), content)
 	return
 }
