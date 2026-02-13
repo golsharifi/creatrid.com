@@ -460,7 +460,7 @@ export default function AnalyticsPage() {
                     color: chartColors.tooltipText,
                   }}
                 />
-                <Bar dataKey="count" fill="#6366f1" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="count" fill={chartColors.bar} radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -500,7 +500,7 @@ export default function AnalyticsPage() {
                     color: chartColors.tooltipText,
                   }}
                 />
-                <Bar dataKey="count" fill="#14b8a6" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="count" fill={chartColors.bar} radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

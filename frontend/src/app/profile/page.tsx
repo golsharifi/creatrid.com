@@ -186,7 +186,7 @@ function ProfileContent() {
                       {conn.followerCount.toLocaleString()}
                     </span>
                   )}
-                  <ExternalLink className="h-3.5 w-3.5 text-zinc-300" />
+                  <ExternalLink className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" />
                 </a>
               ))}
             </div>
@@ -289,7 +289,7 @@ function ProfileContent() {
                   className={`flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900 ${theme.badge}`}
                 >
                   <span className="text-sm font-medium">{link.title}</span>
-                  <ExternalLink className="h-3.5 w-3.5 text-zinc-300" />
+                  <ExternalLink className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" />
                 </a>
               ))}
             </div>

@@ -73,7 +73,7 @@ export function OnboardingChecklist({ user, connectionCount, contentCount }: Che
             {step.done ? (
               <CheckCircle2 className="h-5 w-5 text-emerald-500" />
             ) : (
-              <Circle className="h-5 w-5 text-zinc-300 dark:text-zinc-600" />
+              <Circle className="h-5 w-5 text-zinc-400 dark:text-zinc-600" />
             )}
             <span className={`flex-1 text-sm ${step.done ? "text-zinc-400 line-through dark:text-zinc-500" : "text-zinc-700 dark:text-zinc-300"}`}>
               {step.label}
