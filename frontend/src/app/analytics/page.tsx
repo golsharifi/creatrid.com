@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { useTranslation } from "react-i18next";
-import { Eye, MousePointerClick, TrendingUp, CalendarDays } from "lucide-react";
+import { Eye, MousePointerClick, TrendingUp, CalendarDays, Download } from "lucide-react";
 import {
   LineChart,
   Line,
@@ -96,9 +96,18 @@ export default function AnalyticsPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold">{t("analytics.title")}</h1>
-        <p className="mt-1 text-zinc-500">{t("analytics.subtitle")}</p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">{t("analytics.title")}</h1>
+          <p className="mt-1 text-zinc-500">{t("analytics.subtitle")}</p>
+        </div>
+        <a
+          href={api.analyticsExport.profileUrl()}
+          className="flex items-center gap-2 rounded-lg border border-zinc-200 px-3 py-2 text-sm font-medium transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+        >
+          <Download className="h-4 w-4" />
+          {t("analytics.exportCSV")}
+        </a>
       </div>
 
       {/* Summary Cards */}

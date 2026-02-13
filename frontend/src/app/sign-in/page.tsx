@@ -1,16 +1,25 @@
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, Suspense } from "react";
 import { api } from "@/lib/api";
 import { Shield } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-export default function SignInPage() {
+function SignInContent() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useTranslation();
+
+  useEffect(() => {
+    // Save referral code to cookie if present
+    const ref = searchParams.get("ref");
+    if (ref) {
+      document.cookie = `creatrid_ref=${ref};path=/;max-age=2592000`;
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!loading && user) {
@@ -57,5 +66,13 @@ export default function SignInPage() {
         </a>
       </div>
     </div>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={null}>
+      <SignInContent />
+    </Suspense>
   );
 }

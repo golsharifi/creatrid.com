@@ -26,4 +26,18 @@ func recalcScore(ctx context.Context, st *store.Store, userID string) {
 	if err := st.UpdateUserScore(ctx, userID, s); err != nil {
 		log.Printf("Score recalc: failed to update score for %s: %v", userID, err)
 	}
+
+	// Update creator tier based on score
+	tier := "newcomer"
+	switch {
+	case s >= 80:
+		tier = "elite"
+	case s >= 50:
+		tier = "established"
+	case s >= 20:
+		tier = "rising"
+	}
+	if err := st.UpdateUserTier(ctx, userID, tier); err != nil {
+		log.Printf("Score recalc: failed to update tier for %s: %v", userID, err)
+	}
 }

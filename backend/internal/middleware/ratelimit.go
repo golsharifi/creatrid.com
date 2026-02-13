@@ -3,6 +3,7 @@ package middleware
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -42,7 +43,7 @@ func (rl *RateLimiter) cleanup() {
 	}
 }
 
-func (rl *RateLimiter) allow(ip string) bool {
+func (rl *RateLimiter) allow(ip string) (bool, int, int) {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
 
@@ -50,8 +51,9 @@ func (rl *RateLimiter) allow(ip string) bool {
 	now := time.Now()
 
 	if !exists {
-		rl.visitors[ip] = &visitor{tokens: float64(rl.burst) - 1, lastSeen: now}
-		return true
+		remaining := rl.burst - 1
+		rl.visitors[ip] = &visitor{tokens: float64(remaining), lastSeen: now}
+		return true, remaining, rl.burst
 	}
 
 	elapsed := now.Sub(v.lastSeen).Seconds()
@@ -62,11 +64,11 @@ func (rl *RateLimiter) allow(ip string) bool {
 	v.lastSeen = now
 
 	if v.tokens < 1 {
-		return false
+		return false, 0, rl.burst
 	}
 
 	v.tokens--
-	return true
+	return true, int(v.tokens), rl.burst
 }
 
 func RateLimit(requestsPerSecond float64, burst int) func(http.Handler) http.Handler {
@@ -78,7 +80,12 @@ func RateLimit(requestsPerSecond float64, burst int) func(http.Handler) http.Han
 				ip = forwarded
 			}
 
-			if !limiter.allow(ip) {
+			allowed, remaining, limit := limiter.allow(ip)
+			w.Header().Set("X-RateLimit-Limit", strconv.Itoa(limit))
+			w.Header().Set("X-RateLimit-Remaining", strconv.Itoa(remaining))
+			w.Header().Set("X-RateLimit-Reset", "1")
+
+			if !allowed {
 				w.Header().Set("Content-Type", "application/json")
 				w.Header().Set("Retry-After", "1")
 				w.WriteHeader(http.StatusTooManyRequests)

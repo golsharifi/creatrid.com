@@ -3,7 +3,11 @@ const es = {
   common: {
     loading: "Cargando...",
     save: "Guardar",
+    saving: "Guardando...",
     cancel: "Cancelar",
+    copy: "Copiar",
+    copied: "Copiado!",
+    signInRequired: "Inicia sesion para acceder a esta pagina.",
     previous: "Anterior",
     next: "Siguiente",
     creator: "Creador",
@@ -25,6 +29,8 @@ const es = {
     collections: "Colecciones",
     search: "Buscar",
     notifications: "Notificaciones",
+    referrals: "Referencias",
+    webhooks: "Webhooks",
     settings: "Ajustes",
     logout: "Cerrar sesion",
     toggleTheme: "Cambiar tema",
@@ -49,6 +55,12 @@ const es = {
 
   // Onboarding
   onboarding: {
+    completed: "completados",
+    setPhoto: "Establecer foto de perfil",
+    writeBio: "Escribir una biografia",
+    connectAccount: "Conectar una cuenta social",
+    verifyEmail: "Verificar correo electronico",
+    uploadContent: "Subir tu primer contenido",
     title: "Bienvenido a Creatrid",
     subtitle: "Elige un nombre de usuario para tu perfil publico",
     displayName: "Nombre visible",
@@ -95,6 +107,8 @@ const es = {
     contentVault: "Boveda de Contenido",
     contentVaultDesc: "Sube y licencia tu contenido creativo.",
     contentCount: "{{count}} elementos subidos",
+    recommendedCreators: "Creadores Recomendados",
+    sharedPlatforms: "plataformas compartidas",
   },
 
   // Settings
@@ -192,6 +206,7 @@ const es = {
     links: "Enlaces",
     scanToView: "Escanea para ver este perfil",
     verifiedOnCreatrid: "Verificado en Creatrid",
+    contentGallery: "Galeria de Contenido",
   },
 
   // Collaborations
@@ -235,6 +250,11 @@ const es = {
     notOnboarded: "No registrado",
     verify: "Verificar",
     unverify: "Quitar verificacion",
+    auditLog: "Registro de Auditoria",
+    auditTime: "Hora",
+    auditAdmin: "Administrador",
+    auditAction: "Accion",
+    auditTarget: "Objetivo",
   },
 
   // Landing Page
@@ -371,6 +391,7 @@ const es = {
     clicksByType: "Clics por tipo",
     noData: "Aun no hay datos de estadisticas. Comparte tu perfil para empezar a rastrear.",
     last30Days: "Ultimos 30 dias",
+    exportCSV: "Exportar CSV",
   },
 
   // Pricing
@@ -601,6 +622,31 @@ const es = {
     contentResults: "Contenido",
     creatorResults: "Creadores",
     noResults: "Sin resultados. Intenta con otro termino de busqueda.",
+  },
+
+  // Webhooks
+  webhooks: {
+    title: "Webhooks",
+    subtitle: "Recibe notificaciones en tiempo real cuando ocurran eventos en tu cuenta.",
+    create: "Crear Endpoint",
+    newEndpoint: "Nuevo Endpoint de Webhook",
+    events: "Eventos",
+    save: "Guardar Endpoint",
+    empty: "No hay endpoints de webhook aun. Crea uno para recibir notificaciones.",
+    recentDeliveries: "Entregas Recientes",
+    noDeliveries: "Sin entregas aun.",
+  },
+
+  // Referrals
+  referrals: {
+    title: "Programa de Referencias",
+    subtitle: "Invita a creadores y gana puntos de bonificacion por cada registro.",
+    yourLink: "Tu Enlace de Referencia",
+    linkHint: "Comparte este enlace con otros creadores. Ganaras +5 puntos por cada registro.",
+    totalReferred: "Total Referidos",
+    bonusEarned: "Puntos de Bonificacion",
+    referred: "Creadores Referidos",
+    empty: "Sin referencias aun. Comparte tu enlace para empezar a ganar puntos.",
   },
 };
 

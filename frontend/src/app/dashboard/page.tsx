@@ -5,7 +5,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import { api } from "@/lib/api";
 import Link from "next/link";
-import { User, Link2, BarChart3, ArrowRight, QrCode, Eye, MousePointerClick, Mail, CheckCircle, Code, Archive } from "lucide-react";
+import { User, Link2, BarChart3, ArrowRight, QrCode, Eye, MousePointerClick, Mail, CheckCircle, Code, Archive, Users } from "lucide-react";
+import { OnboardingChecklist } from "@/components/onboarding-checklist";
+import { TierBadge } from "@/components/tier-badge";
 import { QRCodeSVG } from "qrcode.react";
 import { CopyLinkButton, ShareTwitterButton, ShareLinkedInButton } from "@/components/share-buttons";
 import { useTranslation } from "react-i18next";
@@ -32,6 +34,7 @@ function DashboardContent() {
     totalClicks: number;
     clicksByType: Record<string, number>;
   } | null>(null);
+  const [recommendations, setRecommendations] = useState<any[]>([]);
 
   const profileUrl = user?.username
     ? `${PROFILE_BASE_URL}/profile?u=${user.username}`
@@ -57,6 +60,11 @@ function DashboardContent() {
       api.content.list(1, 0).then((result) => {
         if (result.data) {
           setContentCount(result.data.total || 0);
+        }
+      });
+      api.recommendations.list().then((result) => {
+        if (result.data) {
+          setRecommendations(result.data.creators || []);
         }
       });
     }
@@ -122,6 +130,19 @@ function DashboardContent() {
         <p className="mt-1 text-zinc-500">
           {t("dashboard.managePassport")}
         </p>
+      </div>
+
+      {/* Onboarding Checklist */}
+      <div className="mb-6">
+        <OnboardingChecklist
+          user={{
+            image: user.image || null,
+            bio: user.bio || null,
+            emailVerified: user.emailVerified || null,
+          }}
+          connectionCount={connectionCount}
+          contentCount={contentCount}
+        />
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -199,18 +220,23 @@ function DashboardContent() {
               ? t("dashboard.scoreBasedOn")
               : t("dashboard.scoreUnlock")}
           </p>
-          <p
-            className={`mt-3 text-2xl font-bold ${
-              user.creatorScore !== null
-                ? "text-zinc-900 dark:text-zinc-100"
-                : "text-zinc-300 dark:text-zinc-600"
-            }`}
-          >
-            {user.creatorScore ?? t("common.noData")}
-            {user.creatorScore !== null && (
-              <span className="text-sm font-normal text-zinc-400"> {t("dashboard.outOf100")}</span>
+          <div className="mt-3 flex items-center gap-2">
+            <span
+              className={`text-2xl font-bold ${
+                user.creatorScore !== null
+                  ? "text-zinc-900 dark:text-zinc-100"
+                  : "text-zinc-300 dark:text-zinc-600"
+              }`}
+            >
+              {user.creatorScore ?? t("common.noData")}
+              {user.creatorScore !== null && (
+                <span className="text-sm font-normal text-zinc-400"> {t("dashboard.outOf100")}</span>
+              )}
+            </span>
+            {user.creatorTier && (
+              <TierBadge tier={user.creatorTier} />
             )}
-          </p>
+          </div>
           {user.creatorScore !== null && (
             <div className="mt-3 h-2 rounded-full bg-zinc-100 dark:bg-zinc-800">
               <div
@@ -292,6 +318,36 @@ function DashboardContent() {
             </div>
             <ArrowRight className="h-4 w-4 text-zinc-400 transition-transform group-hover:translate-x-1" />
           </Link>
+        </div>
+      )}
+
+      {/* Recommended Creators */}
+      {recommendations.length > 0 && (
+        <div className="mt-6">
+          <h3 className="mb-4 text-lg font-semibold">{t("dashboard.recommendedCreators")}</h3>
+          <div className="flex gap-4 overflow-x-auto pb-2">
+            {recommendations.map((creator: any) => (
+              <Link
+                key={creator.id}
+                href={`/profile?u=${creator.username}`}
+                className="flex min-w-[200px] flex-col items-center rounded-xl border border-zinc-200 p-4 transition-colors hover:border-zinc-300 dark:border-zinc-800 dark:hover:border-zinc-700"
+              >
+                {creator.image ? (
+                  <img src={creator.image} alt="" className="h-12 w-12 rounded-full object-cover" />
+                ) : (
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100 text-lg font-bold dark:bg-zinc-800">
+                    {(creator.name || "?")[0].toUpperCase()}
+                  </div>
+                )}
+                <p className="mt-2 text-sm font-medium">{creator.name}</p>
+                <p className="text-xs text-zinc-500">@{creator.username}</p>
+                {creator.creatorTier && <TierBadge tier={creator.creatorTier} size="sm" />}
+                <p className="mt-1 text-xs text-zinc-400">
+                  {creator.sharedPlatforms} {t("dashboard.sharedPlatforms")}
+                </p>
+              </Link>
+            ))}
+          </div>
         </div>
       )}
 

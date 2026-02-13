@@ -127,5 +127,10 @@ func (h *DMCAHandler) ResolveTakedown(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	adminAudit(h.store, r, "resolve_takedown", "takedown", takedownID, map[string]interface{}{
+		"status": req.Status,
+		"notes":  req.Notes,
+	})
+
 	writeJSON(w, http.StatusOK, map[string]string{"status": req.Status})
 }

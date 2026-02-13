@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import { Users, BarChart3, Eye, MousePointerClick, Link2, CheckCircle, Shield } from "lucide-react";
+import { Users, BarChart3, Eye, MousePointerClick, Link2, CheckCircle, Shield, ClipboardList } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 type AdminStats = {
@@ -37,6 +37,10 @@ export default function AdminPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
+  const [activeTab, setActiveTab] = useState<"users" | "audit">("users");
+  const [auditEntries, setAuditEntries] = useState<any[]>([]);
+  const [auditTotal, setAuditTotal] = useState(0);
+  const [auditPage, setAuditPage] = useState(0);
 
   useEffect(() => {
     if (!loading && !user) router.push("/sign-in");
@@ -61,6 +65,17 @@ export default function AdminPage() {
       });
     }
   }, [user, page]);
+
+  useEffect(() => {
+    if (user?.role === "ADMIN" && activeTab === "audit") {
+      api.adminAudit.list(50, auditPage * 50).then((r) => {
+        if (r.data) {
+          setAuditEntries(r.data.entries || []);
+          setAuditTotal(r.data.total);
+        }
+      });
+    }
+  }, [user, activeTab, auditPage]);
 
   async function toggleVerified(userId: string, current: boolean) {
     const result = await api.admin.setVerified(userId, !current);
@@ -97,7 +112,66 @@ export default function AdminPage() {
         </div>
       )}
 
+      {/* Tabs */}
+      <div className="mb-6 flex gap-4 border-b border-zinc-200 dark:border-zinc-800">
+        <button
+          onClick={() => setActiveTab("users")}
+          className={`border-b-2 px-4 py-2 text-sm font-medium ${activeTab === "users" ? "border-zinc-900 text-zinc-900 dark:border-zinc-100 dark:text-zinc-100" : "border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"}`}
+        >
+          <Users className="mr-1.5 inline h-4 w-4" />
+          {t("admin.tableUser")}s
+        </button>
+        <button
+          onClick={() => setActiveTab("audit")}
+          className={`border-b-2 px-4 py-2 text-sm font-medium ${activeTab === "audit" ? "border-zinc-900 text-zinc-900 dark:border-zinc-100 dark:text-zinc-100" : "border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"}`}
+        >
+          <ClipboardList className="mr-1.5 inline h-4 w-4" />
+          {t("admin.auditLog")}
+        </button>
+      </div>
+
+      {/* Audit Log */}
+      {activeTab === "audit" && (
+        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800">
+          <div className="border-b border-zinc-200 px-6 py-4 dark:border-zinc-800">
+            <h2 className="font-semibold">{t("admin.auditLog")} ({auditTotal})</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="border-b border-zinc-200 text-xs text-zinc-500 dark:border-zinc-800">
+                <tr>
+                  <th className="px-6 py-3 font-medium">{t("admin.auditTime")}</th>
+                  <th className="px-6 py-3 font-medium">{t("admin.auditAdmin")}</th>
+                  <th className="px-6 py-3 font-medium">{t("admin.auditAction")}</th>
+                  <th className="px-6 py-3 font-medium">{t("admin.auditTarget")}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+                {auditEntries.map((entry: any) => (
+                  <tr key={entry.id}>
+                    <td className="px-6 py-3 text-xs text-zinc-500">{new Date(entry.createdAt).toLocaleString()}</td>
+                    <td className="px-6 py-3">{entry.adminName || entry.adminUserId}</td>
+                    <td className="px-6 py-3">
+                      <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium dark:bg-zinc-800">{entry.action}</span>
+                    </td>
+                    <td className="px-6 py-3 text-xs text-zinc-500">{entry.targetType}{entry.targetId ? `: ${entry.targetId}` : ""}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {auditTotal > 50 && (
+            <div className="flex items-center justify-between border-t border-zinc-200 px-6 py-3 dark:border-zinc-800">
+              <button onClick={() => setAuditPage((p) => Math.max(0, p - 1))} disabled={auditPage === 0} className="rounded-lg border border-zinc-200 px-3 py-1 text-xs font-medium disabled:opacity-50 dark:border-zinc-700">{t("common.previous")}</button>
+              <span className="text-xs text-zinc-500">{t("common.page", { current: auditPage + 1, total: Math.ceil(auditTotal / 50) })}</span>
+              <button onClick={() => setAuditPage((p) => p + 1)} disabled={(auditPage + 1) * 50 >= auditTotal} className="rounded-lg border border-zinc-200 px-3 py-1 text-xs font-medium disabled:opacity-50 dark:border-zinc-700">{t("common.next")}</button>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Users Table */}
+      {activeTab === "users" && (
       <div className="rounded-xl border border-zinc-200 dark:border-zinc-800">
         <div className="border-b border-zinc-200 px-6 py-4 dark:border-zinc-800">
           <h2 className="font-semibold">{t("admin.usersCount", { count: total })}</h2>
@@ -189,6 +263,7 @@ export default function AdminPage() {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }

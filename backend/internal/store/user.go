@@ -24,6 +24,7 @@ func (s *Store) FindUserByID(ctx context.Context, id string) (*model.User, error
 		`SELECT id, name, email, email_verified, image, username, bio, role,
 		        creator_score, is_verified, onboarded, theme, custom_links, email_prefs,
 		        stripe_connect_account_id, COALESCE(stripe_connect_onboarded, false),
+		        creator_tier, referral_code, referred_by,
 		        created_at, updated_at
 		 FROM users WHERE id = $1`, id,
 	).Scan(
@@ -31,6 +32,7 @@ func (s *Store) FindUserByID(ctx context.Context, id string) (*model.User, error
 		&u.Username, &u.Bio, &u.Role, &u.CreatorScore,
 		&u.IsVerified, &u.Onboarded, &u.Theme, &u.CustomLinks, &u.EmailPrefsRaw,
 		&u.StripeConnectAccountID, &u.StripeConnectOnboarded,
+		&u.CreatorTier, &u.ReferralCode, &u.ReferredBy,
 		&u.CreatedAt, &u.UpdatedAt,
 	)
 	if err == pgx.ErrNoRows {
@@ -45,6 +47,7 @@ func (s *Store) FindUserByEmail(ctx context.Context, email string) (*model.User,
 		`SELECT id, name, email, email_verified, image, username, bio, role,
 		        creator_score, is_verified, onboarded, theme, custom_links, email_prefs,
 		        stripe_connect_account_id, COALESCE(stripe_connect_onboarded, false),
+		        creator_tier, referral_code, referred_by,
 		        created_at, updated_at
 		 FROM users WHERE email = $1`, email,
 	).Scan(
@@ -52,6 +55,7 @@ func (s *Store) FindUserByEmail(ctx context.Context, email string) (*model.User,
 		&u.Username, &u.Bio, &u.Role, &u.CreatorScore,
 		&u.IsVerified, &u.Onboarded, &u.Theme, &u.CustomLinks, &u.EmailPrefsRaw,
 		&u.StripeConnectAccountID, &u.StripeConnectOnboarded,
+		&u.CreatorTier, &u.ReferralCode, &u.ReferredBy,
 		&u.CreatedAt, &u.UpdatedAt,
 	)
 	if err == pgx.ErrNoRows {
@@ -66,6 +70,7 @@ func (s *Store) FindUserByUsername(ctx context.Context, username string) (*model
 		`SELECT id, name, email, email_verified, image, username, bio, role,
 		        creator_score, is_verified, onboarded, theme, custom_links, email_prefs,
 		        stripe_connect_account_id, COALESCE(stripe_connect_onboarded, false),
+		        creator_tier, referral_code, referred_by,
 		        created_at, updated_at
 		 FROM users WHERE username = $1`, username,
 	).Scan(
@@ -73,6 +78,7 @@ func (s *Store) FindUserByUsername(ctx context.Context, username string) (*model
 		&u.Username, &u.Bio, &u.Role, &u.CreatorScore,
 		&u.IsVerified, &u.Onboarded, &u.Theme, &u.CustomLinks, &u.EmailPrefsRaw,
 		&u.StripeConnectAccountID, &u.StripeConnectOnboarded,
+		&u.CreatorTier, &u.ReferralCode, &u.ReferredBy,
 		&u.CreatedAt, &u.UpdatedAt,
 	)
 	if err == pgx.ErrNoRows {
@@ -131,6 +137,14 @@ func (s *Store) UpdateUserScore(ctx context.Context, id string, score int) error
 	_, err := s.pool.Exec(ctx,
 		`UPDATE users SET creator_score = $1 WHERE id = $2`,
 		score, id,
+	)
+	return err
+}
+
+func (s *Store) UpdateUserTier(ctx context.Context, id string, tier string) error {
+	_, err := s.pool.Exec(ctx,
+		`UPDATE users SET creator_tier = $1 WHERE id = $2`,
+		tier, id,
 	)
 	return err
 }

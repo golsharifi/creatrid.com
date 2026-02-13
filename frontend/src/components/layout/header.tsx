@@ -22,6 +22,8 @@ import {
   DollarSign,
   Search,
   FolderOpen,
+  Gift,
+  Webhook,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { NotificationBell } from "@/components/notification-bell";
@@ -277,6 +279,22 @@ export function Header() {
                     >
                       <BarChart3 className="h-4 w-4" />
                       {t("header.analytics")}
+                    </Link>
+                    <Link
+                      href="/referrals"
+                      onClick={() => setMobileOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                    >
+                      <Gift className="h-4 w-4" />
+                      {t("header.referrals")}
+                    </Link>
+                    <Link
+                      href="/webhooks"
+                      onClick={() => setMobileOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                    >
+                      <Webhook className="h-4 w-4" />
+                      {t("header.webhooks")}
                     </Link>
                     <Link
                       href="/settings"

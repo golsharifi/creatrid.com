@@ -134,6 +134,9 @@ func main() {
 	payoutHandler := handler.NewPayoutHandler(st, cfg)
 	collectionHandler := handler.NewCollectionHandler(st)
 	searchHandler := handler.NewSearchHandler(st)
+	webhookHandler := handler.NewWebhookHandler(st)
+	referralHandler := handler.NewReferralHandler(st)
+	recommendHandler := handler.NewRecommendHandler(st)
 
 	// Start connection refresh scheduler
 	providerMap := make(map[string]platform.Provider)
@@ -146,6 +149,24 @@ func main() {
 	}
 	sched := scheduler.New(st, providerMap, refreshInterval)
 	go sched.Start(context.Background())
+
+	// Start weekly digest cron
+	go func() {
+		ticker := time.NewTicker(1 * time.Hour)
+		defer ticker.Stop()
+		for range ticker.C {
+			now := time.Now().UTC()
+			if now.Weekday() == time.Monday && now.Hour() == 9 {
+				lastSent, _ := st.GetSetting(context.Background(), "last_digest_sent")
+				today := now.Format("2006-01-02")
+				if lastSent != today {
+					sent := digestHandler.RunDigestCron(context.Background())
+					_ = st.SetSetting(context.Background(), "last_digest_sent", today)
+					log.Printf("Digest cron: sent %d emails", sent)
+				}
+			}
+		}
+	}()
 
 	// Setup router
 	r := chi.NewRouter()
@@ -184,6 +205,9 @@ func main() {
 	r.Get("/api/search", searchHandler.Search)
 	r.Get("/api/search/suggestions", searchHandler.Suggestions)
 	r.Get("/api/users/{username}/collections", collectionHandler.PublicList)
+
+	// Referral landing — allow sign-in page to read ref code
+	// (ref code is stored in cookie by frontend, no backend route needed)
 
 	// Health check
 	r.Get("/api/health", func(w http.ResponseWriter, r *http.Request) {
@@ -267,6 +291,24 @@ func main() {
 		r.Post("/api/collections/{id}/items", collectionHandler.AddItem)
 		r.Delete("/api/collections/{id}/items/{contentId}", collectionHandler.RemoveItem)
 		r.Get("/api/collections/{id}/items", collectionHandler.ListItems)
+
+		// Webhooks
+		r.Post("/api/webhooks", webhookHandler.Create)
+		r.Get("/api/webhooks", webhookHandler.List)
+		r.Patch("/api/webhooks/{id}", webhookHandler.Update)
+		r.Delete("/api/webhooks/{id}", webhookHandler.Delete)
+		r.Get("/api/webhooks/{id}/deliveries", webhookHandler.Deliveries)
+
+		// Referrals
+		r.Get("/api/referrals/code", referralHandler.GetCode)
+		r.Get("/api/referrals", referralHandler.List)
+
+		// Recommendations
+		r.Get("/api/recommendations", recommendHandler.List)
+
+		// Analytics Export
+		r.Get("/api/analytics/export", analyticsHandler.ExportCSV)
+		r.Get("/api/content-analytics/export", contentAnalyticsHandler.ExportCSV)
 	})
 
 	// Admin routes
@@ -277,6 +319,7 @@ func main() {
 		r.Get("/api/admin/users", adminHandler.ListUsers)
 		r.Post("/api/admin/users/verify", adminHandler.SetVerified)
 		r.Post("/api/admin/digest", digestHandler.SendWeeklyDigest)
+		r.Get("/api/admin/audit", adminHandler.AuditLog)
 		r.Get("/api/admin/takedowns", dmcaHandler.ListTakedowns)
 		r.Post("/api/admin/takedowns/{id}/resolve", dmcaHandler.ResolveTakedown)
 	})

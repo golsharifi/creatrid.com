@@ -37,6 +37,9 @@ type User struct {
 	EmailPrefsRaw           json.RawMessage `json:"emailPrefs"`
 	StripeConnectAccountID  *string         `json:"-"`
 	StripeConnectOnboarded  bool            `json:"-"`
+	CreatorTier             string          `json:"creatorTier"`
+	ReferralCode            *string         `json:"-"`
+	ReferredBy              *string         `json:"-"`
 	CreatedAt               time.Time       `json:"createdAt"`
 	UpdatedAt               time.Time       `json:"updatedAt"`
 }
@@ -57,6 +60,7 @@ type PublicUser struct {
 	Image        *string         `json:"image"`
 	Role         UserRole        `json:"role"`
 	CreatorScore *int            `json:"creatorScore"`
+	CreatorTier  string          `json:"creatorTier"`
 	IsVerified   bool            `json:"isVerified"`
 	Theme        string          `json:"theme"`
 	CustomLinks  json.RawMessage `json:"customLinks"`
@@ -72,6 +76,7 @@ func (u *User) ToPublic() *PublicUser {
 		Image:        u.Image,
 		Role:         u.Role,
 		CreatorScore: u.CreatorScore,
+		CreatorTier:  u.CreatorTier,
 		IsVerified:   u.IsVerified,
 		Theme:        u.Theme,
 		CustomLinks:  u.CustomLinks,

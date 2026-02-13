@@ -3,7 +3,11 @@ const en = {
   common: {
     loading: "Loading...",
     save: "Save",
+    saving: "Saving...",
     cancel: "Cancel",
+    copy: "Copy",
+    copied: "Copied!",
+    signInRequired: "Please sign in to access this page.",
     previous: "Previous",
     next: "Next",
     creator: "Creator",
@@ -25,6 +29,8 @@ const en = {
     collections: "Collections",
     search: "Search",
     notifications: "Notifications",
+    referrals: "Referrals",
+    webhooks: "Webhooks",
     settings: "Settings",
     logout: "Logout",
     toggleTheme: "Toggle theme",
@@ -47,9 +53,17 @@ const en = {
     continueWithGoogle: "Continue with Google",
   },
 
-  // Onboarding
+  // Onboarding Checklist
   onboarding: {
-    title: "Welcome to Creatrid",
+    title: "Complete Your Profile",
+    completed: "completed",
+    setPhoto: "Set a profile photo",
+    writeBio: "Write a bio",
+    connectAccount: "Connect a social account",
+    verifyEmail: "Verify your email",
+    uploadContent: "Upload your first content",
+    // Onboarding page
+    pageTitle: "Welcome to Creatrid",
     subtitle: "Choose a username for your public profile",
     displayName: "Display Name",
     username: "Username",
@@ -95,6 +109,8 @@ const en = {
     contentVault: "Content Vault",
     contentVaultDesc: "Upload and license your creative content.",
     contentCount: "{{count}} items uploaded",
+    recommendedCreators: "Recommended Creators",
+    sharedPlatforms: "shared platforms",
   },
 
   // Settings
@@ -192,6 +208,7 @@ const en = {
     links: "Links",
     scanToView: "Scan to view this profile",
     verifiedOnCreatrid: "Verified on Creatrid",
+    contentGallery: "Content Gallery",
   },
 
   // Collaborations
@@ -235,6 +252,11 @@ const en = {
     notOnboarded: "Not onboarded",
     verify: "Verify",
     unverify: "Unverify",
+    auditLog: "Audit Log",
+    auditTime: "Time",
+    auditAdmin: "Admin",
+    auditAction: "Action",
+    auditTarget: "Target",
   },
 
   // Landing Page
@@ -371,6 +393,7 @@ const en = {
     clicksByType: "Clicks by Type",
     noData: "No analytics data yet. Share your profile to start tracking.",
     last30Days: "Last 30 days",
+    exportCSV: "Export CSV",
   },
 
   // Pricing
@@ -606,6 +629,30 @@ const en = {
     contentResults: "Content",
     creatorResults: "Creators",
     noResults: "No results found. Try a different search term.",
+  },
+  // Webhooks
+  webhooks: {
+    title: "Webhooks",
+    subtitle: "Receive real-time notifications when events happen on your account.",
+    create: "Create Endpoint",
+    newEndpoint: "New Webhook Endpoint",
+    events: "Events",
+    save: "Save Endpoint",
+    empty: "No webhook endpoints yet. Create one to receive event notifications.",
+    recentDeliveries: "Recent Deliveries",
+    noDeliveries: "No deliveries yet.",
+  },
+
+  // Referrals
+  referrals: {
+    title: "Referral Program",
+    subtitle: "Invite creators and earn bonus score points for each signup.",
+    yourLink: "Your Referral Link",
+    linkHint: "Share this link with other creators. You'll earn +5 score for each signup.",
+    totalReferred: "Total Referred",
+    bonusEarned: "Bonus Score Earned",
+    referred: "Referred Creators",
+    empty: "No referrals yet. Share your link to start earning bonus points.",
   },
 };
 

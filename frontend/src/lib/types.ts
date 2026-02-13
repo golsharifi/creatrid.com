@@ -20,6 +20,7 @@ export interface User {
   bio: string | null;
   role: "CREATOR" | "BRAND" | "ADMIN";
   creatorScore: number | null;
+  creatorTier: string;
   isVerified: boolean;
   onboarded: boolean;
   theme: string;
@@ -37,6 +38,7 @@ export interface PublicUser {
   image: string | null;
   role: "CREATOR" | "BRAND" | "ADMIN";
   creatorScore: number | null;
+  creatorTier: string;
   isVerified: boolean;
   theme: string;
   customLinks: CustomLink[];

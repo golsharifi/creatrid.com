@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/creatrid/creatrid/internal/middleware"
 	"github.com/creatrid/creatrid/internal/store"
@@ -90,4 +92,33 @@ func (h *ContentAnalyticsHandler) CreatorSummary(w http.ResponseWriter, r *http.
 		"items":        items,
 		"totalRevenue": totalRevenue,
 	})
+}
+
+// ExportCSV exports content analytics as CSV.
+func (h *ContentAnalyticsHandler) ExportCSV(w http.ResponseWriter, r *http.Request) {
+	user := middleware.UserFromContext(r.Context())
+	if user == nil {
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "Not authenticated"})
+		return
+	}
+
+	items, err := h.store.GetCreatorContentAnalytics(r.Context(), user.ID)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Failed to fetch content analytics"})
+		return
+	}
+
+	username := "creator"
+	if user.Username != nil {
+		username = *user.Username
+	}
+	filename := fmt.Sprintf("content-analytics-%s-%s.csv", username, time.Now().Format("2006-01-02"))
+
+	w.Header().Set("Content-Type", "text/csv")
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
+
+	fmt.Fprintln(w, "content_id,title,views,downloads,revenue_cents")
+	for _, item := range items {
+		fmt.Fprintf(w, "%s,%q,%d,%d,%d\n", item.ContentID, item.Title, item.TotalViews, item.TotalDownloads, item.RevenueCents)
+	}
 }

@@ -1,10 +1,12 @@
 package handler
 
 import (
+	"bytes"
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"regexp"
@@ -14,6 +16,7 @@ import (
 	"github.com/creatrid/creatrid/internal/auth"
 	"github.com/creatrid/creatrid/internal/config"
 	"github.com/creatrid/creatrid/internal/email"
+	"github.com/creatrid/creatrid/internal/imaging"
 	"github.com/creatrid/creatrid/internal/middleware"
 	"github.com/creatrid/creatrid/internal/storage"
 	"github.com/creatrid/creatrid/internal/store"
@@ -332,8 +335,19 @@ func (h *UserHandler) UploadImage(w http.ResponseWriter, r *http.Request) {
 		_ = h.blob.Delete(r.Context(), *user.Image)
 	}
 
+	// Read file and resize to max 512x512
+	buf, readErr := io.ReadAll(file)
+	if readErr != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Failed to read image"})
+		return
+	}
+	resized, _, resizeErr := imaging.ResizeImage(buf, 512, 512)
+	if resizeErr == nil {
+		buf = resized
+	}
+
 	blobName := fmt.Sprintf("avatars/%s%s", cuid2.Generate(), ext)
-	imageURL, err := h.blob.Upload(r.Context(), blobName, file, contentType)
+	imageURL, err := h.blob.Upload(r.Context(), blobName, bytes.NewReader(buf), contentType)
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Failed to upload image"})
 		return

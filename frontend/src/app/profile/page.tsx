@@ -12,6 +12,7 @@ import {
 } from "@/components/share-buttons";
 import type { PublicUser, Connection } from "@/lib/types";
 import { useTranslation } from "react-i18next";
+import { TierBadge } from "@/components/tier-badge";
 
 const PROFILE_BASE_URL =
   process.env.NEXT_PUBLIC_PROFILE_URL || "https://creatrid.com";
@@ -130,13 +131,18 @@ function ProfileContent() {
           </p>
         )}
 
-        {/* Creator Score */}
+        {/* Creator Score & Tier */}
         {user.creatorScore !== null && (
-          <div className="mt-6 flex items-center gap-2 rounded-full border border-zinc-200 px-4 py-2 dark:border-zinc-800">
-            <Shield className="h-4 w-4" />
-            <span className="text-sm font-medium">
-              {t("profile.creatorScore", { score: user.creatorScore })}
-            </span>
+          <div className="mt-6 flex items-center gap-3">
+            <div className="flex items-center gap-2 rounded-full border border-zinc-200 px-4 py-2 dark:border-zinc-800">
+              <Shield className="h-4 w-4" />
+              <span className="text-sm font-medium">
+                {t("profile.creatorScore", { score: user.creatorScore })}
+              </span>
+            </div>
+            {user.creatorTier && (
+              <TierBadge tier={user.creatorTier} size="md" />
+            )}
           </div>
         )}
 

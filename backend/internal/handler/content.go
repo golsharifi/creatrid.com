@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/creatrid/creatrid/internal/config"
+	"github.com/creatrid/creatrid/internal/imaging"
 	"github.com/creatrid/creatrid/internal/middleware"
 	"github.com/creatrid/creatrid/internal/storage"
 	"github.com/creatrid/creatrid/internal/store"
@@ -177,9 +178,21 @@ func (h *ContentHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		UpdatedAt:   now,
 	}
 
+	// Generate thumbnail for image content
+	if contentType == "image" {
+		thumbData, _, thumbErr := imaging.GenerateThumbnail(buf, 300)
+		if thumbErr == nil {
+			thumbExt := ext
+			thumbBlob := "vault/" + user.ID + "/" + contentID + "_thumb" + thumbExt
+			thumbURL, thumbUpErr := h.blob.Upload(r.Context(), thumbBlob, bytes.NewReader(thumbData), mimeType)
+			if thumbUpErr == nil {
+				item.ThumbnailURL = &thumbURL
+			}
+		}
+	}
+
 	if err := h.store.CreateContentItem(r.Context(), item); err != nil {
 		log.Printf("Content upload DB error: %v", err)
-		// Attempt to clean up the uploaded blob
 		_ = h.blob.Delete(r.Context(), fileURL)
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Failed to save content record"})
 		return

@@ -403,4 +403,64 @@ export const api = {
     suggestions: (q: string) =>
       request<{ suggestions: string[] }>(`/api/search/suggestions?q=${encodeURIComponent(q)}`),
   },
+  webhooks: {
+    create: (url: string, events: string[]) =>
+      request<any>("/api/webhooks", {
+        method: "POST",
+        body: JSON.stringify({ url, events }),
+      }),
+    list: () => request<{ endpoints: any[] }>("/api/webhooks"),
+    update: (id: string, data: { url?: string; events?: string[]; isActive?: boolean }) =>
+      request<{ success: boolean }>(`/api/webhooks/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
+    delete: (id: string) =>
+      request<{ success: boolean }>(`/api/webhooks/${id}`, { method: "DELETE" }),
+    deliveries: (id: string, limit = 20, offset = 0) =>
+      request<{ deliveries: any[]; total: number }>(`/api/webhooks/${id}/deliveries?limit=${limit}&offset=${offset}`),
+  },
+  referrals: {
+    code: () => request<{ code: string }>("/api/referrals/code"),
+    list: () =>
+      request<{
+        referrals: any[];
+        stats: { totalReferred: number; totalBonusEarned: number };
+      }>("/api/referrals"),
+  },
+  recommendations: {
+    list: () =>
+      request<{
+        creators: {
+          id: string;
+          name: string | null;
+          username: string | null;
+          image: string | null;
+          creatorScore: number | null;
+          creatorTier: string;
+          sharedPlatforms: number;
+        }[];
+      }>("/api/recommendations"),
+  },
+  adminAudit: {
+    list: (limit = 50, offset = 0) =>
+      request<{
+        entries: {
+          id: number;
+          adminUserId: string;
+          action: string;
+          targetType: string;
+          targetId: string | null;
+          details: any;
+          ipAddress: string | null;
+          createdAt: string;
+          adminName: string | null;
+        }[];
+        total: number;
+      }>(`/api/admin/audit?limit=${limit}&offset=${offset}`),
+  },
+  analyticsExport: {
+    profileUrl: () => `${API_URL}/api/analytics/export`,
+    contentUrl: () => `${API_URL}/api/content-analytics/export`,
+  },
 };

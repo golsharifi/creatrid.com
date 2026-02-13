@@ -10,6 +10,26 @@ import (
 	"github.com/creatrid/creatrid/internal/store"
 )
 
+func adminAudit(st *store.Store, r *http.Request, action, targetType, targetID string, details map[string]interface{}) {
+	user := middleware.UserFromContext(r.Context())
+	if user == nil {
+		return
+	}
+	ip := r.Header.Get("X-Forwarded-For")
+	if ip == "" {
+		ip = r.RemoteAddr
+	}
+	var detailsJSON []byte
+	if details != nil {
+		detailsJSON, _ = json.Marshal(details)
+	}
+	var targetPtr *string
+	if targetID != "" {
+		targetPtr = &targetID
+	}
+	_ = st.CreateAuditEntry(r.Context(), user.ID, action, targetType, targetPtr, detailsJSON, &ip)
+}
+
 type AdminHandler struct {
 	store *store.Store
 }
@@ -69,7 +89,32 @@ func (h *AdminHandler) SetVerified(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	action := "verify_user"
+	if !req.Verified {
+		action = "unverify_user"
+	}
+	adminAudit(h.store, r, action, "user", req.UserID, map[string]interface{}{"verified": req.Verified})
+
 	writeJSON(w, http.StatusOK, map[string]bool{"success": true})
+}
+
+func (h *AdminHandler) AuditLog(w http.ResponseWriter, r *http.Request) {
+	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
+	if limit <= 0 || limit > 100 {
+		limit = 50
+	}
+	if offset < 0 {
+		offset = 0
+	}
+
+	entries, total, err := h.store.ListAuditLog(r.Context(), limit, offset)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Failed to fetch audit log"})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]interface{}{"entries": entries, "total": total})
 }
 
 // RequireAdmin middleware checks that the authenticated user has admin role

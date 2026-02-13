@@ -1,0 +1,1 @@
+ALTER TABLE users ADD COLUMN IF NOT EXISTS creator_tier TEXT NOT NULL DEFAULT 'newcomer';

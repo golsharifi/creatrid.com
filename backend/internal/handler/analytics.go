@@ -2,8 +2,10 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/creatrid/creatrid/internal/middleware"
 	"github.com/creatrid/creatrid/internal/store"
@@ -85,4 +87,42 @@ func (h *AnalyticsHandler) Summary(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, summary)
+}
+
+// ExportCSV exports profile analytics as CSV.
+func (h *AnalyticsHandler) ExportCSV(w http.ResponseWriter, r *http.Request) {
+	user := middleware.UserFromContext(r.Context())
+	if user == nil {
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "Not authenticated"})
+		return
+	}
+
+	summary, err := h.store.GetAnalyticsSummary(r.Context(), user.ID)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Failed to fetch analytics"})
+		return
+	}
+
+	username := "creator"
+	if user.Username != nil {
+		username = *user.Username
+	}
+	filename := fmt.Sprintf("analytics-%s-%s.csv", username, time.Now().Format("2006-01-02"))
+
+	w.Header().Set("Content-Type", "text/csv")
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
+
+	// Write CSV header and data
+	fmt.Fprintln(w, "date,views,clicks,engagement_rate")
+	for i, ds := range summary.ViewsByDay {
+		clicks := 0
+		if i < len(summary.ClicksByDay) {
+			clicks = summary.ClicksByDay[i].Count
+		}
+		rate := 0.0
+		if ds.Count > 0 {
+			rate = float64(clicks) / float64(ds.Count) * 100
+		}
+		fmt.Fprintf(w, "%s,%d,%d,%.1f\n", ds.Date, ds.Count, clicks, rate)
+	}
 }
