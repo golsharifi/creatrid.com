@@ -319,11 +319,11 @@ const es = {
   // Landing Page
   landing: {
     // Hero
-    heroBadge: "Identidad de creador verificada",
+    heroBadge: "La plataforma de la economia creativa",
     heroHeadline: "Tu Creator Passport.",
-    heroHeadlineAccent: "Un enlace. Todas las plataformas.",
+    heroHeadlineAccent: "Construye. Demuestra. Gana.",
     heroSubtext:
-      "Construye una identidad digital verificada que demuestre quien eres en todas las plataformas. Conecta tus cuentas, gana un Creator Score y comparte un solo enlace con marcas y colaboradores.",
+      "Conecta tus cuentas, construye una identidad verificada con un Creator Score, monetiza tu contenido con licencias respaldadas por blockchain y crece con analiticas en tiempo real — todo desde una sola plataforma.",
     ctaDashboard: "Ir al panel",
     ctaGetPassport: "Obtiene tu Creator Passport",
     ctaHowItWorks: "Descubre como funciona",
@@ -336,65 +336,146 @@ const es = {
     statPlatformsLabel: "Plataformas",
     statConnections: "10.000+",
     statConnectionsLabel: "Conexiones",
+    statContent: "5.000+",
+    statContentLabel: "Contenidos",
+    statAnchors: "1.000+",
+    statAnchorsLabel: "Anclas Blockchain",
 
     // How it Works
     howTitle: "Como funciona",
     howSubtitle:
-      "Tres sencillos pasos para una identidad de creador verificada en la que marcas y colaboradores pueden confiar.",
+      "Cuatro pasos desde el registro hasta ganar — construye tu identidad de creador verificada y empieza a monetizar.",
     step1Title: "Conecta tus cuentas",
     step1Desc:
       "Vincula tus perfiles de YouTube, GitHub, Twitter, LinkedIn, Instagram, Dribbble y Behance con un solo clic mediante OAuth.",
-    step2Title: "Construye tu Creator Score",
+    step2Title: "Construye tu puntuacion y perfil",
     step2Desc:
-      "Nuestro motor de puntuacion evalua la completitud de tu perfil, conexiones verificadas y alcance de audiencia en una escala de 0 a 100.",
-    step3Title: "Comparte tu perfil verificado",
+      "Nuestro motor de puntuacion evalua la completitud de tu perfil, conexiones verificadas y alcance de audiencia en una escala de 0 a 100. Personaliza tu perfil publico con temas y enlaces.",
+    step3Title: "Monetiza tu contenido",
     step3Desc:
-      "Obtiene un enlace publico y un codigo QR que muestra tu identidad verificada, conexiones y reputacion.",
+      "Sube a la Boveda de Contenido, configura licencias digitales, ancla la propiedad en blockchain, publica en el mercado y gana a traves de tokens y suscripciones de fans.",
+    step4Title: "Crece con datos",
+    step4Desc:
+      "Rastrea visitas al perfil, clics e ingresos por contenido con analiticas en tiempo real. Colabora con otros creadores y gestiona tu portafolio con herramientas de agencia.",
 
-    // Features Grid
-    featuresTitle: "Todo lo que necesitas para demostrar quien eres",
+    // Feature Tabs
+    featuresTitle: "Todo lo que necesitas para construir, demostrar y ganar",
     featuresSubtitle:
-      "Un conjunto completo de herramientas para construir, gestionar y compartir tu identidad verificada de creador.",
-    feature1Title: "Identidad verificada",
-    feature1Desc:
-      "Conecta tus cuentas sociales y demuestra que eres quien dices ser. Sin falsificaciones ni suplantadores.",
-    feature2Title: "Creator Score",
-    feature2Desc:
+      "Una plataforma completa para identidad, contenido, monetizacion, descubrimiento y analiticas.",
+
+    // Tab labels
+    tabIdentity: "Identidad y verificacion",
+    tabContent: "Contenido y PI",
+    tabMonetization: "Monetizacion",
+    tabDiscovery: "Descubrimiento y crecimiento",
+    tabAnalytics: "Analiticas y API",
+
+    // Identity & Verification features
+    featIdentityTitle: "Identidad verificada",
+    featIdentityDesc:
+      "Conecta tus cuentas sociales mediante OAuth y demuestra que eres quien dices ser. Sin falsificaciones ni suplantadores.",
+    featScoreTitle: "Creator Score",
+    featScoreDesc:
       "Una puntuacion de reputacion de 0 a 100 basada en tu perfil, conexiones verificadas y alcance de audiencia en todas las plataformas.",
-    feature3Title: "Perfiles multiplataforma",
-    feature3Desc:
-      "Un perfil atractivo que reune todas tus plataformas, estadisticas y contenido en un solo enlace.",
-    feature4Title: "Descubrimiento por marcas",
-    feature4Desc:
+    feat2faTitle: "Seguridad de dos factores",
+    feat2faDesc:
+      "Protege tu cuenta con autenticacion de dos factores basada en aplicacion y codigos de respaldo para una capa adicional de seguridad.",
+    featWidgetTitle: "Widget incrustable",
+    featWidgetDesc:
+      "Agrega una insignia verificada de Creator Passport a tu sitio web o portafolio con un simple codigo de insercion.",
+
+    // Content & IP features
+    featVaultTitle: "Boveda de Contenido",
+    featVaultDesc:
+      "Sube y gestiona tus activos creativos de forma segura con hash SHA-256 como prueba de propiedad.",
+    featBlockchainTitle: "Anclaje en Blockchain",
+    featBlockchainDesc:
+      "Ancla el hash de tu contenido en la blockchain Base L2 para una prueba de propiedad inmutable y a prueba de manipulaciones.",
+    featLicensingTitle: "Licencias digitales",
+    featLicensingDesc:
+      "Ofrece cuatro tipos de licencia — personal, comercial, editorial y entrenamiento de IA — con precios y condiciones personalizados.",
+    featCollectionsTitle: "Colecciones",
+    featCollectionsDesc:
+      "Organiza tu contenido en colecciones curadas que puedes compartir publicamente o mantener privadas.",
+
+    // Monetization features
+    featMarketplaceTitle: "Mercado de Creadores",
+    featMarketplaceDesc:
+      "Pon tu contenido a la venta con licencias escalonadas. Los compradores descubren y compran licencias directamente.",
+    featTokensTitle: "Tokens de Creador",
+    featTokensDesc:
+      "Crea tu propio token social que los fans pueden comprar. Recibe propinas con mensajes personalizados de tus seguidores.",
+    featSubscriptionsTitle: "Suscripciones de Fans",
+    featSubscriptionsDesc:
+      "Ofrece tres niveles de suscripcion — Seguidor, Superfan y Patron — para ingresos recurrentes de fans.",
+    featEarningsTitle: "Ganancias y pagos",
+    featEarningsDesc:
+      "Rastrea todos tus ingresos en un solo lugar y recibe pagos a traves de la integracion con Stripe Connect.",
+
+    // Discovery & Growth features
+    featDiscoveryTitle: "Descubrimiento por marcas",
+    featDiscoveryDesc:
       "Se descubierto por marcas y agencias que buscan creadores verificados con quienes colaborar.",
-    feature5Title: "Estadisticas en tiempo real",
-    feature5Desc:
-      "Rastrea visitas al perfil, clics en enlaces e interacciones en tiempo real para saber quien esta prestando atencion.",
-    feature6Title: "Privacidad ante todo",
-    feature6Desc:
-      "Tu controlas lo que se comparte. Elige que plataformas e informacion aparecen en tu perfil publico.",
-    feature7Title: "Boveda de Contenido",
-    feature7Desc:
-      "Sube, gestiona y licencia tus activos creativos de forma segura con prueba de propiedad basada en hash.",
-    feature8Title: "Mercado de Creadores",
-    feature8Desc:
-      "Pon tu contenido a la venta con licencias escalonadas. Los compradores descubren y compran directamente.",
-    feature9Title: "Centro de Colaboracion",
-    feature9Desc:
-      "Descubre creadores verificados, envia solicitudes de colaboracion y gestiona asociaciones en una bandeja de entrada.",
+    featCollabTitle: "Centro de Colaboracion",
+    featCollabDesc:
+      "Envia y recibe solicitudes de colaboracion. Gestiona asociaciones desde tu bandeja de entrada con flujos de aceptar o rechazar.",
+    featReferralsTitle: "Programa de referidos",
+    featReferralsDesc:
+      "Invita a otros creadores con tu enlace de referido unico y gana puntos de bonificacion por cada registro.",
+    featAgencyTitle: "Panel de Agencia",
+    featAgencyDesc:
+      "Gestiona un portafolio de creadores, rastrea el rendimiento agregado y monitorea el uso de la API desde un solo panel.",
+
+    // Analytics & API features
+    featProfileAnalyticsTitle: "Analiticas de perfil",
+    featProfileAnalyticsDesc:
+      "Rastrea visitas al perfil, clics en enlaces, fuentes de trafico, dispositivos, navegadores y datos geograficos en tiempo real.",
+    featContentAnalyticsTitle: "Analiticas de contenido",
+    featContentAnalyticsDesc:
+      "Monitorea vistas, descargas e ingresos de cada pieza de contenido que subes a la boveda.",
+    featApiTitle: "Acceso a la API",
+    featApiDesc:
+      "Acceso programatico a la API de verificacion con claves API, limites de velocidad y documentacion completa.",
+    featWebhooksTitle: "Webhooks",
+    featWebhooksDesc:
+      "Recibe notificaciones de eventos en tiempo real mediante webhooks HTTP con reintentos automaticos y seguimiento de entregas.",
+
+    // Blockchain Highlight
+    blockchainTitle: "Prueba de propiedad inmutable",
+    blockchainSubtitle:
+      "Cada pieza de contenido que subes obtiene un hash SHA-256. Ancla ese hash en la blockchain Base L2 para una prueba de propiedad permanente y a prueba de manipulaciones que cualquiera puede verificar.",
+    blockchainStat1: "A prueba de manipulaciones",
+    blockchainStat1Desc: "Hash de contenido SHA-256",
+    blockchainStat2: "En cadena",
+    blockchainStat2Desc: "Blockchain Base L2",
+    blockchainStat3: "Verificable",
+    blockchainStat3Desc: "Certificados de prueba publicos",
+
+    // Monetization Highlight
+    monetizationTitle: "Convierte tu contenido en ingresos",
+    monetizationSubtitle: "Multiples formas de ganar con tu trabajo creativo, todo integrado.",
+    monetizationLicensingTitle: "Licencias digitales",
+    monetizationLicensingDesc:
+      "Configura licencias personales, comerciales, editoriales o de entrenamiento de IA con tus propios precios. Los compradores compran directamente.",
+    monetizationTokensTitle: "Tokens de Creador",
+    monetizationTokensDesc:
+      "Lanza tu propio token social. Los fans compran tokens y envian propinas con mensajes personales para apoyar tu trabajo.",
+    monetizationSubscriptionsTitle: "Suscripciones de Fans",
+    monetizationSubscriptionsDesc:
+      "Ofrece los niveles Seguidor, Superfan y Patron para ingresos recurrentes de tus fans mas dedicados.",
 
     // Use Cases
     useCasesTitle: "Creado para todos en el ecosistema creativo",
     useCasesSubtitle: "Ya sea que crees, contrates o gestiones \u2014 Creatrid se adapta a tu flujo de trabajo.",
     useCaseCreatorsTitle: "Para Creadores",
     useCaseCreatorsDesc:
-      "Construye tu identidad verificada, aumenta tu Creator Score, se descubierto por marcas y monetiza tu contenido a traves del mercado.",
+      "Construye tu identidad verificada, aumenta tu Creator Score, monetiza contenido a traves de licencias y tokens, y rastrea todo con analiticas en tiempo real.",
     useCaseBrandsTitle: "Para Marcas",
     useCaseBrandsDesc:
-      "Encuentra creadores verificados con metricas reales. Filtra por puntuacion, plataforma y nicho. Envia solicitudes de colaboracion directamente.",
+      "Encuentra creadores verificados con metricas reales. Filtra por puntuacion, plataforma y nicho. Envia solicitudes de colaboracion y verifica identidades via API.",
     useCaseAgenciesTitle: "Para Agencias",
     useCaseAgenciesDesc:
-      "Gestiona portafolios de creadores a escala, verifica identidades en masa via API e incrusta insignias verificadas en tu propia plataforma.",
+      "Gestiona portafolios de creadores a escala con el panel de agencia, verifica identidades en masa via API e incrusta insignias verificadas en tu propia plataforma.",
 
     // Platform Logos
     platformsTitle: "Conecta todas tus plataformas",
@@ -406,16 +487,16 @@ const es = {
     faqSubtitle: "Todo lo que necesitas saber sobre Creatrid.",
     faq1Q: "Que es Creatrid?",
     faq1A:
-      "Creatrid es una plataforma de identidad digital verificada para creadores. Conectas tus cuentas sociales, construyes un Creator Score y compartes un solo enlace de perfil publico que demuestra que eres autentico.",
+      "Creatrid es una plataforma de economia creativa que combina identidad digital verificada, gestion de contenido, propiedad respaldada por blockchain, herramientas de monetizacion y analiticas — todo en un solo lugar.",
     faq2Q: "Como se calcula el Creator Score?",
     faq2A:
       "Tu Creator Score (0\u2013100) se basa en cuatro factores: completitud del perfil (20 puntos), email verificado (10 puntos), numero de plataformas conectadas (hasta 50 puntos) y un bonus logaritmico por alcance de audiencia (hasta 20 puntos).",
     faq3Q: "Es gratis?",
     faq3A:
-      "Si. Creatrid es completamente gratis para creadores. Inicia sesion con Google, conecta tus cuentas y empieza a construir tu perfil verificado sin costo alguno.",
+      "Si. Creatrid es gratis para empezar. Inicia sesion con Google, conecta tus cuentas y empieza a construir tu perfil verificado. Los planes Pro y Business desbloquean funciones avanzadas.",
     faq4Q: "Pueden las marcas verificar creadores?",
     faq4A:
-      "Por supuesto. Las marcas y agencias pueden ver el perfil publico de cualquier creador para comprobar conexiones verificadas, Creator Score y contenido vinculado, sin necesidad de iniciar sesion.",
+      "Por supuesto. Las marcas y agencias pueden ver el perfil publico de cualquier creador para comprobar conexiones verificadas, Creator Score y contenido vinculado, sin necesidad de iniciar sesion. La API permite la verificacion programatica.",
     faq5Q: "Que plataformas puedo conectar?",
     faq5A:
       "Creatrid actualmente soporta siete plataformas: YouTube, GitHub, Twitter/X, LinkedIn, Instagram, Behance y Dribbble. Cada conexion se verifica via OAuth y contribuye a tu Creator Score.",
@@ -424,37 +505,49 @@ const es = {
       "Explora la pagina Descubrir para encontrar creadores por puntuacion, plataforma o nicho. Envia una solicitud de colaboracion con un mensaje y el creador puede aceptar o rechazar desde su bandeja de entrada.",
     faq7Q: "Puedo monetizar mi contenido?",
     faq7A:
-      "Si. Sube tu trabajo a la Boveda de Contenido, configura ofertas de licencia (personal, comercial, editorial o entrenamiento de IA) y publicalo en el mercado.",
+      "Si. Sube tu trabajo a la Boveda de Contenido, configura ofertas de licencia (personal, comercial, editorial o entrenamiento de IA), publicalo en el mercado, crea tu propio token social y ofrece suscripciones de fans.",
+    faq8Q: "Como funciona el anclaje en blockchain?",
+    faq8A:
+      "Cuando subes contenido, Creatrid genera un hash SHA-256 de tu archivo. Luego puedes anclar ese hash en la blockchain Base L2, creando una prueba de propiedad inmutable y con marca de tiempo que cualquiera puede verificar.",
+    faq9Q: "Que son los Tokens de Creador?",
+    faq9A:
+      "Los Tokens de Creador son tokens sociales que puedes crear y vender a tus fans. Los seguidores tambien pueden enviarte propinas con mensajes personales. Es una forma directa de ganar con tu comunidad.",
+    faq10Q: "Puedo gestionar multiples creadores como agencia?",
+    faq10A:
+      "Si. Crea una cuenta de agencia para invitar y gestionar creadores, ver analiticas agregadas, rastrear el uso de la API y supervisar todo tu portafolio de creadores desde un solo panel.",
 
     // Blog Highlights
     blogHighlightsTitle: "Del Blog",
     blogHighlightsSubtitle: "Guias, perspectivas y estrategias para el creador moderno.",
     blogViewAll: "Ver todas las publicaciones",
 
-    // Final CTA
     // Pricing Preview
     pricingTitle: "Precios simples y transparentes",
-    pricingSubtitle: "Comienza gratis, mejora cuando necesites más potencia.",
+    pricingSubtitle: "Comienza gratis, mejora cuando necesites mas potencia.",
     pricingFreeDesc: "Perfecto para empezar. Conecta hasta 3 plataformas y construye tu Creator Score.",
-    pricingProDesc: "Conexiones ilimitadas, analíticas avanzadas, temas personalizados y acceso API.",
-    pricingBusinessDesc: "Todo en Pro más API de verificación masiva, panel de marca y widgets de marca blanca.",
-    pricingViewAll: "Ver todos los planes y características",
+    pricingProDesc: "Conexiones ilimitadas, analiticas avanzadas, temas personalizados y acceso API.",
+    pricingBusinessDesc: "Todo en Pro mas API de verificacion masiva, panel de marca y widgets de marca blanca.",
+    pricingViewAll: "Ver todos los planes y caracteristicas",
 
     // Testimonials
     testimonialsTitle: "Querido por los creadores",
-    testimonial1Quote: "Creatrid me facilitó probar mi identidad ante las marcas. Conseguí mi primera colaboración pagada en una semana.",
+    testimonial1Quote: "Creatrid me facilito probar mi identidad ante las marcas. Consegui mi primera colaboracion pagada en una semana.",
     testimonial1Name: "Sarah K.",
     testimonial1Role: "Creadora de YouTube",
-    testimonial2Quote: "El Creator Score es brillante. Las marcas pueden ver instantáneamente que soy legítimo sin tener que enviar capturas de mis analíticas.",
+    testimonial2Quote: "El Creator Score es brillante. Las marcas pueden ver instantaneamente que soy legitimo sin tener que enviar capturas de mis analiticas.",
     testimonial2Name: "Marcus T.",
     testimonial2Role: "Desarrollador y Streamer",
     testimonial3Quote: "Un enlace para todo. Puse mi perfil de Creatrid en mi bio y ahora las marcas me contactan.",
     testimonial3Name: "Priya M.",
-    testimonial3Role: "Diseño y Fotografía",
+    testimonial3Role: "Diseno y Fotografia",
+    testimonial4Quote: "El anclaje en blockchain me da una prueba real de propiedad. Por fin me siento seguro con mi trabajo digital.",
+    testimonial4Name: "Alex R.",
+    testimonial4Role: "Artista Digital y Creador NFT",
 
-    ctaFinalHeadline: "Listo para demostrar quien eres?",
+    // Final CTA
+    ctaFinalHeadline: "Listo para construir, demostrar y ganar?",
     ctaFinalSubtext:
-      "Unete a miles de creadores que usan Creatrid para generar confianza, ser descubiertos y conseguir colaboraciones.",
+      "Unete a miles de creadores que usan Creatrid para verificar su identidad, proteger su contenido y monetizar su trabajo.",
   },
 
   // API Keys

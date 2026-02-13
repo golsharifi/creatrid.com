@@ -321,11 +321,11 @@ const en = {
   // Landing Page
   landing: {
     // Hero
-    heroBadge: "Verified Creator Identity",
+    heroBadge: "The Creator Economy Platform",
     heroHeadline: "Your Creator Passport.",
-    heroHeadlineAccent: "One Link. Every Platform.",
+    heroHeadlineAccent: "Build. Prove. Earn.",
     heroSubtext:
-      "Build a verified digital identity that proves who you are across platforms. Connect your accounts, earn a Creator Score, and share one link with brands and collaborators.",
+      "Connect your accounts, build a verified identity with a Creator Score, monetize your content with blockchain-backed licensing, and grow with real-time analytics \u2014 all from one platform.",
     ctaDashboard: "Go to Dashboard",
     ctaGetPassport: "Get Your Creator Passport",
     ctaHowItWorks: "See how it works",
@@ -338,65 +338,146 @@ const en = {
     statPlatformsLabel: "Platforms",
     statConnections: "10,000+",
     statConnectionsLabel: "Connections",
+    statContent: "5,000+",
+    statContentLabel: "Content Items",
+    statAnchors: "1,000+",
+    statAnchorsLabel: "Blockchain Anchors",
 
     // How it Works
     howTitle: "How it Works",
     howSubtitle:
-      "Three simple steps to a verified creator identity that brands and collaborators can trust.",
+      "Four steps from sign-up to earning \u2014 build your verified creator identity and start monetizing.",
     step1Title: "Connect your accounts",
     step1Desc:
       "Link your YouTube, GitHub, Twitter, LinkedIn, Instagram, Dribbble, and Behance profiles with one-click OAuth.",
-    step2Title: "Build your Creator Score",
+    step2Title: "Build your score & profile",
     step2Desc:
-      "Our scoring engine evaluates your profile completeness, verified connections, and audience reach on a 0\u2013100 scale.",
-    step3Title: "Share your verified profile",
+      "Our scoring engine evaluates your profile completeness, verified connections, and audience reach on a 0\u2013100 scale. Customize your public profile with themes and links.",
+    step3Title: "Monetize your content",
     step3Desc:
-      "Get a single public link and QR code that showcases your verified identity, connections, and reputation.",
+      "Upload to the Content Vault, set up digital licenses, anchor ownership on the blockchain, list on the marketplace, and earn through tokens and fan subscriptions.",
+    step4Title: "Grow with data",
+    step4Desc:
+      "Track profile views, clicks, and content revenue with real-time analytics. Collaborate with other creators and manage your portfolio with agency tools.",
 
-    // Features Grid
-    featuresTitle: "Everything you need to prove who you are",
+    // Feature Tabs
+    featuresTitle: "Everything you need to build, prove, and earn",
     featuresSubtitle:
-      "A complete toolkit for building, managing, and sharing your verified creator identity.",
-    feature1Title: "Verified Identity",
-    feature1Desc:
-      "Connect your social accounts and prove you are who you say you are. No fakes, no impersonators.",
-    feature2Title: "Creator Score",
-    feature2Desc:
+      "A complete platform for identity, content, monetization, discovery, and analytics.",
+
+    // Tab labels
+    tabIdentity: "Identity & Verification",
+    tabContent: "Content & IP",
+    tabMonetization: "Monetization",
+    tabDiscovery: "Discovery & Growth",
+    tabAnalytics: "Analytics & API",
+
+    // Identity & Verification features
+    featIdentityTitle: "Verified Identity",
+    featIdentityDesc:
+      "Connect your social accounts via OAuth and prove you are who you say you are. No fakes, no impersonators.",
+    featScoreTitle: "Creator Score",
+    featScoreDesc:
       "A 0\u2013100 reputation score based on your profile, verified connections, and audience reach across platforms.",
-    feature3Title: "Cross-Platform Profiles",
-    feature3Desc:
-      "One beautiful profile that brings together all your platforms, stats, and content in a single link.",
-    feature4Title: "Brand Discovery",
-    feature4Desc:
+    feat2faTitle: "Two-Factor Security",
+    feat2faDesc:
+      "Protect your account with authenticator-based 2FA and backup codes for an extra layer of security.",
+    featWidgetTitle: "Embeddable Widget",
+    featWidgetDesc:
+      "Add a verified Creator Passport badge to your website or portfolio with a simple embed code.",
+
+    // Content & IP features
+    featVaultTitle: "Content Vault",
+    featVaultDesc:
+      "Upload and manage your creative assets securely with SHA-256 hashing for proof of ownership.",
+    featBlockchainTitle: "Blockchain Anchoring",
+    featBlockchainDesc:
+      "Anchor your content hash on the Base L2 blockchain for immutable, tamper-proof proof of ownership.",
+    featLicensingTitle: "Digital Licensing",
+    featLicensingDesc:
+      "Offer four license types \u2014 personal, commercial, editorial, and AI training \u2014 with custom pricing and terms.",
+    featCollectionsTitle: "Collections",
+    featCollectionsDesc:
+      "Organize your content into curated collections that you can share publicly or keep private.",
+
+    // Monetization features
+    featMarketplaceTitle: "Creator Marketplace",
+    featMarketplaceDesc:
+      "List your content for sale with tiered licensing. Buyers discover and purchase licenses directly.",
+    featTokensTitle: "Creator Tokens",
+    featTokensDesc:
+      "Create your own social token that fans can purchase. Receive tips with custom messages from supporters.",
+    featSubscriptionsTitle: "Fan Subscriptions",
+    featSubscriptionsDesc:
+      "Offer three subscription tiers \u2014 Supporter, Superfan, and Patron \u2014 for recurring fan revenue.",
+    featEarningsTitle: "Earnings & Payouts",
+    featEarningsDesc:
+      "Track all your revenue in one place and receive payouts through Stripe Connect integration.",
+
+    // Discovery & Growth features
+    featDiscoveryTitle: "Brand Discovery",
+    featDiscoveryDesc:
       "Get discovered by brands and agencies looking for verified creators to collaborate with.",
-    feature5Title: "Real-time Analytics",
-    feature5Desc:
-      "Track profile views, link clicks, and engagement in real time so you know who is paying attention.",
-    feature6Title: "Privacy First",
-    feature6Desc:
-      "You control what is shared. Choose which platforms and information appear on your public profile.",
-    feature7Title: "Content Vault",
-    feature7Desc:
-      "Securely upload, manage, and license your creative assets with hash-based proof of ownership.",
-    feature8Title: "Creator Marketplace",
-    feature8Desc:
-      "List your content for sale with tiered licensing. Buyers discover and purchase directly.",
-    feature9Title: "Collaboration Hub",
-    feature9Desc:
-      "Discover verified creators, send collaboration requests, and manage partnerships in one inbox.",
+    featCollabTitle: "Collaboration Hub",
+    featCollabDesc:
+      "Send and receive collaboration requests. Manage partnerships from your inbox with accept/decline workflows.",
+    featReferralsTitle: "Referral Program",
+    featReferralsDesc:
+      "Invite other creators with your unique referral link and earn bonus score points for each signup.",
+    featAgencyTitle: "Agency Dashboard",
+    featAgencyDesc:
+      "Manage a portfolio of creators, track aggregate performance, and monitor API usage from one dashboard.",
+
+    // Analytics & API features
+    featProfileAnalyticsTitle: "Profile Analytics",
+    featProfileAnalyticsDesc:
+      "Track profile views, link clicks, referrers, devices, browsers, and geographic data in real time.",
+    featContentAnalyticsTitle: "Content Analytics",
+    featContentAnalyticsDesc:
+      "Monitor views, downloads, and revenue for each piece of content you upload to the vault.",
+    featApiTitle: "API Access",
+    featApiDesc:
+      "Programmatic access to the verification API with API keys, rate limits, and full documentation.",
+    featWebhooksTitle: "Webhooks",
+    featWebhooksDesc:
+      "Receive real-time event notifications via HTTP webhooks with automatic retries and delivery tracking.",
+
+    // Blockchain Highlight
+    blockchainTitle: "Immutable Proof of Ownership",
+    blockchainSubtitle:
+      "Every piece of content you upload gets a SHA-256 hash. Anchor that hash on the Base L2 blockchain for permanent, tamper-proof proof of ownership that anyone can verify.",
+    blockchainStat1: "Tamper-proof",
+    blockchainStat1Desc: "SHA-256 content hashing",
+    blockchainStat2: "On-chain",
+    blockchainStat2Desc: "Base L2 blockchain",
+    blockchainStat3: "Verifiable",
+    blockchainStat3Desc: "Public proof certificates",
+
+    // Monetization Highlight
+    monetizationTitle: "Turn Your Content Into Revenue",
+    monetizationSubtitle: "Multiple ways to earn from your creative work, all built in.",
+    monetizationLicensingTitle: "Digital Licensing",
+    monetizationLicensingDesc:
+      "Set up personal, commercial, editorial, or AI training licenses with your own pricing. Buyers purchase directly.",
+    monetizationTokensTitle: "Creator Tokens",
+    monetizationTokensDesc:
+      "Launch your own social token. Fans buy tokens and send tips with personal messages to support your work.",
+    monetizationSubscriptionsTitle: "Fan Subscriptions",
+    monetizationSubscriptionsDesc:
+      "Offer Supporter, Superfan, and Patron tiers for recurring revenue from your most dedicated fans.",
 
     // Use Cases
     useCasesTitle: "Built for everyone in the creator ecosystem",
     useCasesSubtitle: "Whether you create, hire, or manage \u2014 Creatrid fits your workflow.",
     useCaseCreatorsTitle: "For Creators",
     useCaseCreatorsDesc:
-      "Build your verified identity, grow your Creator Score, get discovered by brands, and monetize your content through the marketplace.",
+      "Build your verified identity, grow your Creator Score, monetize content through licensing and tokens, and track everything with real-time analytics.",
     useCaseBrandsTitle: "For Brands",
     useCaseBrandsDesc:
-      "Find verified creators with real metrics. Filter by score, platform, and niche. Send collaboration requests directly.",
+      "Find verified creators with real metrics. Filter by score, platform, and niche. Send collaboration requests and verify identities via API.",
     useCaseAgenciesTitle: "For Agencies",
     useCaseAgenciesDesc:
-      "Manage creator portfolios at scale, bulk-verify identities via API, and embed verified badges on your own platform.",
+      "Manage creator portfolios at scale with the agency dashboard, bulk-verify identities via API, and embed verified badges on your own platform.",
 
     // Platform Logos
     platformsTitle: "Connect all your platforms",
@@ -408,25 +489,34 @@ const en = {
     faqSubtitle: "Everything you need to know about Creatrid.",
     faq1Q: "What is Creatrid?",
     faq1A:
-      "Creatrid is a verified digital identity platform for creators. You connect your social accounts, build a Creator Score, and share a single public profile link that proves you are the real deal.",
+      "Creatrid is a creator economy platform that combines verified digital identity, content management, blockchain-backed ownership, monetization tools, and analytics \u2014 all in one place.",
     faq2Q: "How is the Creator Score calculated?",
     faq2A:
       "Your Creator Score (0\u2013100) is based on four factors: profile completeness (20 points), verified email (10 points), number of connected platforms (up to 50 points), and a logarithmic bonus for audience reach (up to 20 points).",
     faq3Q: "Is it free?",
     faq3A:
-      "Yes. Creatrid is completely free for creators. Sign in with Google, connect your accounts, and start building your verified profile at no cost.",
+      "Yes. Creatrid is free to get started. Sign in with Google, connect your accounts, and start building your verified profile. Pro and Business plans unlock advanced features.",
     faq4Q: "Can brands verify creators?",
     faq4A:
-      "Absolutely. Brands and agencies can view any creator\u2019s public profile to see verified connections, Creator Score, and linked content \u2014 no login required.",
+      "Absolutely. Brands and agencies can view any creator\u2019s public profile to see verified connections, Creator Score, and linked content \u2014 no login required. The API enables programmatic verification.",
     faq5Q: "What platforms can I connect?",
     faq5A:
       "Creatrid currently supports seven platforms: YouTube, GitHub, Twitter/X, LinkedIn, Instagram, Behance, and Dribbble. Each connection is verified via OAuth and contributes to your Creator Score.",
     faq6Q: "How do collaborations work?",
     faq6A:
-      "Browse the Discover page to find creators by score, platform, or niche. Send a collaboration request with a message, and the creator can accept or decline from their inbox. It\u2019s a direct, no-middleman process.",
+      "Browse the Discover page to find creators by score, platform, or niche. Send a collaboration request with a message, and the creator can accept or decline from their inbox.",
     faq7Q: "Can I monetize my content?",
     faq7A:
-      "Yes. Upload your work to the Content Vault, set up license offerings (personal, commercial, editorial, or AI training), and list it on the marketplace. Buyers purchase licenses directly and you keep the revenue.",
+      "Yes. Upload your work to the Content Vault, set up license offerings (personal, commercial, editorial, or AI training), list it on the marketplace, create your own social token, and offer fan subscriptions.",
+    faq8Q: "How does blockchain anchoring work?",
+    faq8A:
+      "When you upload content, Creatrid generates a SHA-256 hash of your file. You can then anchor that hash on the Base L2 blockchain, creating an immutable, timestamped proof of ownership that anyone can verify.",
+    faq9Q: "What are Creator Tokens?",
+    faq9A:
+      "Creator Tokens are social tokens you can create and sell to fans. Supporters can also send you tips with personal messages. It is a direct way to earn from your community.",
+    faq10Q: "Can I manage multiple creators as an agency?",
+    faq10A:
+      "Yes. Create an agency account to invite and manage creators, view aggregate analytics, track API usage, and oversee your entire creator portfolio from one dashboard.",
 
     // Blog Highlights
     blogHighlightsTitle: "From the Blog",
@@ -452,11 +542,14 @@ const en = {
     testimonial3Quote: "One link for everything. I put my Creatrid profile in my bio and brands reach out to me now.",
     testimonial3Name: "Priya M.",
     testimonial3Role: "Design & Photography",
+    testimonial4Quote: "Blockchain anchoring gives me real proof of ownership. I finally feel secure about my digital work.",
+    testimonial4Name: "Alex R.",
+    testimonial4Role: "Digital Artist & NFT Creator",
 
     // Final CTA
-    ctaFinalHeadline: "Ready to prove who you are?",
+    ctaFinalHeadline: "Ready to build, prove, and earn?",
     ctaFinalSubtext:
-      "Join thousands of creators who use Creatrid to build trust, get discovered, and land collaborations.",
+      "Join thousands of creators who use Creatrid to verify their identity, protect their content, and monetize their work.",
   },
 
   // API Keys

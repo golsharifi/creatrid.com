@@ -18,17 +18,76 @@ import {
   ChevronDown,
   Archive,
   ShoppingBag,
+  Code,
+  CreditCard,
+  Gift,
+  DollarSign,
+  Key,
+  Webhook,
+  FolderOpen,
+  TrendingUp,
 } from "@/components/icons";
 import { blogPosts } from "@/app/blog/data";
+
+type IconComponent = React.ComponentType<{ className?: string }>;
 
 export default function Home() {
   const { user } = useAuth();
   const { t } = useTranslation();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState(0);
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
   };
+
+  const featureTabs: { label: string; features: { icon: IconComponent; title: string; desc: string }[] }[] = [
+    {
+      label: t("landing.tabIdentity"),
+      features: [
+        { icon: Shield, title: t("landing.featIdentityTitle"), desc: t("landing.featIdentityDesc") },
+        { icon: Zap, title: t("landing.featScoreTitle"), desc: t("landing.featScoreDesc") },
+        { icon: Lock, title: t("landing.feat2faTitle"), desc: t("landing.feat2faDesc") },
+        { icon: Code, title: t("landing.featWidgetTitle"), desc: t("landing.featWidgetDesc") },
+      ],
+    },
+    {
+      label: t("landing.tabContent"),
+      features: [
+        { icon: Archive, title: t("landing.featVaultTitle"), desc: t("landing.featVaultDesc") },
+        { icon: Link2, title: t("landing.featBlockchainTitle"), desc: t("landing.featBlockchainDesc") },
+        { icon: CheckCircle, title: t("landing.featLicensingTitle"), desc: t("landing.featLicensingDesc") },
+        { icon: FolderOpen, title: t("landing.featCollectionsTitle"), desc: t("landing.featCollectionsDesc") },
+      ],
+    },
+    {
+      label: t("landing.tabMonetization"),
+      features: [
+        { icon: ShoppingBag, title: t("landing.featMarketplaceTitle"), desc: t("landing.featMarketplaceDesc") },
+        { icon: CreditCard, title: t("landing.featTokensTitle"), desc: t("landing.featTokensDesc") },
+        { icon: Gift, title: t("landing.featSubscriptionsTitle"), desc: t("landing.featSubscriptionsDesc") },
+        { icon: DollarSign, title: t("landing.featEarningsTitle"), desc: t("landing.featEarningsDesc") },
+      ],
+    },
+    {
+      label: t("landing.tabDiscovery"),
+      features: [
+        { icon: Eye, title: t("landing.featDiscoveryTitle"), desc: t("landing.featDiscoveryDesc") },
+        { icon: Users, title: t("landing.featCollabTitle"), desc: t("landing.featCollabDesc") },
+        { icon: TrendingUp, title: t("landing.featReferralsTitle"), desc: t("landing.featReferralsDesc") },
+        { icon: Globe, title: t("landing.featAgencyTitle"), desc: t("landing.featAgencyDesc") },
+      ],
+    },
+    {
+      label: t("landing.tabAnalytics"),
+      features: [
+        { icon: BarChart3, title: t("landing.featProfileAnalyticsTitle"), desc: t("landing.featProfileAnalyticsDesc") },
+        { icon: BarChart3, title: t("landing.featContentAnalyticsTitle"), desc: t("landing.featContentAnalyticsDesc") },
+        { icon: Key, title: t("landing.featApiTitle"), desc: t("landing.featApiDesc") },
+        { icon: Webhook, title: t("landing.featWebhooksTitle"), desc: t("landing.featWebhooksDesc") },
+      ],
+    },
+  ];
 
   return (
     <div className="flex flex-col">
@@ -85,24 +144,20 @@ export default function Home() {
             {t("landing.socialProofLabel")}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
-            <div className="flex flex-col items-center gap-1">
-              <span className="text-2xl font-bold">{t("landing.statCreators")}</span>
-              <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                {t("landing.statCreatorsLabel")}
-              </span>
-            </div>
-            <div className="flex flex-col items-center gap-1">
-              <span className="text-2xl font-bold">{t("landing.statPlatforms")}</span>
-              <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                {t("landing.statPlatformsLabel")}
-              </span>
-            </div>
-            <div className="flex flex-col items-center gap-1">
-              <span className="text-2xl font-bold">{t("landing.statConnections")}</span>
-              <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                {t("landing.statConnectionsLabel")}
-              </span>
-            </div>
+            {[
+              { value: t("landing.statCreators"), label: t("landing.statCreatorsLabel") },
+              { value: t("landing.statPlatforms"), label: t("landing.statPlatformsLabel") },
+              { value: t("landing.statConnections"), label: t("landing.statConnectionsLabel") },
+              { value: t("landing.statContent"), label: t("landing.statContentLabel") },
+              { value: t("landing.statAnchors"), label: t("landing.statAnchorsLabel") },
+            ].map((stat) => (
+              <div key={stat.label} className="flex flex-col items-center gap-1">
+                <span className="text-2xl font-bold">{stat.value}</span>
+                <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                  {stat.label}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -118,43 +173,22 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="grid gap-10 sm:grid-cols-3">
-          {/* Step 1 */}
-          <div className="flex flex-col items-center text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-900 text-lg font-bold text-white dark:bg-zinc-100 dark:text-zinc-900">
-              1
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((step) => (
+            <div key={step} className="flex flex-col items-center text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-900 text-lg font-bold text-white dark:bg-zinc-100 dark:text-zinc-900">
+                {step}
+              </div>
+              <h3 className="mt-5 text-lg font-semibold">{t(`landing.step${step}Title`)}</h3>
+              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                {t(`landing.step${step}Desc`)}
+              </p>
             </div>
-            <h3 className="mt-5 text-lg font-semibold">{t("landing.step1Title")}</h3>
-            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-              {t("landing.step1Desc")}
-            </p>
-          </div>
-
-          {/* Step 2 */}
-          <div className="flex flex-col items-center text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-900 text-lg font-bold text-white dark:bg-zinc-100 dark:text-zinc-900">
-              2
-            </div>
-            <h3 className="mt-5 text-lg font-semibold">{t("landing.step2Title")}</h3>
-            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-              {t("landing.step2Desc")}
-            </p>
-          </div>
-
-          {/* Step 3 */}
-          <div className="flex flex-col items-center text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-900 text-lg font-bold text-white dark:bg-zinc-100 dark:text-zinc-900">
-              3
-            </div>
-            <h3 className="mt-5 text-lg font-semibold">{t("landing.step3Title")}</h3>
-            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-              {t("landing.step3Desc")}
-            </p>
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* ── Features Grid ── */}
+      {/* ── Tabbed Features ── */}
       <section className="border-t border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50">
         <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
           <div className="mb-14 text-center">
@@ -166,139 +200,191 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {/* Verified Identity */}
-            <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900">
-                <Shield className="h-5 w-5" />
+          {/* Tab buttons */}
+          <div className="mb-10 flex flex-wrap justify-center gap-2">
+            {featureTabs.map((tab, i) => (
+              <button
+                key={i}
+                onClick={() => setActiveTab(i)}
+                className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+                  activeTab === i
+                    ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+                    : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Feature cards */}
+          <div className="grid gap-6 sm:grid-cols-2">
+            {featureTabs[activeTab].features.map((feature, i) => {
+              const Icon = feature.icon;
+              return (
+                <div
+                  key={i}
+                  className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950"
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <h3 className="mt-4 font-semibold">{feature.title}</h3>
+                  <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                    {feature.desc}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Blockchain Highlight ── */}
+      <section className="bg-zinc-900 dark:bg-zinc-950">
+        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
+          <div className="flex flex-col items-center text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-800 dark:bg-zinc-900">
+              <Link2 className="h-6 w-6 text-white" />
+            </div>
+            <h2 className="mt-6 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              {t("landing.blockchainTitle")}
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl text-zinc-400">
+              {t("landing.blockchainSubtitle")}
+            </p>
+            <div className="mt-10 grid w-full max-w-2xl gap-6 sm:grid-cols-3">
+              {[
+                { stat: t("landing.blockchainStat1"), desc: t("landing.blockchainStat1Desc") },
+                { stat: t("landing.blockchainStat2"), desc: t("landing.blockchainStat2Desc") },
+                { stat: t("landing.blockchainStat3"), desc: t("landing.blockchainStat3Desc") },
+              ].map((item) => (
+                <div key={item.stat} className="rounded-lg border border-zinc-800 bg-zinc-800/50 p-4">
+                  <p className="text-lg font-semibold text-white">{item.stat}</p>
+                  <p className="mt-1 text-xs text-zinc-400">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Monetization Highlight ── */}
+      <section className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
+        <div className="mb-14 text-center">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            {t("landing.monetizationTitle")}
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-zinc-600 dark:text-zinc-400">
+            {t("landing.monetizationSubtitle")}
+          </p>
+        </div>
+
+        <div className="grid gap-6 sm:grid-cols-3">
+          {[
+            {
+              icon: CheckCircle,
+              title: t("landing.monetizationLicensingTitle"),
+              desc: t("landing.monetizationLicensingDesc"),
+            },
+            {
+              icon: CreditCard,
+              title: t("landing.monetizationTokensTitle"),
+              desc: t("landing.monetizationTokensDesc"),
+            },
+            {
+              icon: Gift,
+              title: t("landing.monetizationSubscriptionsTitle"),
+              desc: t("landing.monetizationSubscriptionsDesc"),
+            },
+          ].map((item) => {
+            const Icon = item.icon;
+            return (
+              <div
+                key={item.title}
+                className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950"
+              >
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <h3 className="mt-4 font-semibold">{item.title}</h3>
+                <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                  {item.desc}
+                </p>
               </div>
-              <h3 className="mt-4 font-semibold">{t("landing.feature1Title")}</h3>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ── Use Cases ── */}
+      <section className="border-t border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50">
+        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
+          <div className="mb-14 text-center">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+              {t("landing.useCasesTitle")}
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl text-zinc-600 dark:text-zinc-400">
+              {t("landing.useCasesSubtitle")}
+            </p>
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-3">
+            <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
+              <h3 className="text-lg font-semibold">{t("landing.useCaseCreatorsTitle")}</h3>
               <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                {t("landing.feature1Desc")}
+                {t("landing.useCaseCreatorsDesc")}
               </p>
             </div>
-
-            {/* Creator Score */}
             <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900">
-                <Zap className="h-5 w-5" />
-              </div>
-              <h3 className="mt-4 font-semibold">{t("landing.feature2Title")}</h3>
+              <h3 className="text-lg font-semibold">{t("landing.useCaseBrandsTitle")}</h3>
               <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                {t("landing.feature2Desc")}
+                {t("landing.useCaseBrandsDesc")}
               </p>
             </div>
-
-            {/* Cross-Platform Profiles */}
             <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900">
-                <Globe className="h-5 w-5" />
-              </div>
-              <h3 className="mt-4 font-semibold">{t("landing.feature3Title")}</h3>
+              <h3 className="text-lg font-semibold">{t("landing.useCaseAgenciesTitle")}</h3>
               <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                {t("landing.feature3Desc")}
-              </p>
-            </div>
-
-            {/* Brand Discovery */}
-            <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900">
-                <Eye className="h-5 w-5" />
-              </div>
-              <h3 className="mt-4 font-semibold">{t("landing.feature4Title")}</h3>
-              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                {t("landing.feature4Desc")}
-              </p>
-            </div>
-
-            {/* Real-time Analytics */}
-            <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900">
-                <BarChart3 className="h-5 w-5" />
-              </div>
-              <h3 className="mt-4 font-semibold">{t("landing.feature5Title")}</h3>
-              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                {t("landing.feature5Desc")}
-              </p>
-            </div>
-
-            {/* Privacy First */}
-            <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900">
-                <Lock className="h-5 w-5" />
-              </div>
-              <h3 className="mt-4 font-semibold">{t("landing.feature6Title")}</h3>
-              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                {t("landing.feature6Desc")}
-              </p>
-            </div>
-
-            {/* Content Vault */}
-            <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900">
-                <Archive className="h-5 w-5" />
-              </div>
-              <h3 className="mt-4 font-semibold">{t("landing.feature7Title")}</h3>
-              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                {t("landing.feature7Desc")}
-              </p>
-            </div>
-
-            {/* Creator Marketplace */}
-            <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900">
-                <ShoppingBag className="h-5 w-5" />
-              </div>
-              <h3 className="mt-4 font-semibold">{t("landing.feature8Title")}</h3>
-              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                {t("landing.feature8Desc")}
-              </p>
-            </div>
-
-            {/* Collaboration Hub */}
-            <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900">
-                <Users className="h-5 w-5" />
-              </div>
-              <h3 className="mt-4 font-semibold">{t("landing.feature9Title")}</h3>
-              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                {t("landing.feature9Desc")}
+                {t("landing.useCaseAgenciesDesc")}
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── Use Cases ── */}
-      <section className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
-        <div className="mb-14 text-center">
+      {/* ── Platform Logos ── */}
+      <section className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6">
+        <div className="mb-10 text-center">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            {t("landing.useCasesTitle")}
+            {t("landing.platformsTitle")}
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-zinc-600 dark:text-zinc-400">
-            {t("landing.useCasesSubtitle")}
+            {t("landing.platformsSubtitle")}
           </p>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-3">
-          <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
-            <h3 className="text-lg font-semibold">{t("landing.useCaseCreatorsTitle")}</h3>
-            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-              {t("landing.useCaseCreatorsDesc")}
-            </p>
-          </div>
-          <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
-            <h3 className="text-lg font-semibold">{t("landing.useCaseBrandsTitle")}</h3>
-            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-              {t("landing.useCaseBrandsDesc")}
-            </p>
-          </div>
-          <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
-            <h3 className="text-lg font-semibold">{t("landing.useCaseAgenciesTitle")}</h3>
-            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-              {t("landing.useCaseAgenciesDesc")}
-            </p>
-          </div>
+        <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8">
+          {[
+            { abbr: "YT", name: "YouTube" },
+            { abbr: "GH", name: "GitHub" },
+            { abbr: "\ud835\udd4f", name: "Twitter / X" },
+            { abbr: "in", name: "LinkedIn" },
+            { abbr: "IG", name: "Instagram" },
+            { abbr: "Be", name: "Behance" },
+            { abbr: "Dr", name: "Dribbble" },
+          ].map((platform) => (
+            <div
+              key={platform.name}
+              className="flex flex-col items-center gap-2"
+            >
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-zinc-200 bg-white text-lg font-bold text-zinc-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300">
+                {platform.abbr}
+              </div>
+              <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                {platform.name}
+              </span>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -373,8 +459,8 @@ export default function Home() {
             </h2>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-3">
-            {[1, 2, 3].map((i) => (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {[1, 2, 3, 4].map((i) => (
               <div
                 key={i}
                 className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950"
@@ -401,40 +487,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Platform Logos ── */}
-      <section className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6">
-        <div className="mb-10 text-center">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            {t("landing.platformsTitle")}
-          </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-zinc-600 dark:text-zinc-400">
-            {t("landing.platformsSubtitle")}
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8">
-          {[
-            { abbr: "YT", name: "YouTube" },
-            { abbr: "GH", name: "GitHub" },
-            { abbr: "\ud835\udd4f", name: "Twitter / X" },
-            { abbr: "in", name: "LinkedIn" },
-            { abbr: "IG", name: "Instagram" },
-          ].map((platform) => (
-            <div
-              key={platform.name}
-              className="flex flex-col items-center gap-2"
-            >
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-zinc-200 bg-white text-lg font-bold text-zinc-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300">
-                {platform.abbr}
-              </div>
-              <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                {platform.name}
-              </span>
-            </div>
-          ))}
-        </div>
-      </section>
-
       {/* ── FAQ ── */}
       <section className="border-t border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50">
         <div className="mx-auto max-w-3xl px-4 py-20 sm:px-6 sm:py-28">
@@ -448,33 +500,25 @@ export default function Home() {
           </div>
 
           <div className="flex flex-col gap-3">
-            {[
-              { q: t("landing.faq1Q"), a: t("landing.faq1A") },
-              { q: t("landing.faq2Q"), a: t("landing.faq2A") },
-              { q: t("landing.faq3Q"), a: t("landing.faq3A") },
-              { q: t("landing.faq4Q"), a: t("landing.faq4A") },
-              { q: t("landing.faq5Q"), a: t("landing.faq5A") },
-              { q: t("landing.faq6Q"), a: t("landing.faq6A") },
-              { q: t("landing.faq7Q"), a: t("landing.faq7A") },
-            ].map((item, index) => (
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
               <div
-                key={index}
+                key={i}
                 className="rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
               >
                 <button
-                  onClick={() => toggleFaq(index)}
+                  onClick={() => toggleFaq(i - 1)}
                   className="flex w-full items-center justify-between px-6 py-4 text-left"
                 >
-                  <span className="font-medium">{item.q}</span>
+                  <span className="font-medium">{t(`landing.faq${i}Q`)}</span>
                   <ChevronDown
                     className={`h-5 w-5 shrink-0 text-zinc-400 transition-transform duration-200 ${
-                      openFaq === index ? "rotate-180" : ""
+                      openFaq === i - 1 ? "rotate-180" : ""
                     }`}
                   />
                 </button>
-                {openFaq === index && (
+                {openFaq === i - 1 && (
                   <div className="border-t border-zinc-100 px-6 py-4 text-sm text-zinc-600 dark:border-zinc-800 dark:text-zinc-400">
-                    {item.a}
+                    {t(`landing.faq${i}A`)}
                   </div>
                 )}
               </div>
