@@ -38,9 +38,10 @@ type Config struct {
 	BehanceSecret    string
 	BehanceRedirect  string
 
-	AzureStorageAccount   string
-	AzureStorageKey       string
-	AzureStorageContainer string
+	AzureStorageAccount          string
+	AzureStorageKey              string
+	AzureStorageContainer        string
+	AzureStorageContentContainer string
 
 	SMTPHost     string
 	SMTPPort     string
@@ -84,7 +85,8 @@ func Load() (*Config, error) {
 
 		AzureStorageAccount:   os.Getenv("AZURE_STORAGE_ACCOUNT"),
 		AzureStorageKey:       os.Getenv("AZURE_STORAGE_KEY"),
-		AzureStorageContainer: getEnv("AZURE_STORAGE_CONTAINER", "avatars"),
+		AzureStorageContainer:        getEnv("AZURE_STORAGE_CONTAINER", "avatars"),
+		AzureStorageContentContainer: getEnv("AZURE_STORAGE_CONTENT_CONTAINER", "vault"),
 
 		SMTPHost:     os.Getenv("SMTP_HOST"),
 		SMTPPort:     getEnv("SMTP_PORT", "587"),

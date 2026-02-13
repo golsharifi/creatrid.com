@@ -125,6 +125,10 @@ func main() {
 	apiKeyHandler := handler.NewAPIKeyHandler(st)
 	verifyHandler := handler.NewVerifyHandler(st)
 	billingHandler := handler.NewBillingHandler(st, cfg)
+	contentHandler := handler.NewContentHandler(st, blobStore, cfg)
+	licenseHandler := handler.NewLicenseHandler(st, cfg)
+	marketplaceHandler := handler.NewMarketplaceHandler(st)
+	dmcaHandler := handler.NewDMCAHandler(st)
 
 	// Start connection refresh scheduler
 	providerMap := make(map[string]platform.Provider)
@@ -165,6 +169,12 @@ func main() {
 	r.Get("/api/widget/{username}/svg", widgetHandler.SVGBadge)
 	r.Get("/api/widget/{username}/html", widgetHandler.HTMLEmbed)
 	r.Post("/api/billing/webhook", billingHandler.HandleWebhook)
+	r.Get("/api/users/{username}/content", contentHandler.PublicList)
+	r.Get("/api/content/{id}/proof", contentHandler.Proof)
+	r.Get("/api/content/{id}/licenses", licenseHandler.ListOfferings)
+	r.Get("/api/marketplace", marketplaceHandler.Browse)
+	r.Get("/api/marketplace/{id}", marketplaceHandler.Detail)
+	r.Post("/api/content/{id}/report", dmcaHandler.Report)
 
 	// Health check
 	r.Get("/api/health", func(w http.ResponseWriter, r *http.Request) {
@@ -205,6 +215,22 @@ func main() {
 		r.Post("/api/billing/checkout", billingHandler.CreateCheckout)
 		r.Get("/api/billing/subscription", billingHandler.GetSubscription)
 		r.Post("/api/billing/portal", billingHandler.CreatePortal)
+
+		// Content Vault
+		r.Post("/api/content", contentHandler.Upload)
+		r.Get("/api/content", contentHandler.List)
+		r.Get("/api/content/{id}", contentHandler.Get)
+		r.Patch("/api/content/{id}", contentHandler.Update)
+		r.Delete("/api/content/{id}", contentHandler.Delete)
+		r.Get("/api/content/{id}/download", contentHandler.Download)
+
+		// Licensing
+		r.Post("/api/content/{id}/licenses", licenseHandler.CreateOffering)
+		r.Patch("/api/licenses/{id}", licenseHandler.UpdateOffering)
+		r.Delete("/api/licenses/{id}", licenseHandler.DeleteOffering)
+		r.Post("/api/licenses/{id}/checkout", licenseHandler.Checkout)
+		r.Get("/api/licenses/purchases", licenseHandler.Purchases)
+		r.Get("/api/licenses/sales", licenseHandler.Sales)
 	})
 
 	// Admin routes
@@ -215,6 +241,8 @@ func main() {
 		r.Get("/api/admin/users", adminHandler.ListUsers)
 		r.Post("/api/admin/users/verify", adminHandler.SetVerified)
 		r.Post("/api/admin/digest", digestHandler.SendWeeklyDigest)
+		r.Get("/api/admin/takedowns", dmcaHandler.ListTakedowns)
+		r.Post("/api/admin/takedowns/{id}/resolve", dmcaHandler.ResolveTakedown)
 	})
 
 	// Third-party verification API (API key auth)

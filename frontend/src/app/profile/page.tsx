@@ -31,6 +31,7 @@ function ProfileContent() {
   const { t } = useTranslation();
   const [user, setUser] = useState<PublicUser | null>(null);
   const [connections, setConnections] = useState<Connection[]>([]);
+  const [contentItems, setContentItems] = useState<{ id: string; title: string; description?: string; contentType: string; mimeType: string; thumbnailUrl?: string; tags: string[]; createdAt: string }[]>([]);
   const [notFound, setNotFound] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showQR, setShowQR] = useState(false);
@@ -56,6 +57,12 @@ function ProfileContent() {
     api.users.publicConnections(username).then((result) => {
       if (result.data) {
         setConnections(result.data.connections || []);
+      }
+    });
+    // Fetch public content
+    api.content.publicList(username).then((result) => {
+      if (result.data) {
+        setContentItems(result.data.items || []);
       }
     });
     // Track profile view
@@ -277,6 +284,49 @@ function ProfileContent() {
                 >
                   <span className="text-sm font-medium">{link.title}</span>
                   <ExternalLink className="h-3.5 w-3.5 text-zinc-300" />
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Content Gallery */}
+        {contentItems.length > 0 && (
+          <div className="mt-8 w-full max-w-sm">
+            <h2 className="mb-3 text-sm font-semibold text-zinc-500">
+              {t("profile.contentGallery")}
+            </h2>
+            <div className="grid grid-cols-2 gap-2">
+              {contentItems.slice(0, 6).map((item) => (
+                <a
+                  key={item.id}
+                  href={`/marketplace/item?id=${item.id}`}
+                  className="group rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900"
+                >
+                  <div className="mb-2 flex h-16 items-center justify-center rounded bg-zinc-100 text-xs font-medium text-zinc-400 dark:bg-zinc-800">
+                    {item.contentType === "image" && item.thumbnailUrl ? (
+                      <img
+                        src={item.thumbnailUrl}
+                        alt={item.title}
+                        className="h-full w-full rounded object-cover"
+                      />
+                    ) : (
+                      <span className="uppercase">{item.contentType}</span>
+                    )}
+                  </div>
+                  <p className="truncate text-xs font-medium">{item.title}</p>
+                  {item.tags && item.tags.length > 0 && (
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {item.tags.slice(0, 2).map((tag) => (
+                        <span
+                          key={tag}
+                          className="rounded-full bg-zinc-100 px-1.5 py-0.5 text-[10px] text-zinc-500 dark:bg-zinc-800"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </a>
               ))}
             </div>

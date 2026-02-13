@@ -257,4 +257,79 @@ export const api = {
     portal: () =>
       request<{ url: string }>("/api/billing/portal", { method: "POST" }),
   },
+  content: {
+    upload: async (file: File, title: string, description: string, tags: string[], isPublic: boolean): Promise<ApiResponse<{ item: any }>> => {
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("title", title);
+        formData.append("description", description);
+        formData.append("tags", tags.join(","));
+        formData.append("is_public", String(isPublic));
+        const res = await fetch(`${API_URL}/api/content`, {
+          method: "POST",
+          credentials: "include",
+          body: formData,
+        });
+        const json = await res.json();
+        if (!res.ok) return { error: json.error || "Upload failed" };
+        return { data: json };
+      } catch {
+        return { error: "Network error" };
+      }
+    },
+    list: (limit = 20, offset = 0) =>
+      request<{ items: any[]; total: number }>(`/api/content?limit=${limit}&offset=${offset}`),
+    get: (id: string) => request<any>(`/api/content/${id}`),
+    update: (id: string, data: { title?: string; description?: string; tags?: string[]; isPublic?: boolean }) =>
+      request<{ success: boolean }>(`/api/content/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
+    delete: (id: string) =>
+      request<{ success: boolean }>(`/api/content/${id}`, { method: "DELETE" }),
+    download: (id: string) => `${API_URL}/api/content/${id}/download`,
+    proof: (id: string) => request<{ id: string; hashSha256: string; createdAt: string; title: string }>(`/api/content/${id}/proof`),
+    publicList: (username: string) =>
+      request<{ items: any[] }>(`/api/users/${username}/content`),
+  },
+  licenses: {
+    create: (contentId: string, licenseType: string, priceCents: number, termsText?: string) =>
+      request<any>(`/api/content/${contentId}/licenses`, {
+        method: "POST",
+        body: JSON.stringify({ licenseType, priceCents, termsText }),
+      }),
+    list: (contentId: string) =>
+      request<{ offerings: any[] }>(`/api/content/${contentId}/licenses`),
+    update: (id: string, data: { priceCents?: number; isActive?: boolean; termsText?: string }) =>
+      request<{ success: boolean }>(`/api/licenses/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
+    delete: (id: string) =>
+      request<{ success: boolean }>(`/api/licenses/${id}`, { method: "DELETE" }),
+    checkout: (id: string) =>
+      request<{ url: string }>(`/api/licenses/${id}/checkout`, { method: "POST" }),
+    purchases: () => request<{ purchases: any[] }>("/api/licenses/purchases"),
+    sales: () => request<{ sales: any[] }>("/api/licenses/sales"),
+  },
+  marketplace: {
+    browse: (params?: { type?: string; q?: string; sort?: string; limit?: number; offset?: number }) => {
+      const p = new URLSearchParams();
+      if (params?.type) p.set("type", params.type);
+      if (params?.q) p.set("q", params.q);
+      if (params?.sort) p.set("sort", params.sort);
+      if (params?.limit) p.set("limit", String(params.limit));
+      if (params?.offset) p.set("offset", String(params.offset));
+      return request<{ items: any[]; total: number }>(`/api/marketplace?${p.toString()}`);
+    },
+    detail: (id: string) => request<any>(`/api/marketplace/${id}`),
+  },
+  dmca: {
+    report: (contentId: string, data: { reporterEmail: string; reporterName: string; reason: string; evidenceUrl?: string }) =>
+      request<{ id: string }>(`/api/content/${contentId}/report`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+  },
 };

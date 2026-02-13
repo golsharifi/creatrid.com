@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import { api } from "@/lib/api";
 import Link from "next/link";
-import { User, Link2, BarChart3, ArrowRight, QrCode, Eye, MousePointerClick, Mail, CheckCircle, Code } from "lucide-react";
+import { User, Link2, BarChart3, ArrowRight, QrCode, Eye, MousePointerClick, Mail, CheckCircle, Code, Archive } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { CopyLinkButton, ShareTwitterButton, ShareLinkedInButton } from "@/components/share-buttons";
 import { useTranslation } from "react-i18next";
@@ -20,6 +20,7 @@ function DashboardContent() {
   const { t } = useTranslation();
 
   const [connectionCount, setConnectionCount] = useState(0);
+  const [contentCount, setContentCount] = useState(0);
   const [showQR, setShowQR] = useState(false);
   const [sendingVerification, setSendingVerification] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
@@ -51,6 +52,11 @@ function DashboardContent() {
       api.analytics.summary().then((result) => {
         if (result.data) {
           setAnalytics(result.data);
+        }
+      });
+      api.content.list(1, 0).then((result) => {
+        if (result.data) {
+          setContentCount(result.data.total || 0);
         }
       });
     }
@@ -118,7 +124,25 @@ function DashboardContent() {
         </p>
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Content Vault Card */}
+        <Link
+          href="/vault"
+          className="group rounded-xl border border-zinc-200 p-6 transition-colors hover:border-zinc-300 dark:border-zinc-800 dark:hover:border-zinc-700"
+        >
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
+              <Archive className="h-5 w-5" />
+            </div>
+            <ArrowRight className="h-4 w-4 text-zinc-400 transition-transform group-hover:translate-x-1" />
+          </div>
+          <h3 className="font-semibold">{t("dashboard.contentVault")}</h3>
+          <p className="mt-1 text-sm text-zinc-500">
+            {t("dashboard.contentVaultDesc")}
+          </p>
+          <p className="mt-3 text-2xl font-bold">{contentCount}</p>
+        </Link>
+
         {/* Profile Card */}
         <Link
           href="/settings"
