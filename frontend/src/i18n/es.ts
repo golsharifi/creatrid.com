@@ -45,9 +45,20 @@ const es = {
 
   // Footer
   footer: {
-    copyright: "\u00a9 {{year}} Creatrid",
+    copyright: "\u00a9 {{year}} Creatrid. Todos los derechos reservados.",
     terms: "Terminos",
     privacy: "Privacidad",
+    product: "Producto",
+    resources: "Recursos",
+    legal: "Legal",
+    dashboard: "Panel",
+    discover: "Descubrir",
+    marketplace: "Mercado",
+    pricing: "Precios",
+    blog: "Blog",
+    apiDocs: "Documentacion API",
+    help: "Ayuda",
+    tagline: "Identidad digital verificada para creadores.",
   },
 
   // Sign In
@@ -362,6 +373,28 @@ const es = {
     feature6Title: "Privacidad ante todo",
     feature6Desc:
       "Tu controlas lo que se comparte. Elige que plataformas e informacion aparecen en tu perfil publico.",
+    feature7Title: "Boveda de Contenido",
+    feature7Desc:
+      "Sube, gestiona y licencia tus activos creativos de forma segura con prueba de propiedad basada en hash.",
+    feature8Title: "Mercado de Creadores",
+    feature8Desc:
+      "Pon tu contenido a la venta con licencias escalonadas. Los compradores descubren y compran directamente.",
+    feature9Title: "Centro de Colaboracion",
+    feature9Desc:
+      "Descubre creadores verificados, envia solicitudes de colaboracion y gestiona asociaciones en una bandeja de entrada.",
+
+    // Use Cases
+    useCasesTitle: "Creado para todos en el ecosistema creativo",
+    useCasesSubtitle: "Ya sea que crees, contrates o gestiones \u2014 Creatrid se adapta a tu flujo de trabajo.",
+    useCaseCreatorsTitle: "Para Creadores",
+    useCaseCreatorsDesc:
+      "Construye tu identidad verificada, aumenta tu Creator Score, se descubierto por marcas y monetiza tu contenido a traves del mercado.",
+    useCaseBrandsTitle: "Para Marcas",
+    useCaseBrandsDesc:
+      "Encuentra creadores verificados con metricas reales. Filtra por puntuacion, plataforma y nicho. Envia solicitudes de colaboracion directamente.",
+    useCaseAgenciesTitle: "Para Agencias",
+    useCaseAgenciesDesc:
+      "Gestiona portafolios de creadores a escala, verifica identidades en masa via API e incrusta insignias verificadas en tu propia plataforma.",
 
     // Platform Logos
     platformsTitle: "Conecta todas tus plataformas",
@@ -383,6 +416,20 @@ const es = {
     faq4Q: "Pueden las marcas verificar creadores?",
     faq4A:
       "Por supuesto. Las marcas y agencias pueden ver el perfil publico de cualquier creador para comprobar conexiones verificadas, Creator Score y contenido vinculado, sin necesidad de iniciar sesion.",
+    faq5Q: "Que plataformas puedo conectar?",
+    faq5A:
+      "Creatrid actualmente soporta siete plataformas: YouTube, GitHub, Twitter/X, LinkedIn, Instagram, Behance y Dribbble. Cada conexion se verifica via OAuth y contribuye a tu Creator Score.",
+    faq6Q: "Como funcionan las colaboraciones?",
+    faq6A:
+      "Explora la pagina Descubrir para encontrar creadores por puntuacion, plataforma o nicho. Envia una solicitud de colaboracion con un mensaje y el creador puede aceptar o rechazar desde su bandeja de entrada.",
+    faq7Q: "Puedo monetizar mi contenido?",
+    faq7A:
+      "Si. Sube tu trabajo a la Boveda de Contenido, configura ofertas de licencia (personal, comercial, editorial o entrenamiento de IA) y publicalo en el mercado.",
+
+    // Blog Highlights
+    blogHighlightsTitle: "Del Blog",
+    blogHighlightsSubtitle: "Guias, perspectivas y estrategias para el creador moderno.",
+    blogViewAll: "Ver todas las publicaciones",
 
     // Final CTA
     // Pricing Preview

@@ -45,9 +45,20 @@ const en = {
 
   // Footer
   footer: {
-    copyright: "\u00a9 {{year}} Creatrid",
+    copyright: "\u00a9 {{year}} Creatrid. All rights reserved.",
     terms: "Terms",
     privacy: "Privacy",
+    product: "Product",
+    resources: "Resources",
+    legal: "Legal",
+    dashboard: "Dashboard",
+    discover: "Discover",
+    marketplace: "Marketplace",
+    pricing: "Pricing",
+    blog: "Blog",
+    apiDocs: "API Docs",
+    help: "Help",
+    tagline: "Verified digital identity for creators.",
   },
 
   // Sign In
@@ -364,6 +375,28 @@ const en = {
     feature6Title: "Privacy First",
     feature6Desc:
       "You control what is shared. Choose which platforms and information appear on your public profile.",
+    feature7Title: "Content Vault",
+    feature7Desc:
+      "Securely upload, manage, and license your creative assets with hash-based proof of ownership.",
+    feature8Title: "Creator Marketplace",
+    feature8Desc:
+      "List your content for sale with tiered licensing. Buyers discover and purchase directly.",
+    feature9Title: "Collaboration Hub",
+    feature9Desc:
+      "Discover verified creators, send collaboration requests, and manage partnerships in one inbox.",
+
+    // Use Cases
+    useCasesTitle: "Built for everyone in the creator ecosystem",
+    useCasesSubtitle: "Whether you create, hire, or manage \u2014 Creatrid fits your workflow.",
+    useCaseCreatorsTitle: "For Creators",
+    useCaseCreatorsDesc:
+      "Build your verified identity, grow your Creator Score, get discovered by brands, and monetize your content through the marketplace.",
+    useCaseBrandsTitle: "For Brands",
+    useCaseBrandsDesc:
+      "Find verified creators with real metrics. Filter by score, platform, and niche. Send collaboration requests directly.",
+    useCaseAgenciesTitle: "For Agencies",
+    useCaseAgenciesDesc:
+      "Manage creator portfolios at scale, bulk-verify identities via API, and embed verified badges on your own platform.",
 
     // Platform Logos
     platformsTitle: "Connect all your platforms",
@@ -385,6 +418,20 @@ const en = {
     faq4Q: "Can brands verify creators?",
     faq4A:
       "Absolutely. Brands and agencies can view any creator\u2019s public profile to see verified connections, Creator Score, and linked content \u2014 no login required.",
+    faq5Q: "What platforms can I connect?",
+    faq5A:
+      "Creatrid currently supports seven platforms: YouTube, GitHub, Twitter/X, LinkedIn, Instagram, Behance, and Dribbble. Each connection is verified via OAuth and contributes to your Creator Score.",
+    faq6Q: "How do collaborations work?",
+    faq6A:
+      "Browse the Discover page to find creators by score, platform, or niche. Send a collaboration request with a message, and the creator can accept or decline from their inbox. It\u2019s a direct, no-middleman process.",
+    faq7Q: "Can I monetize my content?",
+    faq7A:
+      "Yes. Upload your work to the Content Vault, set up license offerings (personal, commercial, editorial, or AI training), and list it on the marketplace. Buyers purchase licenses directly and you keep the revenue.",
+
+    // Blog Highlights
+    blogHighlightsTitle: "From the Blog",
+    blogHighlightsSubtitle: "Guides, insights, and strategies for the modern creator.",
+    blogViewAll: "View all posts",
 
     // Pricing Preview
     pricingTitle: "Simple, transparent pricing",

@@ -16,7 +16,10 @@ import {
   Link2,
   Zap,
   ChevronDown,
+  Archive,
+  ShoppingBag,
 } from "@/components/icons";
+import { blogPosts } from "@/app/blog/data";
 
 export default function Home() {
   const { user } = useAuth();
@@ -229,6 +232,72 @@ export default function Home() {
                 {t("landing.feature6Desc")}
               </p>
             </div>
+
+            {/* Content Vault */}
+            <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900">
+                <Archive className="h-5 w-5" />
+              </div>
+              <h3 className="mt-4 font-semibold">{t("landing.feature7Title")}</h3>
+              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                {t("landing.feature7Desc")}
+              </p>
+            </div>
+
+            {/* Creator Marketplace */}
+            <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900">
+                <ShoppingBag className="h-5 w-5" />
+              </div>
+              <h3 className="mt-4 font-semibold">{t("landing.feature8Title")}</h3>
+              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                {t("landing.feature8Desc")}
+              </p>
+            </div>
+
+            {/* Collaboration Hub */}
+            <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900">
+                <Users className="h-5 w-5" />
+              </div>
+              <h3 className="mt-4 font-semibold">{t("landing.feature9Title")}</h3>
+              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                {t("landing.feature9Desc")}
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Use Cases ── */}
+      <section className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
+        <div className="mb-14 text-center">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            {t("landing.useCasesTitle")}
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-zinc-600 dark:text-zinc-400">
+            {t("landing.useCasesSubtitle")}
+          </p>
+        </div>
+
+        <div className="grid gap-6 sm:grid-cols-3">
+          <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
+            <h3 className="text-lg font-semibold">{t("landing.useCaseCreatorsTitle")}</h3>
+            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+              {t("landing.useCaseCreatorsDesc")}
+            </p>
+          </div>
+          <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
+            <h3 className="text-lg font-semibold">{t("landing.useCaseBrandsTitle")}</h3>
+            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+              {t("landing.useCaseBrandsDesc")}
+            </p>
+          </div>
+          <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
+            <h3 className="text-lg font-semibold">{t("landing.useCaseAgenciesTitle")}</h3>
+            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+              {t("landing.useCaseAgenciesDesc")}
+            </p>
           </div>
         </div>
       </section>
@@ -350,6 +419,8 @@ export default function Home() {
             { abbr: "\ud835\udd4f", name: "Twitter / X" },
             { abbr: "in", name: "LinkedIn" },
             { abbr: "IG", name: "Instagram" },
+            { abbr: "Be", name: "Behance" },
+            { abbr: "Dr", name: "Dribbble" },
           ].map((platform) => (
             <div
               key={platform.name}
@@ -384,6 +455,9 @@ export default function Home() {
               { q: t("landing.faq2Q"), a: t("landing.faq2A") },
               { q: t("landing.faq3Q"), a: t("landing.faq3A") },
               { q: t("landing.faq4Q"), a: t("landing.faq4A") },
+              { q: t("landing.faq5Q"), a: t("landing.faq5A") },
+              { q: t("landing.faq6Q"), a: t("landing.faq6A") },
+              { q: t("landing.faq7Q"), a: t("landing.faq7A") },
             ].map((item, index) => (
               <div
                 key={index}
@@ -407,6 +481,55 @@ export default function Home() {
                 )}
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Blog Highlights ── */}
+      <section className="border-t border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50">
+        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
+          <div className="mb-14 text-center">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+              {t("landing.blogHighlightsTitle")}
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl text-zinc-600 dark:text-zinc-400">
+              {t("landing.blogHighlightsSubtitle")}
+            </p>
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-3">
+            {blogPosts.slice(0, 3).map((post) => (
+              <Link
+                key={post.slug}
+                href={`/blog/${post.slug}`}
+                className="group rounded-xl border border-zinc-200 bg-white p-6 transition-colors hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700"
+              >
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  {new Date(post.publishedAt).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}{" "}
+                  &middot; {post.readTime} min read
+                </p>
+                <h3 className="mt-2 font-semibold group-hover:underline">
+                  {post.title}
+                </h3>
+                <p className="mt-2 text-sm text-zinc-600 line-clamp-2 dark:text-zinc-400">
+                  {post.excerpt}
+                </p>
+              </Link>
+            ))}
+          </div>
+
+          <div className="mt-8 text-center">
+            <Link
+              href="/blog"
+              className="inline-flex items-center gap-2 text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+            >
+              {t("landing.blogViewAll")}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
         </div>
       </section>

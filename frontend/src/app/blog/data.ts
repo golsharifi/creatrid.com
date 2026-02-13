@@ -423,4 +423,562 @@ export const blogPosts: BlogPost[] = [
       </p>
     `,
   },
+  {
+    slug: "analytics-drive-creator-growth",
+    title: "How Analytics Drive Creator Growth: A Data-First Approach",
+    excerpt:
+      "Creating great content is only half the battle. Understanding your data is what separates creators who grow consistently from those who plateau. Here is how to use analytics to fuel your creator career.",
+    author: "Creatrid Team",
+    publishedAt: "2026-02-03",
+    tags: ["analytics", "growth", "data"],
+    readTime: 7,
+    content: `
+      <h2>Why Data Matters More Than Ever for Creators</h2>
+      <p>
+        The creator economy in 2026 is more competitive than it has ever been. Millions of creators are publishing content every day, competing for the same audience attention and brand deals. In this environment, gut instinct alone is not enough. The creators who are growing the fastest are the ones who treat their content like a business and their metrics like a roadmap.
+      </p>
+      <p>
+        Data does not replace creativity. It amplifies it. When you understand which content resonates, which platforms drive the most traffic, and which audiences engage the deepest, you can make smarter decisions about where to invest your time and energy. You stop guessing and start optimizing. That shift from intuition to evidence is what separates a hobbyist from a professional creator.
+      </p>
+
+      <h2>The Metrics That Actually Matter</h2>
+      <p>
+        Not all metrics are created equal. Vanity metrics like raw follower counts can feel satisfying, but they rarely tell you anything actionable. The metrics that drive real growth fall into three categories: visibility, engagement, and conversion.
+      </p>
+
+      <h3>Visibility Metrics</h3>
+      <p>
+        Visibility metrics tell you how many people are seeing your content and your profile. The most important visibility metrics for creators include:
+      </p>
+      <ul>
+        <li><strong>Profile views</strong> &mdash; How many people visit your creator profile in a given period. A rising trend means your discoverability is improving.</li>
+        <li><strong>Impressions</strong> &mdash; How many times your content appears in feeds, search results, or recommendations across platforms.</li>
+        <li><strong>Referral sources</strong> &mdash; Where your profile visitors are coming from. Are they clicking through from Twitter, finding you on the discover page, or coming from a direct link you shared?</li>
+      </ul>
+
+      <h3>Engagement Metrics</h3>
+      <p>
+        Engagement metrics measure how people interact with your content once they see it. These are often more valuable than visibility metrics because they indicate quality, not just quantity.
+      </p>
+      <ul>
+        <li><strong>Click-through rate (CTR)</strong> &mdash; The percentage of profile visitors who click on your links, social accounts, or call-to-action buttons. A CTR above 5% is generally strong for creator profiles.</li>
+        <li><strong>Time on profile</strong> &mdash; How long visitors spend on your public profile. Longer visits suggest that your content and presentation are compelling.</li>
+        <li><strong>Link clicks</strong> &mdash; Which specific links on your profile get the most clicks. This tells you what your audience cares about most.</li>
+      </ul>
+
+      <h3>Conversion Metrics</h3>
+      <p>
+        Conversion metrics track whether visibility and engagement are translating into tangible outcomes. For creators, conversions might include new followers on a connected platform, collaboration requests received, or inquiries from brands.
+      </p>
+
+      <h2>How Creatrid's Analytics Dashboard Helps</h2>
+      <p>
+        Creatrid's built-in analytics dashboard tracks two of the most critical metrics for your public profile: profile views and link clicks. Every time someone visits your Creator Passport, it is logged. Every time someone clicks one of your custom links or connected platform links, that click is recorded and attributed.
+      </p>
+      <p>
+        This might sound simple, but it is remarkably powerful. Most creators have no idea how many people actually look at their profiles or which links get clicked. They share their profile on social media and hope for the best. With Creatrid's analytics, you get concrete numbers. You can see that your profile got 340 views last week, that 47 people clicked through to your YouTube channel, and that your custom portfolio link got 12 clicks. That data changes how you make decisions.
+      </p>
+      <blockquote>
+        <strong>Pro tip:</strong> Check your analytics after every time you share your Creator Passport link. If you tweeted your profile on Monday and saw a spike in views on Tuesday, you know that Twitter is an effective distribution channel for you. If you added your link to your email signature and see a steady trickle of views, you know that channel works too.
+      </blockquote>
+
+      <h2>Using Data to Optimize Your Content Strategy</h2>
+      <p>
+        Collecting data is useless if you do not act on it. Here is a practical framework for turning your analytics into better decisions:
+      </p>
+      <ul>
+        <li><strong>Identify your highest-performing channel.</strong> Look at where your profile views are coming from. Double down on the channels that drive the most traffic and reconsider the ones that do not.</li>
+        <li><strong>Optimize your link placement.</strong> If your analytics show that your first custom link gets 10 times more clicks than your fifth, move your most important link to the top position. The order of links on your profile matters more than most creators realize.</li>
+        <li><strong>Test and iterate.</strong> Change your bio, swap your profile photo, or reorder your links, and then watch what happens to your metrics over the next week. Treat your profile like a landing page that you are constantly improving.</li>
+        <li><strong>Track trends, not snapshots.</strong> A single day of data is noise. A month of data is a trend. Look at your metrics over time to identify patterns and measure the impact of changes you make.</li>
+      </ul>
+
+      <h2>Benchmarking Your Growth</h2>
+      <p>
+        One of the hardest questions for any creator to answer is whether their growth rate is good. Without benchmarks, you have no frame of reference. Here are some general benchmarks for creator profiles:
+      </p>
+      <ul>
+        <li><strong>Profile views:</strong> If you are actively sharing your profile, aim for at least 100 views per week. Established creators with large audiences often see 500 or more.</li>
+        <li><strong>Link CTR:</strong> A click-through rate of 3 to 8 percent on your profile links is healthy. Below 3 percent might indicate that your links are not compelling or are poorly positioned.</li>
+        <li><strong>Week-over-week growth:</strong> Consistent growth of 5 to 10 percent in weekly profile views suggests healthy momentum. Flat or declining views mean it is time to try something different.</li>
+      </ul>
+      <p>
+        Your Creator Score also serves as a benchmark of sorts. A rising score means you are adding connections, growing your audience, and completing your profile. It is a single number that captures your overall trajectory, making it easy to track progress over time.
+      </p>
+
+      <h2>The Data-First Mindset</h2>
+      <p>
+        Adopting a data-first approach does not mean obsessing over numbers or letting metrics dictate every creative decision. It means making informed choices instead of blind ones. It means knowing which content works and which does not. It means understanding your audience well enough to serve them better.
+      </p>
+      <p>
+        The creators who will thrive in 2026 and beyond are the ones who combine creative talent with analytical thinking. They create content that resonates because they understand what their audience wants. They grow their profiles because they know which channels drive traffic. And they land brand deals because they can point to real, verified data that proves their value. Start tracking your analytics today. Your future self will thank you.
+      </p>
+    `,
+  },
+  {
+    slug: "building-brand-collaborations",
+    title: "The Creator's Guide to Landing Brand Collaborations",
+    excerpt:
+      "Brand collaborations are the holy grail for creators, but landing them requires more than a large following. Learn the strategies that successful creators use to attract and close brand deals.",
+    author: "Creatrid Team",
+    publishedAt: "2026-02-05",
+    tags: ["brands", "collaboration", "partnerships"],
+    readTime: 8,
+    content: `
+      <h2>Why Brands Work with Creators</h2>
+      <p>
+        Before you can land brand collaborations, you need to understand why brands seek out creators in the first place. The answer is simple: creators have something that traditional advertising cannot buy. They have trust. When a creator recommends a product, their audience listens because they have built a relationship over months or years of content. That trust translates into higher engagement rates, better conversion rates, and more authentic brand messaging than any banner ad or TV commercial could achieve.
+      </p>
+      <p>
+        Brands are spending more on creator partnerships than ever before. The global influencer marketing market is expected to exceed $30 billion in 2026, and the trend is accelerating. But brands are also getting smarter about how they spend. They are moving away from one-off sponsored posts toward long-term creator partnerships. They are prioritizing engagement rates over follower counts. And increasingly, they are looking for creators who can prove their value with verified metrics rather than self-reported numbers.
+      </p>
+
+      <h2>Making Yourself Discoverable</h2>
+      <p>
+        The best collaboration opportunities often come to creators who have made themselves easy to find. Here is how to position yourself so brands can discover you:
+      </p>
+      <ul>
+        <li><strong>Complete your Creator Passport.</strong> A fully built-out profile with verified connections, a professional photo, and a compelling bio makes you immediately credible when a brand finds you.</li>
+        <li><strong>Optimize for the Discover page.</strong> Creatrid's discover feature lets brands filter creators by platform and minimum Creator Score. Make sure your score is as high as possible by connecting all your platforms and completing your profile.</li>
+        <li><strong>Use relevant tags and categories.</strong> When you set up your profile, be specific about your niche. Brands search for creators by category, so clear positioning helps you appear in the right searches.</li>
+        <li><strong>Keep your profile current.</strong> A profile with outdated information or stale connections signals that you are not actively engaged. Refresh your connections regularly and keep your bio up to date.</li>
+      </ul>
+
+      <h2>Crafting the Perfect Pitch</h2>
+      <p>
+        While inbound opportunities are ideal, most creators also need to pitch brands proactively, especially early in their careers. A great pitch is concise, professional, and focused on what you can do for the brand rather than what the brand can do for you.
+      </p>
+      <h3>The Anatomy of a Winning Pitch</h3>
+      <ul>
+        <li><strong>A personal hook.</strong> Show that you understand the brand. Reference a specific product, campaign, or value that resonates with you.</li>
+        <li><strong>Your value proposition.</strong> Explain what makes you uniquely suited to represent this brand.</li>
+        <li><strong>Social proof.</strong> Share your verified Creator Passport link. Your Creator Score, verified connections, and real metrics speak louder than any claim you could make in an email.</li>
+        <li><strong>A specific idea.</strong> Propose a specific content format, theme, or campaign concept.</li>
+        <li><strong>A clear call to action.</strong> End with a specific next step.</li>
+      </ul>
+
+      <h2>Using Your Creator Score as Social Proof</h2>
+      <p>
+        Your Creator Score is one of the most powerful tools you have when approaching brands. A score of 70 or above immediately signals that you are a verified, multi-platform creator with a real audience. When you include your Creator Passport link in a pitch, the brand can see exactly which platforms you are on, how many followers you have on each, and that all of this data is verified through OAuth connections.
+      </p>
+
+      <h2>Managing Collaboration Requests</h2>
+      <p>
+        Creatrid's collaboration system provides an inbox and outbox for managing requests. When someone sends you a collaboration request, it appears in your inbox with details about who they are, what they are proposing, and their own Creator Score. You can accept or decline each request.
+      </p>
+      <ul>
+        <li><strong>Respond promptly.</strong> Even if the answer is no, respond within 48 hours.</li>
+        <li><strong>Evaluate alignment.</strong> Ask yourself whether the brand aligns with your values and whether the terms are fair.</li>
+        <li><strong>Negotiate thoughtfully.</strong> Your Creator Score and verified metrics give you leverage.</li>
+      </ul>
+
+      <h2>Building Long-Term Relationships</h2>
+      <p>
+        The most successful creators build long-term relationships with brands that align with their content and values. Over-deliver on the first project, share results proactively, and stay in touch. The brands are looking for you. Make sure they can find you.
+      </p>
+    `,
+  },
+  {
+    slug: "creator-economy-2026",
+    title: "The State of the Creator Economy in 2026",
+    excerpt:
+      "The creator economy has matured into a major economic force. From verified identity to AI-powered tools, here is what is shaping the landscape in 2026 and where it is headed next.",
+    author: "Creatrid Team",
+    publishedAt: "2026-02-08",
+    tags: ["creator economy", "trends", "industry"],
+    readTime: 9,
+    content: `
+      <h2>Market Size and Growth</h2>
+      <p>
+        The creator economy in 2026 is no longer a niche phenomenon. It is a global industry valued at over $500 billion, encompassing everything from YouTube ad revenue and Twitch subscriptions to brand sponsorships, content licensing, digital products, and creator-led software. An estimated 200 million people worldwide now consider themselves creators, and roughly 2 million of those are doing it full-time.
+      </p>
+
+      <h2>Key Trends Shaping the Creator Economy</h2>
+
+      <h3>1. Verified Identity Is Becoming the Standard</h3>
+      <p>
+        Platforms like Creatrid have introduced verified identity systems where creators connect their social accounts through OAuth, and their metrics are pulled directly from platform APIs. Brands increasingly require this level of verification before signing deals.
+      </p>
+
+      <h3>2. Cross-Platform Identity Is Essential</h3>
+      <p>
+        The average professional creator maintains a presence on four to six platforms. This multi-platform reality has created a need for unified identity solutions like a Creator Passport.
+      </p>
+
+      <h3>3. The Rise of Micro-Creators</h3>
+      <p>
+        Micro-creators with audiences between 1,000 and 10,000 followers are delivering the strongest results for brands. Their engagement rates are typically two to five times higher than those of larger creators. Scoring systems that use logarithmic scales for audience reach level the playing field.
+      </p>
+
+      <h3>4. Content Licensing and IP Ownership</h3>
+      <p>
+        Creators are thinking about their content as intellectual property. The rise of content licensing platforms has given creators new ways to monetize their archives. The AI boom has accelerated this trend as AI companies need ethically sourced training data.
+      </p>
+
+      <h3>5. The Role of AI in Creator Workflows</h3>
+      <p>
+        Rather than replacing creators, AI has become a powerful assistant for video editing, thumbnail generation, caption writing, and analytics interpretation. AI-powered recommendation engines are also better at connecting brands with the right creators.
+      </p>
+
+      <h2>Challenges Facing the Creator Economy</h2>
+      <p>
+        Platform dependency remains a risk. Burnout is a growing concern. Income inequality within the creator economy is persistent but slowly improving as new tools democratize access.
+      </p>
+
+      <h2>What Is Next for Creators</h2>
+      <ul>
+        <li><strong>Portable reputation systems</strong> &mdash; Creator Scores that travel with you across platforms.</li>
+        <li><strong>Creator-brand marketplaces</strong> &mdash; Platforms that match creators with brands based on verified data.</li>
+        <li><strong>Regulatory clarity</strong> &mdash; Clearer regulations for influencer marketing and creator labor rights.</li>
+        <li><strong>Decentralized identity</strong> &mdash; Blockchain standards may give creators sovereign control over their credentials.</li>
+      </ul>
+    `,
+  },
+  {
+    slug: "protecting-your-digital-identity",
+    title: "Protecting Your Digital Identity as a Creator",
+    excerpt:
+      "Your digital identity is your most valuable asset as a creator. From impersonation attacks to phishing scams, here is how to protect yourself and why verified identity is your best defense.",
+    author: "Creatrid Team",
+    publishedAt: "2026-02-10",
+    tags: ["security", "identity", "2FA", "privacy"],
+    readTime: 7,
+    content: `
+      <h2>The Threats Creators Face</h2>
+      <p>
+        As a creator, your online identity is your livelihood. Creators face a unique set of digital threats including impersonation, account theft, and phishing attacks.
+      </p>
+
+      <h3>Impersonation</h3>
+      <p>
+        Someone creates a fake account using your name, photo, and content, then uses it to scam your followers or solicit brand deals under your name. The problem is worse for mid-tier creators who are big enough to impersonate but not big enough for platforms to proactively protect.
+      </p>
+
+      <h3>Account Theft</h3>
+      <p>
+        Account takeovers happen through weak passwords, reused credentials, or social engineering. Once someone has control, they can lock you out, delete your content, and hijack your creator career.
+      </p>
+
+      <h3>Phishing</h3>
+      <p>
+        Creators are prime targets because they receive a high volume of messages from strangers. A phishing email disguised as a brand collaboration offer is almost indistinguishable from a legitimate one.
+      </p>
+
+      <h2>Enabling Two-Factor Authentication</h2>
+      <p>
+        2FA is the single most important security measure. Enable it on Google, GitHub, Twitter/X, LinkedIn, and Instagram. Always use an authenticator app rather than SMS when possible.
+      </p>
+
+      <h2>Managing OAuth Permissions</h2>
+      <p>
+        Audit your connected apps regularly. Understand what permissions you are granting. Revoke access when you are done with a service.
+      </p>
+
+      <h2>Why Verified Identity Protects You</h2>
+      <p>
+        Having a verified digital identity through a platform like Creatrid establishes an authoritative source of truth for who you are. If someone impersonates you, brands can check your verified Creator Passport. Your verified history becomes a form of digital reputation that cannot be easily duplicated.
+      </p>
+
+      <h2>A Security Checklist for Creators</h2>
+      <ul>
+        <li>Enable 2FA on every platform.</li>
+        <li>Use a password manager with unique, strong passwords.</li>
+        <li>Audit OAuth permissions and revoke unrecognized ones.</li>
+        <li>Set up your verified Creator Passport.</li>
+        <li>Export your data from major platforms quarterly.</li>
+        <li>Be skeptical of unfamiliar collaboration links.</li>
+        <li>Monitor for impersonation periodically.</li>
+      </ul>
+    `,
+  },
+  {
+    slug: "micro-creators-big-impact",
+    title: "Why Micro-Creators Have More Impact Than You Think",
+    excerpt:
+      "You do not need a million followers to make a difference. Micro-creators with 1,000 to 10,000 followers are quietly outperforming larger influencers in engagement, trust, and brand ROI.",
+    author: "Creatrid Team",
+    publishedAt: "2026-02-12",
+    tags: ["micro-influencers", "engagement", "brands"],
+    readTime: 7,
+    content: `
+      <h2>Defining the Micro-Creator</h2>
+      <p>
+        Micro-creators sit in the 1,000 to 10,000 follower range. They are large enough to have a genuine community but small enough to maintain real, personal connections with their audience. They respond to comments personally and earn their audience through consistent, quality content.
+      </p>
+
+      <h2>The Engagement Rate Advantage</h2>
+      <p>
+        Engagement rate drops as follower count increases. A micro-creator with 5,000 followers typically sees 5 to 10 percent engagement. A mega-influencer with 2 million followers might see 1 to 2 percent. When a micro-creator recommends a product, it feels like a recommendation from a trusted friend.
+      </p>
+
+      <h2>Why Brands Increasingly Prefer Micro-Creators</h2>
+      <h3>1. Better Return on Investment</h3>
+      <p>
+        A brand could work with fifty micro-creators instead of one mega-influencer for the same budget, with higher engagement and lower risk.
+      </p>
+      <h3>2. Niche Targeting</h3>
+      <p>
+        Micro-creators have highly focused audiences that offer surgical precision for brands with specific target demographics.
+      </p>
+      <h3>3. Authenticity and Trust</h3>
+      <p>
+        Micro-creators are perceived as more genuine. Their recommendations carry more weight.
+      </p>
+
+      <h2>How Creator Score Levels the Playing Field</h2>
+      <p>
+        Creatrid's Creator Score uses a logarithmic formula for audience reach. A micro-creator with 5,000 followers across four verified platforms might score 65 out of 100, while a single-platform creator with 50,000 unverified followers might score only 45. On the discover page, brands can filter by Creator Score rather than follower count.
+      </p>
+
+      <h2>Getting Started as a Micro-Creator</h2>
+      <p>
+        Set up your Creator Passport and connect every platform. Complete your profile fully. Start engaging with discover and collaboration features. Impact is not measured in follower counts but in the depth of connection you build.
+      </p>
+    `,
+  },
+  {
+    slug: "portfolio-that-converts",
+    title: "How to Build a Creator Portfolio That Converts",
+    excerpt:
+      "Your portfolio is the first impression brands and collaborators get of you. Learn how to structure a creator portfolio that turns visitors into opportunities.",
+    author: "Creatrid Team",
+    publishedAt: "2026-02-14",
+    tags: ["portfolio", "profile", "personal branding"],
+    readTime: 7,
+    content: `
+      <h2>Your Portfolio Is Your Storefront</h2>
+      <p>
+        A well-constructed portfolio is the single most effective tool you have for converting casual visitors into real opportunities. It answers three questions every visitor has: What does this person do? Are they credible? How do I take the next step?
+      </p>
+
+      <h2>First Impressions: The 5-Second Test</h2>
+      <p>
+        Visitors form an opinion within five seconds. Your portfolio needs to instantly communicate who you are (clear name and photo), what you do (concise bio), and why you are credible (verified connections and Creator Score).
+      </p>
+
+      <h2>Profile Completeness Matters More Than You Think</h2>
+      <p>
+        An incomplete profile is worse than no profile at all. Up to 20 points of your Creator Score come from having a display name, photo, bio, and username. A creator with a score of 75 and a polished profile will almost always get chosen over one with a score of 55 and a half-finished page.
+      </p>
+
+      <h2>Choosing the Right Theme</h2>
+      <p>
+        Creatrid offers six profile themes. Choose one that aligns with your brand identity. Match your niche, prioritize readability, and stay consistent with your overall aesthetic.
+      </p>
+
+      <h2>Curating Your Custom Links</h2>
+      <p>
+        You can add up to ten custom links. Include your best work, a booking page, a lead magnet, a product link, and press features. Order links by priority since the first link gets the most clicks.
+      </p>
+
+      <h2>Using Your Profile as a Landing Page</h2>
+      <p>
+        Use your Creator Passport as your primary landing page. Put it in your email signature, social bios, and business card. It stays up to date automatically and gives you built-in analytics showing profile views and link clicks.
+      </p>
+    `,
+  },
+  {
+    slug: "github-for-developer-creators",
+    title: "GitHub as a Creator Platform: Building Your Developer Brand",
+    excerpt:
+      "GitHub is more than a code hosting service. For developer creators, it is the most powerful platform for building credibility, attracting opportunities, and showcasing technical expertise.",
+    author: "Creatrid Team",
+    publishedAt: "2026-02-17",
+    tags: ["github", "developers", "open source"],
+    readTime: 8,
+    content: `
+      <h2>GitHub Is Not Just for Code</h2>
+      <p>
+        For developer creators, open-source maintainers, and DevRel professionals, GitHub is where their work lives and their credibility is established. With over 100 million developers worldwide, GitHub is the default platform for evaluating technical talent. Unlike a resume, GitHub shows your actual work in real time.
+      </p>
+
+      <h2>Building a Strong GitHub Profile</h2>
+      <h3>The Profile README</h3>
+      <p>
+        Create a repository with your username. The README.md appears at the top of your profile. Include a brief introduction, key projects, technologies you work with, and links to your other platforms including your Creator Passport.
+      </p>
+      <h3>Pinned Repositories</h3>
+      <p>
+        Pin up to six repositories that represent your most impressive work. Choose repos with clear READMEs, active maintenance, and community engagement.
+      </p>
+      <h3>The Contribution Graph</h3>
+      <p>
+        Consistent contributions signal an active developer. Meaningful contributions carry real weight over trivial commits.
+      </p>
+
+      <h2>Open Source as Brand Building</h2>
+      <p>
+        Contributing to popular projects introduces you to entire communities. It demonstrates technical competence, collaboration skills, initiative, and communication ability.
+      </p>
+
+      <h2>Connecting GitHub to Your Creator Passport</h2>
+      <p>
+        When you link GitHub through Creatrid, your follower count and contribution data become part of your unified creator profile. The OAuth-verified connection adds points to your Creator Score and shows brands your full digital presence.
+      </p>
+
+      <h2>How Developer Brands Attract Opportunities</h2>
+      <p>
+        A strong GitHub presence opens doors to DevRel roles, technical sponsorships, conference speaking, and consulting. Your GitHub profile is a live portfolio that dramatically shortens the sales process.
+      </p>
+    `,
+  },
+  {
+    slug: "multi-platform-monetization",
+    title: "Beyond Ads: 7 Revenue Streams Every Creator Should Explore",
+    excerpt:
+      "Ad revenue is unpredictable and platform-dependent. Here are seven alternative revenue streams that give creators more control, more stability, and often more income.",
+    author: "Creatrid Team",
+    publishedAt: "2026-02-20",
+    tags: ["monetization", "revenue", "diversification"],
+    readTime: 8,
+    content: `
+      <h2>The Problem with Ad-Only Income</h2>
+      <p>
+        If your only monetization strategy is ad revenue, you are building your business on someone else's foundation. The most successful creators treat content as the engine that drives multiple revenue streams.
+      </p>
+
+      <h2>1. Content Licensing</h2>
+      <p>
+        Grant others the right to use your creative work for a fee. Upload to Creatrid's Content Vault and set license types. A catalog of 50 to 100 assets can generate $500 to $5,000 per month.
+      </p>
+
+      <h2>2. Brand Collaborations</h2>
+      <p>
+        Build a strong profile with verified connections and a high Creator Score. Use discovery features to make yourself visible. Micro-creators can expect $200 to $2,000 per sponsored post.
+      </p>
+
+      <h2>3. Digital Products</h2>
+      <p>
+        Create ebooks, courses, templates, presets, or code libraries. A single well-marketed product can generate $1,000 to $20,000 per month.
+      </p>
+
+      <h2>4. API Access and Widgets</h2>
+      <p>
+        Package tools or data as APIs with tiered pricing. A niche API with 100 to 500 subscribers can generate $2,000 to $25,000 per month.
+      </p>
+
+      <h2>5. Consulting and Services</h2>
+      <p>
+        Sell your expertise directly. Creator consultants typically charge $100 to $500 per hour. Your Creator Score and verified connections serve as social proof.
+      </p>
+
+      <h2>6. Community and Membership</h2>
+      <p>
+        Charge recurring fees for exclusive content or a private community. A community with 200 members at $15 per month generates $3,000 monthly in predictable recurring revenue.
+      </p>
+
+      <h2>7. Affiliate Marketing</h2>
+      <p>
+        Earn commissions when someone purchases through your referral link. Only promote products you genuinely use. Add affiliate links to your Creator Passport's custom links.
+      </p>
+
+      <h2>Building Your Revenue Stack</h2>
+      <p>
+        No single revenue stream is perfect. Build a stack of multiple streams. Your Creator Passport ties them together with credibility, visibility, and analytics.
+      </p>
+    `,
+  },
+  {
+    slug: "negotiating-brand-deals",
+    title: "How to Negotiate Brand Deals with Confidence",
+    excerpt:
+      "Most creators undercharge because they do not know their worth. Learn how to set rates, structure deals, and negotiate partnerships that reflect your true value.",
+    author: "Creatrid Team",
+    publishedAt: "2026-02-23",
+    tags: ["negotiation", "rates", "brand deals"],
+    readTime: 7,
+    content: `
+      <h2>Why Most Creators Undercharge</h2>
+      <p>
+        Without concrete data to back up your rates, negotiations become emotional instead of strategic. Breaking this cycle starts with understanding your value and having the data to prove it.
+      </p>
+
+      <h2>Knowing Your Worth: The Data-Driven Approach</h2>
+      <p>
+        Your Creator Score tells brands you are verified and credible. Your analytics dashboard shows profile views, link clicks, and engagement trends. Brands do not pay for followers. They pay for attention, trust, and action.
+      </p>
+
+      <h2>Setting Your Rate Card</h2>
+      <p>
+        A common formula: $100 per 10,000 followers as a starting point, adjusted for engagement rate and niche. Price differently by content type: social posts at base rate, video at 2x to 5x, blog posts at 1.5x to 3x, stories at 0.5x to 1x.
+      </p>
+
+      <h2>Common Deal Structures</h2>
+      <ul>
+        <li><strong>Flat fee</strong> &mdash; Fixed amount for defined deliverables. Simple and predictable.</li>
+        <li><strong>Performance-based</strong> &mdash; Earnings based on clicks, conversions, or sales.</li>
+        <li><strong>Hybrid</strong> &mdash; Base fee plus performance bonuses. Often the best structure.</li>
+        <li><strong>Retainer</strong> &mdash; Monthly fee for ongoing content. Provides predictable income.</li>
+      </ul>
+
+      <h2>Red Flags to Watch For</h2>
+      <ul>
+        <li>Payment in exposure only</li>
+        <li>Unreasonable usage rights in perpetuity</li>
+        <li>Extremely tight deadlines without rush fees</li>
+        <li>No written contract</li>
+        <li>Requests for upfront payment from you</li>
+      </ul>
+
+      <h2>Counter-Offer Strategies</h2>
+      <p>
+        Anchor high with your rate card first. Offer alternative formats at lower prices. Add value instead of cutting price. Use your data. Be willing to walk away.
+      </p>
+
+      <h2>Long-Term Partnerships vs. One-Offs</h2>
+      <p>
+        Deliver exceptional results, share analytics, and proactively suggest follow-up ideas. Use your Creatrid collaboration inbox to manage all brand relationships in one place.
+      </p>
+    `,
+  },
+  {
+    slug: "future-of-verified-identity",
+    title: "The Future of Verified Identity in the Creator Economy",
+    excerpt:
+      "From blue checkmarks to cryptographic verification, the way creators prove their identity is evolving rapidly. Here is what is coming and how to prepare for it.",
+    author: "Creatrid Team",
+    publishedAt: "2026-02-26",
+    tags: ["verification", "identity", "future", "trust"],
+    readTime: 8,
+    content: `
+      <h2>The Blue Checkmark Era Is Over</h2>
+      <p>
+        The blue checkmark system was dismantled when it became a purchasable perk. This exposed a fundamental problem: when a single company controls verification, the entire system is fragile. The creator economy needs something better.
+      </p>
+
+      <h2>The Rise of Cryptographic Verification</h2>
+      <p>
+        Instead of corporate policy, cryptographic verification uses mathematical proof. OAuth connections are authenticated directly with platform APIs. No one can fake an OAuth handshake. This enables cross-platform identity, metric authentication, and tamper resistance that blue checkmarks never could.
+      </p>
+
+      <h2>Cross-Platform Identity Standards</h2>
+      <p>
+        Several initiatives are pushing toward formal standards: W3C Verifiable Credentials, DID (Decentralized Identifiers), and evolving OpenID Connect specifications. These could make cross-platform identity verification a native feature of the internet.
+      </p>
+
+      <h2>Decentralized Identity: Owning Your Verification</h2>
+      <p>
+        In the decentralized model, your identity credentials are stored in a digital wallet you control. Advantages include platform independence, selective disclosure through zero-knowledge proofs, portability across services, and creator-controlled data.
+      </p>
+
+      <h2>How Verification Changes Brand-Creator Dynamics</h2>
+      <p>
+        Verified identity eliminates vetting bottlenecks, enables fair pricing based on authenticated data, and powers automated matching between brands and creators. The vetting process that took days can happen in minutes.
+      </p>
+
+      <h2>What Creators Should Do Now</h2>
+      <ul>
+        <li>Verify everything you can through OAuth-based connections.</li>
+        <li>Build a unified profile as a single source of truth.</li>
+        <li>Track your analytics to build verified history.</li>
+        <li>Stay informed about decentralized identity developments.</li>
+        <li>Invest in authenticity since verified metrics reward real audiences.</li>
+      </ul>
+
+      <h2>The Trust Layer the Internet Needs</h2>
+      <p>
+        OAuth-based verification, Creator Scores, and cross-platform profiles are available today. The creators who embrace verified identity now are positioning themselves for the next era of the creator economy, where trust is the most valuable currency.
+      </p>
+    `,
+  },
 ];
