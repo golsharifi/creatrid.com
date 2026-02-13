@@ -1,8 +1,10 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/creatrid/creatrid/internal/middleware"
 	"github.com/creatrid/creatrid/internal/store"
@@ -11,10 +13,58 @@ import (
 
 type NotificationHandler struct {
 	store *store.Store
+	hub   *SSEHub
 }
 
-func NewNotificationHandler(st *store.Store) *NotificationHandler {
-	return &NotificationHandler{store: st}
+func NewNotificationHandler(st *store.Store, hub *SSEHub) *NotificationHandler {
+	return &NotificationHandler{store: st, hub: hub}
+}
+
+// Stream handles GET /api/notifications/stream — Server-Sent Events endpoint
+// that pushes real-time notifications to the authenticated user.
+func (h *NotificationHandler) Stream(w http.ResponseWriter, r *http.Request) {
+	user := middleware.UserFromContext(r.Context())
+	if user == nil {
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "Not authenticated"})
+		return
+	}
+
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Streaming not supported"})
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	w.Header().Set("X-Accel-Buffering", "no") // Disable nginx buffering
+
+	ch := h.hub.Subscribe(user.ID)
+	defer h.hub.Unsubscribe(user.ID, ch)
+
+	// Send initial connected comment
+	fmt.Fprint(w, ": connected\n\n")
+	flusher.Flush()
+
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-r.Context().Done():
+			return
+		case msg, ok := <-ch:
+			if !ok {
+				return
+			}
+			fmt.Fprintf(w, "data: %s\n\n", msg)
+			flusher.Flush()
+		case <-ticker.C:
+			fmt.Fprint(w, ": keepalive\n\n")
+			flusher.Flush()
+		}
+	}
 }
 
 // List returns paginated notifications for the authenticated user

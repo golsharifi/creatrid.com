@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/creatrid/creatrid/internal/analytics"
 	"github.com/creatrid/creatrid/internal/middleware"
 	"github.com/creatrid/creatrid/internal/store"
 	"github.com/go-chi/chi/v5"
@@ -34,8 +35,9 @@ func (h *AnalyticsHandler) TrackView(w http.ResponseWriter, r *http.Request) {
 		ip = r.RemoteAddr
 	}
 	referrer := r.Header.Get("Referer")
+	ua := analytics.ParseUserAgent(r.Header.Get("User-Agent"))
 
-	_ = h.store.RecordProfileView(r.Context(), user.ID, ip, referrer)
+	_ = h.store.RecordProfileView(r.Context(), user.ID, ip, referrer, ua.Browser, ua.OS, ua.DeviceType, "", "")
 	writeJSON(w, http.StatusOK, map[string]bool{"ok": true})
 }
 

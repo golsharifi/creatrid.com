@@ -16,6 +16,7 @@ import (
 	"github.com/creatrid/creatrid/internal/config"
 	"github.com/creatrid/creatrid/internal/imaging"
 	"github.com/creatrid/creatrid/internal/middleware"
+	"github.com/creatrid/creatrid/internal/moderation"
 	"github.com/creatrid/creatrid/internal/storage"
 	"github.com/creatrid/creatrid/internal/store"
 	"github.com/go-chi/chi/v5"
@@ -196,6 +197,20 @@ func (h *ContentHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		_ = h.blob.Delete(r.Context(), fileURL)
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Failed to save content record"})
 		return
+	}
+
+	// Scan content metadata for profanity / policy violations
+	descText := ""
+	if description != nil {
+		descText = *description
+	}
+	if reasons := moderation.ScanContent(title, descText); len(reasons) > 0 {
+		for _, reason := range reasons {
+			flagID := cuid2.Generate()
+			if err := h.store.CreateModerationFlag(r.Context(), flagID, contentID, reason, "auto-detected on upload"); err != nil {
+				log.Printf("Failed to create moderation flag: %v", err)
+			}
+		}
 	}
 
 	writeJSON(w, http.StatusCreated, item)

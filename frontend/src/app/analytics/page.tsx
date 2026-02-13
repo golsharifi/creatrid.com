@@ -11,12 +11,17 @@ import {
   Line,
   BarChart,
   Bar,
+  PieChart,
+  Pie,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Legend,
 } from "recharts";
+import type { PieLabelRenderProps } from "recharts";
 import type { ReactNode } from "react";
 
 type AnalyticsData = {
@@ -29,6 +34,16 @@ type AnalyticsData = {
   clicksByDay: { date: string; count: number }[];
   topReferrers: { referrer: string; count: number }[];
   viewsByHour: { hour: number; count: number }[];
+  deviceBreakdown?: { deviceType: string; count: number }[];
+  browserBreakdown?: { browser: string; count: number }[];
+  geoBreakdown?: { country: string; count: number }[];
+  bounceRate?: number;
+};
+
+const DEVICE_COLORS: Record<string, string> = {
+  desktop: "#3b82f6",
+  mobile: "#10b981",
+  tablet: "#f59e0b",
 };
 
 function formatDate(dateStr: string) {
@@ -360,6 +375,141 @@ export default function AnalyticsPage() {
           <p className="py-6 text-center text-sm text-zinc-400">
             {t("analytics.noData")}
           </p>
+        )}
+      </div>
+
+      {/* Advanced Analytics Charts */}
+      <div className="mt-8 grid gap-6 lg:grid-cols-2">
+        {/* Device Breakdown */}
+        {data.deviceBreakdown && data.deviceBreakdown.length > 0 && (
+          <div className="rounded-xl border border-zinc-200 p-5 dark:border-zinc-800">
+            <h3 className="mb-1 font-semibold">{t("analytics.deviceBreakdown")}</h3>
+            <p className="mb-4 text-xs text-zinc-400">{t("analytics.last30Days")}</p>
+            <ResponsiveContainer width="100%" height={260}>
+              <PieChart>
+                <Pie
+                  data={data.deviceBreakdown}
+                  dataKey="count"
+                  nameKey="deviceType"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={90}
+                  label={(entry: { name?: string | number; percent?: number }) =>
+                    `${entry.name ?? ""} ${((entry.percent ?? 0) * 100).toFixed(0)}%`
+                  }
+                >
+                  {data.deviceBreakdown.map((entry) => (
+                    <Cell
+                      key={entry.deviceType}
+                      fill={DEVICE_COLORS[entry.deviceType.toLowerCase()] || "#71717a"}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "var(--tooltip-bg, #fff)",
+                    border: "1px solid var(--tooltip-border, #e4e4e7)",
+                    borderRadius: "8px",
+                    fontSize: "12px",
+                  }}
+                />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        {/* Browser Breakdown */}
+        {data.browserBreakdown && data.browserBreakdown.length > 0 && (
+          <div className="rounded-xl border border-zinc-200 p-5 dark:border-zinc-800">
+            <h3 className="mb-1 font-semibold">{t("analytics.browserBreakdown")}</h3>
+            <p className="mb-4 text-xs text-zinc-400">{t("analytics.last30Days")}</p>
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart
+                data={data.browserBreakdown.slice(0, 5)}
+                layout="vertical"
+                margin={{ left: 20 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" className="stroke-zinc-200 dark:stroke-zinc-700" />
+                <XAxis
+                  type="number"
+                  allowDecimals={false}
+                  tick={{ fontSize: 11 }}
+                  className="text-zinc-500"
+                />
+                <YAxis
+                  type="category"
+                  dataKey="browser"
+                  tick={{ fontSize: 11 }}
+                  width={100}
+                  className="text-zinc-500"
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "var(--tooltip-bg, #fff)",
+                    border: "1px solid var(--tooltip-border, #e4e4e7)",
+                    borderRadius: "8px",
+                    fontSize: "12px",
+                  }}
+                />
+                <Bar dataKey="count" fill="#6366f1" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        {/* Top Countries */}
+        {data.geoBreakdown && data.geoBreakdown.length > 0 && (
+          <div className="rounded-xl border border-zinc-200 p-5 dark:border-zinc-800">
+            <h3 className="mb-1 font-semibold">{t("analytics.topCountries")}</h3>
+            <p className="mb-4 text-xs text-zinc-400">{t("analytics.last30Days")}</p>
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart
+                data={data.geoBreakdown.slice(0, 10)}
+                layout="vertical"
+                margin={{ left: 20 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" className="stroke-zinc-200 dark:stroke-zinc-700" />
+                <XAxis
+                  type="number"
+                  allowDecimals={false}
+                  tick={{ fontSize: 11 }}
+                  className="text-zinc-500"
+                />
+                <YAxis
+                  type="category"
+                  dataKey="country"
+                  tick={{ fontSize: 11 }}
+                  width={100}
+                  className="text-zinc-500"
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "var(--tooltip-bg, #fff)",
+                    border: "1px solid var(--tooltip-border, #e4e4e7)",
+                    borderRadius: "8px",
+                    fontSize: "12px",
+                  }}
+                />
+                <Bar dataKey="count" fill="#14b8a6" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        {/* Bounce Rate */}
+        {data.bounceRate != null && (
+          <div className="rounded-xl border border-zinc-200 p-5 dark:border-zinc-800">
+            <h3 className="mb-1 font-semibold">{t("analytics.bounceRate")}</h3>
+            <p className="mb-4 text-xs text-zinc-400">{t("analytics.last30Days")}</p>
+            <div className="flex h-48 flex-col items-center justify-center">
+              <p className="text-5xl font-bold text-zinc-900 dark:text-zinc-100">
+                {data.bounceRate.toFixed(1)}
+                <span className="text-2xl font-normal text-zinc-400">%</span>
+              </p>
+              <p className="mt-2 text-sm text-zinc-500">{t("analytics.bounceRate")}</p>
+            </div>
+          </div>
         )}
       </div>
     </div>

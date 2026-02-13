@@ -6,6 +6,7 @@
   <url><loc>https://creatrid.com/discover</loc><priority>0.7</priority><changefreq>daily</changefreq></url>
   <url><loc>https://creatrid.com/marketplace</loc><priority>0.7</priority><changefreq>daily</changefreq></url>
   <url><loc>https://creatrid.com/search</loc><priority>0.6</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://creatrid.com/blog</loc><priority>0.7</priority><changefreq>weekly</changefreq></url>
   <url><loc>https://creatrid.com/terms</loc><priority>0.3</priority><changefreq>yearly</changefreq></url>
   <url><loc>https://creatrid.com/privacy</loc><priority>0.3</priority><changefreq>yearly</changefreq></url>
 </urlset>

@@ -16,6 +16,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
     initSentry();
   }, []);
 
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch(() => {});
+    }
+  }, []);
+
   // Update dir and lang attributes on the html element when language changes
   useEffect(() => {
     const dir = RTL_LANGUAGES.includes(i18n.language) ? "rtl" : "ltr";

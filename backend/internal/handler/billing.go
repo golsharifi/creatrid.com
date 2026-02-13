@@ -23,11 +23,12 @@ import (
 type BillingHandler struct {
 	store  *store.Store
 	config *config.Config
+	hub    *SSEHub
 }
 
-func NewBillingHandler(store *store.Store, cfg *config.Config) *BillingHandler {
+func NewBillingHandler(store *store.Store, cfg *config.Config, hub *SSEHub) *BillingHandler {
 	stripe.Key = cfg.StripeSecretKey
-	return &BillingHandler{store: store, config: cfg}
+	return &BillingHandler{store: store, config: cfg, hub: hub}
 }
 
 type checkoutRequest struct {
@@ -330,6 +331,13 @@ func (h *BillingHandler) handleLicensePurchaseCompleted(r *http.Request, session
 		}
 		if err := h.store.CreateNotification(r.Context(), notif); err != nil {
 			log.Printf("Failed to create sale notification: %v", err)
+		}
+
+		// Push real-time SSE notification
+		if h.hub != nil {
+			if data, err := json.Marshal(notif); err == nil {
+				h.hub.Notify(content.UserID, data)
+			}
 		}
 	}
 }

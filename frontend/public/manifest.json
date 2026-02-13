@@ -1,0 +1,15 @@
+{
+  "name": "Creatrid - Verified Creator Identity",
+  "short_name": "Creatrid",
+  "description": "Your verified digital identity as a creator",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml" },
+    { "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ],
+  "categories": ["social", "lifestyle"]
+}

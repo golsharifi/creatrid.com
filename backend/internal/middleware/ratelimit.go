@@ -97,3 +97,38 @@ func RateLimit(requestsPerSecond float64, burst int) func(http.Handler) http.Han
 		})
 	}
 }
+
+// RateLimitUser works like RateLimit but uses the authenticated user's ID as the
+// rate-limit key when available, falling back to the client IP address for
+// unauthenticated requests.
+func RateLimitUser(requestsPerSecond float64, burst int) func(http.Handler) http.Handler {
+	limiter := NewRateLimiter(requestsPerSecond, burst)
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			key := ""
+			if user := UserFromContext(r.Context()); user != nil {
+				key = "user:" + user.ID
+			} else {
+				key = r.RemoteAddr
+				if forwarded := r.Header.Get("X-Real-Ip"); forwarded != "" {
+					key = forwarded
+				}
+			}
+
+			allowed, remaining, limit := limiter.allow(key)
+			w.Header().Set("X-RateLimit-Limit", strconv.Itoa(limit))
+			w.Header().Set("X-RateLimit-Remaining", strconv.Itoa(remaining))
+			w.Header().Set("X-RateLimit-Reset", "1")
+
+			if !allowed {
+				w.Header().Set("Content-Type", "application/json")
+				w.Header().Set("Retry-After", "1")
+				w.WriteHeader(http.StatusTooManyRequests)
+				json.NewEncoder(w).Encode(map[string]string{"error": "Too many requests"})
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}

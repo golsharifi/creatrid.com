@@ -40,14 +40,60 @@ export function NotificationBell() {
 
   useEffect(() => {
     if (!user) return;
+
+    // Initial fetch of unread count
     const fetchCount = () => {
       api.notifications.unreadCount().then((r) => {
         if (r.data) setUnreadCount((r.data as any).count ?? 0);
       });
     };
     fetchCount();
-    const interval = setInterval(fetchCount, 30000);
-    return () => clearInterval(interval);
+
+    // Try SSE for real-time updates, fallback to polling
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+    let fallbackInterval: ReturnType<typeof setInterval> | null = null;
+    let es: EventSource | null = null;
+
+    try {
+      es = new EventSource(`${API_URL}/api/notifications/stream`, {
+        withCredentials: true,
+      });
+
+      es.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.unreadCount != null) {
+            setUnreadCount(data.unreadCount);
+          } else {
+            setUnreadCount((prev) => prev + 1);
+          }
+          if (data.notification) {
+            setNotifications((prev) => [data.notification, ...prev].slice(0, 5));
+          }
+        } catch {
+          setUnreadCount((prev) => prev + 1);
+        }
+      };
+
+      es.onerror = () => {
+        // Close SSE and fallback to polling
+        if (es) {
+          es.close();
+          es = null;
+        }
+        if (!fallbackInterval) {
+          fallbackInterval = setInterval(fetchCount, 30000);
+        }
+      };
+    } catch {
+      // SSE not supported, use polling
+      fallbackInterval = setInterval(fetchCount, 30000);
+    }
+
+    return () => {
+      if (es) es.close();
+      if (fallbackInterval) clearInterval(fallbackInterval);
+    };
   }, [user]);
 
   const fetchNotifications = useCallback(async () => {

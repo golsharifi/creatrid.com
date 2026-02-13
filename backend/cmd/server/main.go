@@ -98,6 +98,9 @@ func main() {
 		log.Println("Warning: SMTP not configured. Email notifications will be unavailable.")
 	}
 
+	// Init SSE hub for real-time notifications
+	sseHub := handler.NewSSEHub()
+
 	// Init handlers
 	authHandler := handler.NewAuthHandler(googleSvc, jwtSvc, st, cfg)
 	userHandler := handler.NewUserHandler(st, blobStore, emailSvc, jwtSvc, cfg)
@@ -106,16 +109,16 @@ func main() {
 	analyticsHandler := handler.NewAnalyticsHandler(st)
 	adminHandler := handler.NewAdminHandler(st)
 	digestHandler := handler.NewDigestHandler(st, emailSvc)
-	collabHandler := handler.NewCollaborationHandler(st)
+	collabHandler := handler.NewCollaborationHandler(st, sseHub)
 	widgetHandler := handler.NewWidgetHandler(st)
 	apiKeyHandler := handler.NewAPIKeyHandler(st)
 	verifyHandler := handler.NewVerifyHandler(st)
-	billingHandler := handler.NewBillingHandler(st, cfg)
+	billingHandler := handler.NewBillingHandler(st, cfg, sseHub)
 	contentHandler := handler.NewContentHandler(st, blobStore, cfg)
 	licenseHandler := handler.NewLicenseHandler(st, cfg)
 	marketplaceHandler := handler.NewMarketplaceHandler(st)
 	dmcaHandler := handler.NewDMCAHandler(st)
-	notificationHandler := handler.NewNotificationHandler(st)
+	notificationHandler := handler.NewNotificationHandler(st, sseHub)
 	contentAnalyticsHandler := handler.NewContentAnalyticsHandler(st)
 	payoutHandler := handler.NewPayoutHandler(st, cfg)
 	collectionHandler := handler.NewCollectionHandler(st)
@@ -123,6 +126,7 @@ func main() {
 	webhookHandler := handler.NewWebhookHandler(st)
 	referralHandler := handler.NewReferralHandler(st)
 	recommendHandler := handler.NewRecommendHandler(st)
+	moderationHandler := handler.NewModerationHandler(st)
 	errorLogHandler := handler.NewErrorLogHandler(st)
 
 	// Start connection refresh scheduler
@@ -175,7 +179,12 @@ func main() {
 	r.Use(chimw.Recoverer)
 	r.Use(chimw.RealIP)
 	r.Use(middleware.CORS(cfg.FrontendURL))
-	r.Use(middleware.RateLimit(20, 40)) // 20 req/s per IP, burst 40
+
+	// Error reporting (stricter rate limit)
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.RateLimit(2, 5))
+		r.Post("/api/errors", errorLogHandler.Report)
+	})
 
 	// Auth routes (stricter rate limit)
 	r.Group(func(r chi.Router) {
@@ -184,37 +193,36 @@ func main() {
 		r.Get("/api/auth/google/callback", authHandler.GoogleCallback)
 	})
 
-	// Public routes
-	r.Get("/api/auth/verify-email/{token}", userHandler.VerifyEmail)
-	r.Get("/api/users/{username}", userHandler.PublicProfile)
-	r.Get("/api/users/{username}/connections", connHandler.PublicList)
-	r.Post("/api/users/{username}/view", analyticsHandler.TrackView)
-	r.Post("/api/users/{username}/click", analyticsHandler.TrackClick)
-	r.Get("/p/{username}", ogHandler.ProfilePage)
-	r.Get("/api/discover", collabHandler.Discover)
-	r.Get("/api/widget/{username}", widgetHandler.JSON)
-	r.Get("/api/widget/{username}/svg", widgetHandler.SVGBadge)
-	r.Get("/api/widget/{username}/html", widgetHandler.HTMLEmbed)
-	r.Post("/api/billing/webhook", billingHandler.HandleWebhook)
-	r.Get("/api/users/{username}/content", contentHandler.PublicList)
-	r.Get("/api/content/{id}/proof", contentHandler.Proof)
-	r.Get("/api/content/{id}/licenses", licenseHandler.ListOfferings)
-	r.Get("/api/marketplace", marketplaceHandler.Browse)
-	r.Get("/api/marketplace/{id}", marketplaceHandler.Detail)
-	r.Post("/api/content/{id}/report", dmcaHandler.Report)
-	r.Post("/api/content/{id}/view", contentAnalyticsHandler.TrackView)
-	r.Post("/api/errors", errorLogHandler.Report)
-	r.Get("/api/search", searchHandler.Search)
-	r.Get("/api/search/suggestions", searchHandler.Suggestions)
-	r.Get("/api/users/{username}/collections", collectionHandler.PublicList)
+	// Public routes (standard rate limit)
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.RateLimit(20, 40)) // 20 req/s per IP, burst 40
+		r.Get("/api/auth/verify-email/{token}", userHandler.VerifyEmail)
+		r.Get("/api/users/{username}", userHandler.PublicProfile)
+		r.Get("/api/users/{username}/connections", connHandler.PublicList)
+		r.Post("/api/users/{username}/view", analyticsHandler.TrackView)
+		r.Post("/api/users/{username}/click", analyticsHandler.TrackClick)
+		r.Get("/p/{username}", ogHandler.ProfilePage)
+		r.Get("/api/discover", collabHandler.Discover)
+		r.Get("/api/widget/{username}", widgetHandler.JSON)
+		r.Get("/api/widget/{username}/svg", widgetHandler.SVGBadge)
+		r.Get("/api/widget/{username}/html", widgetHandler.HTMLEmbed)
+		r.Post("/api/billing/webhook", billingHandler.HandleWebhook)
+		r.Get("/api/users/{username}/content", contentHandler.PublicList)
+		r.Get("/api/content/{id}/proof", contentHandler.Proof)
+		r.Get("/api/content/{id}/licenses", licenseHandler.ListOfferings)
+		r.Get("/api/marketplace", marketplaceHandler.Browse)
+		r.Get("/api/marketplace/{id}", marketplaceHandler.Detail)
+		r.Post("/api/content/{id}/report", dmcaHandler.Report)
+		r.Post("/api/content/{id}/view", contentAnalyticsHandler.TrackView)
+		r.Get("/api/search", searchHandler.Search)
+		r.Get("/api/search/suggestions", searchHandler.Suggestions)
+		r.Get("/api/users/{username}/collections", collectionHandler.PublicList)
 
-	// Referral landing — allow sign-in page to read ref code
-	// (ref code is stored in cookie by frontend, no backend route needed)
-
-	// Health check
-	r.Get("/api/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"status":"ok"}`))
+		// Health check
+		r.Get("/api/health", func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.Write([]byte(`{"status":"ok"}`))
+		})
 	})
 
 	// Connection OAuth routes (redirect-based auth, stricter rate limit)
@@ -229,6 +237,7 @@ func main() {
 	// Protected routes (JSON API)
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.RequireAuth(jwtSvc, st))
+		r.Use(middleware.RateLimitUser(10, 20))
 		r.Get("/api/auth/me", authHandler.Me)
 		r.Post("/api/auth/logout", authHandler.Logout)
 		r.Post("/api/auth/verify-email/send", userHandler.SendEmailVerification)
@@ -273,6 +282,7 @@ func main() {
 		r.Get("/api/notifications/unread-count", notificationHandler.UnreadCount)
 		r.Post("/api/notifications/{id}/read", notificationHandler.MarkRead)
 		r.Post("/api/notifications/read-all", notificationHandler.MarkAllRead)
+		r.Get("/api/notifications/stream", notificationHandler.Stream)
 
 		// Content Analytics
 		r.Get("/api/content/{id}/analytics", contentAnalyticsHandler.ItemAnalytics)
@@ -317,6 +327,7 @@ func main() {
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.RequireAuth(jwtSvc, st))
 		r.Use(handler.RequireAdmin)
+		r.Use(middleware.RateLimit(30, 60))
 		r.Get("/api/admin/stats", adminHandler.Stats)
 		r.Get("/api/admin/users", adminHandler.ListUsers)
 		r.Post("/api/admin/users/verify", adminHandler.SetVerified)
@@ -325,6 +336,8 @@ func main() {
 		r.Get("/api/admin/takedowns", dmcaHandler.ListTakedowns)
 		r.Post("/api/admin/takedowns/{id}/resolve", dmcaHandler.ResolveTakedown)
 		r.Get("/api/admin/errors", errorLogHandler.List)
+		r.Get("/api/admin/moderation", moderationHandler.List)
+		r.Post("/api/admin/moderation/{id}/resolve", moderationHandler.Resolve)
 	})
 
 	// Third-party verification API (API key auth)
@@ -335,12 +348,13 @@ func main() {
 		r.Get("/api/v1/search", verifyHandler.Search)
 	})
 
-	// Start server
+	// Start server — WriteTimeout increased to 5 minutes to support SSE
+	// (Server-Sent Event) connections which are long-lived.
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,
 		Handler:      r,
 		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		WriteTimeout: 5 * time.Minute,
 		IdleTimeout:  60 * time.Second,
 	}
 

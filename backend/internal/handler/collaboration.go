@@ -16,10 +16,11 @@ import (
 
 type CollaborationHandler struct {
 	store *store.Store
+	hub   *SSEHub
 }
 
-func NewCollaborationHandler(st *store.Store) *CollaborationHandler {
-	return &CollaborationHandler{store: st}
+func NewCollaborationHandler(st *store.Store, hub *SSEHub) *CollaborationHandler {
+	return &CollaborationHandler{store: st, hub: hub}
 }
 
 // Discover returns a paginated list of creators with optional filters
@@ -101,6 +102,13 @@ func (h *CollaborationHandler) SendRequest(w http.ResponseWriter, r *http.Reques
 	}
 	if err := h.store.CreateNotification(r.Context(), notif); err != nil {
 		log.Printf("Failed to create collab notification: %v", err)
+	}
+
+	// Push real-time SSE notification
+	if h.hub != nil {
+		if data, err := json.Marshal(notif); err == nil {
+			h.hub.Notify(req.ToUserID, data)
+		}
 	}
 
 	writeJSON(w, http.StatusCreated, map[string]string{"id": id})
@@ -204,6 +212,13 @@ func (h *CollaborationHandler) Respond(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := h.store.CreateNotification(r.Context(), notif); err != nil {
 		log.Printf("Failed to create collab response notification: %v", err)
+	}
+
+	// Push real-time SSE notification
+	if h.hub != nil {
+		if data, err := json.Marshal(notif); err == nil {
+			h.hub.Notify(cr.FromUserID, data)
+		}
 	}
 
 	writeJSON(w, http.StatusOK, map[string]string{"status": status})

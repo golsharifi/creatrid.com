@@ -115,6 +115,10 @@ export const api = {
         clicksByDay: { date: string; count: number }[];
         topReferrers: { referrer: string; count: number }[];
         viewsByHour: { hour: number; count: number }[];
+        deviceBreakdown?: { deviceType: string; count: number }[];
+        browserBreakdown?: { browser: string; count: number }[];
+        geoBreakdown?: { country: string; count: number }[];
+        bounceRate?: number;
       }>("/api/analytics"),
     trackView: (username: string) =>
       request<{ ok: boolean }>(`/api/users/${username}/view`, {
