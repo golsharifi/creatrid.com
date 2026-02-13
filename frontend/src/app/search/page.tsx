@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import Link from "next/link";
-import { Search as SearchIcon, Image, User, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search as SearchIcon, Image, User, ChevronLeft, ChevronRight } from "@/components/icons";
 import { useTranslation } from "react-i18next";
 
 type ContentResult = {

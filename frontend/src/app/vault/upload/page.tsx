@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { api } from "@/lib/api";
-import { Upload, X, File } from "lucide-react";
+import { Upload, X, File } from "@/components/icons";
 import { useTranslation } from "react-i18next";
 
 function formatFileSize(bytes: number): string {

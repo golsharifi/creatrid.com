@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api";
-import { Key, Trash2, Copy, Check, BookOpen } from "lucide-react";
+import { Key, Trash2, Copy, Check, BookOpen } from "@/components/icons";
 import { useTranslation } from "react-i18next";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";

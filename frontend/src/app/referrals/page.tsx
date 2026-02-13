@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 import { useTranslation } from "react-i18next";
-import { Gift, Copy, Check, Users, Trophy } from "lucide-react";
+import { Gift, Copy, Check, Users, Trophy } from "@/components/icons";
 
 export default function ReferralsPage() {
   const { user, loading: authLoading } = useAuth();

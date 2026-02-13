@@ -3,7 +3,7 @@
 import { useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
-import { Shield } from "lucide-react";
+import { Shield } from "@/components/icons";
 import { useTranslation } from "react-i18next";
 
 function TwoFAContent() {

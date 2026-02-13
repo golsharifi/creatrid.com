@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import { api } from "@/lib/api";
 import Link from "next/link";
-import { ArrowLeft, Trash2, Image, Video, Music, FileText } from "lucide-react";
+import { ArrowLeft, Trash2, Image, Video, Music, FileText } from "@/components/icons";
 import { useTranslation } from "react-i18next";
 
 type CollectionDetail = {

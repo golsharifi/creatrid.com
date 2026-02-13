@@ -25,7 +25,7 @@ import {
   Gift,
   Webhook,
   BookOpen,
-} from "lucide-react";
+} from "@/components/icons";
 import { useTranslation } from "react-i18next";
 import { NotificationBell } from "@/components/notification-bell";
 

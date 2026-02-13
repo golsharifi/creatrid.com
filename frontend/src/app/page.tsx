@@ -16,7 +16,7 @@ import {
   Link2,
   Zap,
   ChevronDown,
-} from "lucide-react";
+} from "@/components/icons";
 
 export default function Home() {
   const { user } = useAuth();

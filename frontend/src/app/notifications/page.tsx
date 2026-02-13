@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import { api } from "@/lib/api";
-import { Bell, CheckCheck, ChevronLeft, ChevronRight } from "lucide-react";
+import { Bell, CheckCheck, ChevronLeft, ChevronRight } from "@/components/icons";
 import { useTranslation } from "react-i18next";
 
 type Notification = {

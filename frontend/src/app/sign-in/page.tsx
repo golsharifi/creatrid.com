@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, Suspense } from "react";
 import { api } from "@/lib/api";
-import { Shield } from "lucide-react";
+import { Shield } from "@/components/icons";
 import { useTranslation } from "react-i18next";
 
 function SignInContent() {

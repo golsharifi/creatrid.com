@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import Link from "next/link";
-import { Search, CheckCircle, Link2, Shield, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, CheckCircle, Link2, Shield, ChevronLeft, ChevronRight } from "@/components/icons";
 import { useTranslation } from "react-i18next";
 
 type Creator = {

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import { api } from "@/lib/api";
 import Link from "next/link";
-import { FolderOpen, Plus, Globe, Lock } from "lucide-react";
+import { FolderOpen, Plus, Globe, Lock } from "@/components/icons";
 import { useTranslation } from "react-i18next";
 
 type Collection = {

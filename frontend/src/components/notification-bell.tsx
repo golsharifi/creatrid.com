@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { api } from "@/lib/api";
 import Link from "next/link";
-import { Bell, Check, CheckCheck } from "lucide-react";
+import { Bell, Check, CheckCheck } from "@/components/icons";
 import { useTranslation } from "react-i18next";
 
 type Notification = {

@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import { api } from "@/lib/api";
-import { BarChart3, Eye, Download, DollarSign } from "lucide-react";
+import { BarChart3, Eye, Download, DollarSign } from "@/components/icons";
 import { useTranslation } from "react-i18next";
 
 type ContentAnalyticsItem = {

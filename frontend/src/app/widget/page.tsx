@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Code, Image, Link2, Check, Copy } from "lucide-react";
+import { Code, Image, Link2, Check, Copy } from "@/components/icons";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 const PROFILE_BASE_URL =

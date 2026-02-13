@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { CheckCircle2, Circle, X } from "lucide-react";
+import { CheckCircle2, Circle, X } from "@/components/icons";
 import { useTranslation } from "react-i18next";
 
 interface ChecklistProps {

@@ -13,7 +13,7 @@ import {
   Music,
   FileText,
   File,
-} from "lucide-react";
+} from "@/components/icons";
 import { useTranslation } from "react-i18next";
 
 type Purchase = {

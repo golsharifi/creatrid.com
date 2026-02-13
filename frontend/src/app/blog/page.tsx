@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, Calendar, Clock, ArrowRight } from "lucide-react";
+import { BookOpen, Calendar, Clock, ArrowRight } from "@/components/icons";
 import { useTranslation } from "react-i18next";
 import { blogPosts } from "./data";
 

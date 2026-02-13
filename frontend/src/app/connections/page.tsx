@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, useCallback, Suspense } from "react";
 import { api } from "@/lib/api";
 import type { Connection } from "@/lib/types";
-import { CheckCircle, ExternalLink } from "lucide-react";
+import { CheckCircle, ExternalLink } from "@/components/icons";
 import { useTranslation } from "react-i18next";
 
 interface PlatformConfig {

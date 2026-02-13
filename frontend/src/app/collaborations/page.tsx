@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import Link from "next/link";
-import { Inbox, Send, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Inbox, Send, CheckCircle, XCircle, Clock } from "@/components/icons";
 import { useTranslation } from "react-i18next";
 
 type IncomingRequest = {

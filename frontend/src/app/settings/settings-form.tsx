@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import { Plus, Trash2, Camera, Download, AlertTriangle, Shield, Copy, Check } from "lucide-react";
+import { Plus, Trash2, Camera, Download, AlertTriangle, Shield, Copy, Check } from "@/components/icons";
 import type { CustomLink, EmailPrefs } from "@/lib/types";
 import { useTranslation } from "react-i18next";
 

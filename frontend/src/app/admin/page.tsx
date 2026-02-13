@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import { Users, BarChart3, Eye, MousePointerClick, Link2, CheckCircle, Shield, ClipboardList, AlertTriangle, Flag } from "lucide-react";
+import { Users, BarChart3, Eye, MousePointerClick, Link2, CheckCircle, Shield, ClipboardList, AlertTriangle, Flag } from "@/components/icons";
 import { useTranslation } from "react-i18next";
 
 type AdminStats = {

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { useTranslation } from "react-i18next";
-import { Eye, MousePointerClick, TrendingUp, CalendarDays, Download } from "lucide-react";
+import { Eye, MousePointerClick, TrendingUp, CalendarDays, Download } from "@/components/icons";
 import {
   LineChart,
   Line,

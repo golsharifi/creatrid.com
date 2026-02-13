@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import { api } from "@/lib/api";
-import { Shield, CheckCircle, ExternalLink, QrCode, Star, Code } from "lucide-react";
+import { Shield, CheckCircle, ExternalLink, QrCode, Star, Code } from "@/components/icons";
 import {
   CopyLinkButton,
   ShareTwitterButton,

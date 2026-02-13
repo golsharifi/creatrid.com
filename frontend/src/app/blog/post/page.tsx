@@ -3,7 +3,7 @@
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Calendar, Clock, BookOpen } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, BookOpen } from "@/components/icons";
 import { useTranslation } from "react-i18next";
 import { blogPosts } from "../data";
 

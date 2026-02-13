@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import { api } from "@/lib/api";
 import Link from "next/link";
-import { User, Link2, BarChart3, ArrowRight, QrCode, Eye, MousePointerClick, Mail, CheckCircle, Code, Archive, Users, Upload, Share2, TrendingUp, Activity, Inbox } from "lucide-react";
+import { User, Link2, BarChart3, ArrowRight, QrCode, Eye, MousePointerClick, Mail, CheckCircle, Code, Archive, Users, Upload, Share2, TrendingUp, Activity, Inbox } from "@/components/icons";
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
 import { TierBadge } from "@/components/tier-badge";
 import { QRCodeSVG } from "qrcode.react";

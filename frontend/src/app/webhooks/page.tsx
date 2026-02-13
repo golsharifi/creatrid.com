@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 import { useTranslation } from "react-i18next";
-import { Webhook, Plus, Trash2, ToggleLeft, ToggleRight, ChevronDown, ChevronUp } from "lucide-react";
+import { Webhook, Plus, Trash2, ToggleLeft, ToggleRight, ChevronDown, ChevronUp } from "@/components/icons";
 
 const AVAILABLE_EVENTS = [
   { value: "license.sold", label: "License Sold" },
