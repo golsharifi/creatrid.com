@@ -255,6 +255,16 @@ const fa = {
     auditAdmin: "\u0645\u062f\u06cc\u0631",
     auditAction: "\u0639\u0645\u0644\u06cc\u0627\u062a",
     auditTarget: "\u0647\u062f\u0641",
+    errorLog: "\u06af\u0632\u0627\u0631\u0634 \u062e\u0637\u0627\u0647\u0627",
+    errorAllSources: "\u0647\u0645\u0647 \u0645\u0646\u0627\u0628\u0639",
+    errorFrontend: "\u0641\u0631\u0627\u0646\u062a\u200c\u0627\u0646\u062f",
+    errorBackend: "\u0628\u06a9\u200c\u0627\u0646\u062f",
+    errorTime: "\u0632\u0645\u0627\u0646",
+    errorLevel: "\u0633\u0637\u062d",
+    errorSource: "\u0645\u0646\u0628\u0639",
+    errorMessage: "\u067e\u06cc\u0627\u0645",
+    errorUrl: "\u0622\u062f\u0631\u0633",
+    errorNoEntries: "\u062e\u0637\u0627\u06cc\u06cc \u062b\u0628\u062a \u0646\u0634\u062f\u0647 \u0627\u0633\u062a",
   },
 
   // Landing Page
@@ -335,6 +345,27 @@ const fa = {
     faq4Q: "\u0622\u06cc\u0627 \u0628\u0631\u0646\u062f\u0647\u0627 \u0645\u06cc\u200c\u062a\u0648\u0627\u0646\u0646\u062f \u06a9\u0631\u06cc\u062a\u0648\u0631\u0647\u0627 \u0631\u0627 \u062a\u0623\u06cc\u06cc\u062f \u06a9\u0646\u0646\u062f\u061f",
     faq4A:
       "\u0642\u0637\u0639\u0627. \u0628\u0631\u0646\u062f\u0647\u0627 \u0648 \u0622\u0698\u0627\u0646\u0633\u200c\u0647\u0627 \u0645\u06cc\u200c\u062a\u0648\u0627\u0646\u0646\u062f \u067e\u0631\u0648\u0641\u0627\u06cc\u0644 \u0639\u0645\u0648\u0645\u06cc \u0647\u0631 \u06a9\u0631\u06cc\u062a\u0648\u0631\u06cc \u0631\u0627 \u0628\u0628\u06cc\u0646\u0646\u062f \u062a\u0627 \u0627\u062a\u0635\u0627\u0644\u0627\u062a \u062a\u0623\u06cc\u06cc\u062f\u0634\u062f\u0647\u060c Creator Score \u0648 \u0645\u062d\u062a\u0648\u0627\u06cc \u0644\u06cc\u0646\u06a9\u200c\u0634\u062f\u0647 \u0631\u0627 \u0628\u0631\u0631\u0633\u06cc \u06a9\u0646\u0646\u062f \u2014 \u0628\u062f\u0648\u0646 \u0646\u06cc\u0627\u0632 \u0628\u0647 \u0648\u0631\u0648\u062f.",
+
+
+    // Pricing Preview
+    pricingTitle: "قیمت‌گذاری ساده و شفاف",
+    pricingSubtitle: "رایگان شروع کنید، هر زمان نیاز به قدرت بیشتری داشتید ارتقا دهید.",
+    pricingFreeDesc: "عالی برای شروع. تا ۳ پلتفرم متصل کنید و امتیاز سازنده خود را بسازید.",
+    pricingProDesc: "اتصالات نامحدود، تحلیل‌های پیشرفته، تم‌های سفارشی و دسترسی API.",
+    pricingBusinessDesc: "همه امکانات Pro به‌علاوه API تأیید انبوه، داشبورد برند و ابزارک‌های سفارشی.",
+    pricingViewAll: "مشاهده همه پلن‌ها و امکانات",
+
+    // Testimonials
+    testimonialsTitle: "مورد علاقه سازندگان",
+    testimonial1Quote: "کراتریدd اثبات هویتم به برندها را خیلی آسان کرد. اولین همکاری پولی‌ام را ظرف یک هفته گرفتم.",
+    testimonial1Name: "سارا ک.",
+    testimonial1Role: "سازنده یوتیوب",
+    testimonial2Quote: "امتیاز سازنده فوق‌العاده است. برندها فوراً می‌بینند که من واقعی هستم بدون اینکه اسکرین‌شات آنالیتیکس بفرستم.",
+    testimonial2Name: "مارکوس ت.",
+    testimonial2Role: "توسعه‌دهنده و استریمر",
+    testimonial3Quote: "یک لینک برای همه چیز. پروفایل کراتریدم را در بیو گذاشتم و حالا برندها خودشان پیام می‌دهند.",
+    testimonial3Name: "پریا م.",
+    testimonial3Role: "طراحی و عکاسی",
 
     // Final CTA
     ctaFinalHeadline: "\u0622\u0645\u0627\u062f\u0647\u200c\u0627\u06cc\u062f \u062b\u0627\u0628\u062a \u06a9\u0646\u06cc\u062f \u06a9\u06cc \u0647\u0633\u062a\u06cc\u062f\u061f",

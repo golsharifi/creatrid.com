@@ -20,7 +20,6 @@ import (
 	"github.com/creatrid/creatrid/internal/scheduler"
 	"github.com/creatrid/creatrid/internal/storage"
 	"github.com/creatrid/creatrid/internal/store"
-	"github.com/getsentry/sentry-go"
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -31,19 +30,6 @@ func main() {
 	cfg, err := config.Load()
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
-	}
-
-	// Init Sentry (optional)
-	if cfg.SentryDSN != "" {
-		if err := sentry.Init(sentry.ClientOptions{
-			Dsn:              cfg.SentryDSN,
-			TracesSampleRate: 0.1,
-		}); err != nil {
-			log.Printf("Warning: Sentry init failed: %v", err)
-		} else {
-			defer sentry.Flush(2 * time.Second)
-			log.Println("Sentry error monitoring enabled")
-		}
 	}
 
 	// Connect to database
@@ -137,6 +123,7 @@ func main() {
 	webhookHandler := handler.NewWebhookHandler(st)
 	referralHandler := handler.NewReferralHandler(st)
 	recommendHandler := handler.NewRecommendHandler(st)
+	errorLogHandler := handler.NewErrorLogHandler(st)
 
 	// Start connection refresh scheduler
 	providerMap := make(map[string]platform.Provider)
@@ -164,6 +151,20 @@ func main() {
 					_ = st.SetSetting(context.Background(), "last_digest_sent", today)
 					log.Printf("Digest cron: sent %d emails", sent)
 				}
+			}
+		}
+	}()
+
+	// Start error log cleanup (delete entries older than 30 days)
+	go func() {
+		ticker := time.NewTicker(24 * time.Hour)
+		defer ticker.Stop()
+		for range ticker.C {
+			deleted, err := st.DeleteOldErrors(context.Background(), time.Now().Add(-30*24*time.Hour))
+			if err != nil {
+				log.Printf("Error log cleanup failed: %v", err)
+			} else if deleted > 0 {
+				log.Printf("Error log cleanup: deleted %d old entries", deleted)
 			}
 		}
 	}()
@@ -202,6 +203,7 @@ func main() {
 	r.Get("/api/marketplace/{id}", marketplaceHandler.Detail)
 	r.Post("/api/content/{id}/report", dmcaHandler.Report)
 	r.Post("/api/content/{id}/view", contentAnalyticsHandler.TrackView)
+	r.Post("/api/errors", errorLogHandler.Report)
 	r.Get("/api/search", searchHandler.Search)
 	r.Get("/api/search/suggestions", searchHandler.Suggestions)
 	r.Get("/api/users/{username}/collections", collectionHandler.PublicList)
@@ -322,6 +324,7 @@ func main() {
 		r.Get("/api/admin/audit", adminHandler.AuditLog)
 		r.Get("/api/admin/takedowns", dmcaHandler.ListTakedowns)
 		r.Post("/api/admin/takedowns/{id}/resolve", dmcaHandler.ResolveTakedown)
+		r.Get("/api/admin/errors", errorLogHandler.List)
 	})
 
 	// Third-party verification API (API key auth)

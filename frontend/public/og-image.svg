@@ -1,0 +1,7 @@
+<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#09090b"/>
+  <text x="600" y="270" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="700" fill="#fafafa">Creatrid</text>
+  <text x="600" y="340" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="28" fill="#a1a1aa">Verified Creator Identity</text>
+  <text x="600" y="400" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="20" fill="#71717a">Connect. Verify. Share.</text>
+  <rect x="540" y="440" width="120" height="4" rx="2" fill="#fafafa"/>
+</svg>

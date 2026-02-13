@@ -233,6 +233,105 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── Pricing Preview ── */}
+      <section className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
+        <div className="mb-14 text-center">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            {t("landing.pricingTitle")}
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-zinc-600 dark:text-zinc-400">
+            {t("landing.pricingSubtitle")}
+          </p>
+        </div>
+
+        <div className="grid gap-6 sm:grid-cols-3">
+          <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
+            <h3 className="text-lg font-semibold">{t("pricing.free")}</h3>
+            <div className="mt-2">
+              <span className="text-3xl font-bold">{t("pricing.freePrice")}</span>
+              <span className="text-sm text-zinc-500">{t("pricing.month")}</span>
+            </div>
+            <p className="mt-3 text-sm text-zinc-500 dark:text-zinc-400">
+              {t("landing.pricingFreeDesc")}
+            </p>
+          </div>
+
+          <div className="relative rounded-xl border-2 border-zinc-900 bg-white p-6 dark:border-zinc-100 dark:bg-zinc-950">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+              <span className="rounded-full bg-zinc-900 px-3 py-1 text-xs font-medium text-white dark:bg-zinc-100 dark:text-zinc-900">
+                {t("pricing.mostPopular")}
+              </span>
+            </div>
+            <h3 className="text-lg font-semibold">{t("pricing.pro")}</h3>
+            <div className="mt-2">
+              <span className="text-3xl font-bold">{t("pricing.proPrice")}</span>
+              <span className="text-sm text-zinc-500">{t("pricing.month")}</span>
+            </div>
+            <p className="mt-3 text-sm text-zinc-500 dark:text-zinc-400">
+              {t("landing.pricingProDesc")}
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
+            <h3 className="text-lg font-semibold">{t("pricing.business")}</h3>
+            <div className="mt-2">
+              <span className="text-3xl font-bold">{t("pricing.businessPrice")}</span>
+              <span className="text-sm text-zinc-500">{t("pricing.month")}</span>
+            </div>
+            <p className="mt-3 text-sm text-zinc-500 dark:text-zinc-400">
+              {t("landing.pricingBusinessDesc")}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 text-center">
+          <Link
+            href="/pricing"
+            className="inline-flex items-center gap-2 text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+          >
+            {t("landing.pricingViewAll")}
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </section>
+
+      {/* ── Testimonials ── */}
+      <section className="border-t border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50">
+        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
+          <div className="mb-14 text-center">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+              {t("landing.testimonialsTitle")}
+            </h2>
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950"
+              >
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  &ldquo;{t(`landing.testimonial${i}Quote`)}&rdquo;
+                </p>
+                <div className="mt-4 flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-100 text-sm font-bold text-zinc-500 dark:bg-zinc-800">
+                    {t(`landing.testimonial${i}Name`)[0]}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">
+                      {t(`landing.testimonial${i}Name`)}
+                    </p>
+                    <p className="text-xs text-zinc-500">
+                      {t(`landing.testimonial${i}Role`)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── Platform Logos ── */}
       <section className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6">
         <div className="mb-10 text-center">

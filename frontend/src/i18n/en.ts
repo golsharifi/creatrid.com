@@ -257,6 +257,16 @@ const en = {
     auditAdmin: "Admin",
     auditAction: "Action",
     auditTarget: "Target",
+    errorLog: "Error Log",
+    errorAllSources: "All Sources",
+    errorFrontend: "Frontend",
+    errorBackend: "Backend",
+    errorTime: "Time",
+    errorLevel: "Level",
+    errorSource: "Source",
+    errorMessage: "Message",
+    errorUrl: "URL",
+    errorNoEntries: "No errors recorded",
   },
 
   // Landing Page
@@ -337,6 +347,26 @@ const en = {
     faq4Q: "Can brands verify creators?",
     faq4A:
       "Absolutely. Brands and agencies can view any creator\u2019s public profile to see verified connections, Creator Score, and linked content \u2014 no login required.",
+
+    // Pricing Preview
+    pricingTitle: "Simple, transparent pricing",
+    pricingSubtitle: "Start free, upgrade when you need more power.",
+    pricingFreeDesc: "Perfect for getting started. Connect up to 3 platforms and build your Creator Score.",
+    pricingProDesc: "Unlimited connections, advanced analytics, custom themes, and API access.",
+    pricingBusinessDesc: "Everything in Pro plus bulk verification API, brand dashboard, and white-label embeds.",
+    pricingViewAll: "View all plans and features",
+
+    // Testimonials
+    testimonialsTitle: "Loved by creators",
+    testimonial1Quote: "Creatrid made it so easy to prove my identity to brands. I landed my first paid collab within a week.",
+    testimonial1Name: "Sarah K.",
+    testimonial1Role: "YouTube Creator",
+    testimonial2Quote: "The Creator Score is brilliant. Brands can instantly see I'm legit without me having to send screenshots of my analytics.",
+    testimonial2Name: "Marcus T.",
+    testimonial2Role: "Developer & Streamer",
+    testimonial3Quote: "One link for everything. I put my Creatrid profile in my bio and brands reach out to me now.",
+    testimonial3Name: "Priya M.",
+    testimonial3Role: "Design & Photography",
 
     // Final CTA
     ctaFinalHeadline: "Ready to prove who you are?",

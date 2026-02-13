@@ -1,0 +1,21 @@
+User-agent: *
+Allow: /
+Sitemap: https://creatrid.com/sitemap.xml
+
+Disallow: /dashboard
+Disallow: /settings
+Disallow: /connections
+Disallow: /analytics
+Disallow: /content-analytics
+Disallow: /admin
+Disallow: /billing
+Disallow: /vault
+Disallow: /earnings
+Disallow: /notifications
+Disallow: /webhooks
+Disallow: /referrals
+Disallow: /collaborations
+Disallow: /api-keys
+Disallow: /onboarding
+Disallow: /purchases
+Disallow: /collections

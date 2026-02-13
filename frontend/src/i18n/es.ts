@@ -255,6 +255,16 @@ const es = {
     auditAdmin: "Administrador",
     auditAction: "Accion",
     auditTarget: "Objetivo",
+    errorLog: "Registro de errores",
+    errorAllSources: "Todas las fuentes",
+    errorFrontend: "Frontend",
+    errorBackend: "Backend",
+    errorTime: "Hora",
+    errorLevel: "Nivel",
+    errorSource: "Fuente",
+    errorMessage: "Mensaje",
+    errorUrl: "URL",
+    errorNoEntries: "No se registraron errores",
   },
 
   // Landing Page
@@ -337,6 +347,26 @@ const es = {
       "Por supuesto. Las marcas y agencias pueden ver el perfil publico de cualquier creador para comprobar conexiones verificadas, Creator Score y contenido vinculado, sin necesidad de iniciar sesion.",
 
     // Final CTA
+    // Pricing Preview
+    pricingTitle: "Precios simples y transparentes",
+    pricingSubtitle: "Comienza gratis, mejora cuando necesites más potencia.",
+    pricingFreeDesc: "Perfecto para empezar. Conecta hasta 3 plataformas y construye tu Creator Score.",
+    pricingProDesc: "Conexiones ilimitadas, analíticas avanzadas, temas personalizados y acceso API.",
+    pricingBusinessDesc: "Todo en Pro más API de verificación masiva, panel de marca y widgets de marca blanca.",
+    pricingViewAll: "Ver todos los planes y características",
+
+    // Testimonials
+    testimonialsTitle: "Querido por los creadores",
+    testimonial1Quote: "Creatrid me facilitó probar mi identidad ante las marcas. Conseguí mi primera colaboración pagada en una semana.",
+    testimonial1Name: "Sarah K.",
+    testimonial1Role: "Creadora de YouTube",
+    testimonial2Quote: "El Creator Score es brillante. Las marcas pueden ver instantáneamente que soy legítimo sin tener que enviar capturas de mis analíticas.",
+    testimonial2Name: "Marcus T.",
+    testimonial2Role: "Desarrollador y Streamer",
+    testimonial3Quote: "Un enlace para todo. Puse mi perfil de Creatrid en mi bio y ahora las marcas me contactan.",
+    testimonial3Name: "Priya M.",
+    testimonial3Role: "Diseño y Fotografía",
+
     ctaFinalHeadline: "Listo para demostrar quien eres?",
     ctaFinalSubtext:
       "Unete a miles de creadores que usan Creatrid para generar confianza, ser descubiertos y conseguir colaboraciones.",

@@ -442,6 +442,29 @@ export const api = {
         }[];
       }>("/api/recommendations"),
   },
+  adminErrors: {
+    list: (source?: string, limit = 50, offset = 0) => {
+      const p = new URLSearchParams();
+      if (source) p.set("source", source);
+      p.set("limit", String(limit));
+      p.set("offset", String(offset));
+      return request<{
+        entries: {
+          id: number;
+          source: string;
+          level: string;
+          message: string;
+          stack: string | null;
+          url: string | null;
+          user_agent: string | null;
+          user_id: string | null;
+          metadata: any;
+          created_at: string;
+        }[];
+        total: number;
+      }>(`/api/admin/errors?${p.toString()}`);
+    },
+  },
   adminAudit: {
     list: (limit = 50, offset = 0) =>
       request<{

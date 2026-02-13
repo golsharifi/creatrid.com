@@ -49,7 +49,6 @@ type Config struct {
 	SMTPPassword string
 	SMTPFrom     string
 
-	SentryDSN        string
 	RefreshInterval  string
 
 	StripeSecretKey     string
@@ -94,7 +93,6 @@ func Load() (*Config, error) {
 		SMTPPassword: os.Getenv("SMTP_PASSWORD"),
 		SMTPFrom:     getEnv("SMTP_FROM", "noreply@creatrid.com"),
 
-		SentryDSN:       os.Getenv("SENTRY_DSN"),
 		RefreshInterval: getEnv("REFRESH_INTERVAL", "6h"),
 
 		StripeSecretKey:     os.Getenv("STRIPE_SECRET_KEY"),

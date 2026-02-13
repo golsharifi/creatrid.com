@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import { Users, BarChart3, Eye, MousePointerClick, Link2, CheckCircle, Shield, ClipboardList } from "lucide-react";
+import { Users, BarChart3, Eye, MousePointerClick, Link2, CheckCircle, Shield, ClipboardList, AlertTriangle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 type AdminStats = {
@@ -37,10 +37,14 @@ export default function AdminPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
-  const [activeTab, setActiveTab] = useState<"users" | "audit">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "audit" | "errors">("users");
   const [auditEntries, setAuditEntries] = useState<any[]>([]);
   const [auditTotal, setAuditTotal] = useState(0);
   const [auditPage, setAuditPage] = useState(0);
+  const [errorEntries, setErrorEntries] = useState<any[]>([]);
+  const [errorTotal, setErrorTotal] = useState(0);
+  const [errorPage, setErrorPage] = useState(0);
+  const [errorSource, setErrorSource] = useState("");
 
   useEffect(() => {
     if (!loading && !user) router.push("/sign-in");
@@ -76,6 +80,17 @@ export default function AdminPage() {
       });
     }
   }, [user, activeTab, auditPage]);
+
+  useEffect(() => {
+    if (user?.role === "ADMIN" && activeTab === "errors") {
+      api.adminErrors.list(errorSource || undefined, 50, errorPage * 50).then((r) => {
+        if (r.data) {
+          setErrorEntries(r.data.entries || []);
+          setErrorTotal(r.data.total);
+        }
+      });
+    }
+  }, [user, activeTab, errorPage, errorSource]);
 
   async function toggleVerified(userId: string, current: boolean) {
     const result = await api.admin.setVerified(userId, !current);
@@ -128,6 +143,13 @@ export default function AdminPage() {
           <ClipboardList className="mr-1.5 inline h-4 w-4" />
           {t("admin.auditLog")}
         </button>
+        <button
+          onClick={() => setActiveTab("errors")}
+          className={`border-b-2 px-4 py-2 text-sm font-medium ${activeTab === "errors" ? "border-zinc-900 text-zinc-900 dark:border-zinc-100 dark:text-zinc-100" : "border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"}`}
+        >
+          <AlertTriangle className="mr-1.5 inline h-4 w-4" />
+          {t("admin.errorLog")}
+        </button>
       </div>
 
       {/* Audit Log */}
@@ -165,6 +187,66 @@ export default function AdminPage() {
               <button onClick={() => setAuditPage((p) => Math.max(0, p - 1))} disabled={auditPage === 0} className="rounded-lg border border-zinc-200 px-3 py-1 text-xs font-medium disabled:opacity-50 dark:border-zinc-700">{t("common.previous")}</button>
               <span className="text-xs text-zinc-500">{t("common.page", { current: auditPage + 1, total: Math.ceil(auditTotal / 50) })}</span>
               <button onClick={() => setAuditPage((p) => p + 1)} disabled={(auditPage + 1) * 50 >= auditTotal} className="rounded-lg border border-zinc-200 px-3 py-1 text-xs font-medium disabled:opacity-50 dark:border-zinc-700">{t("common.next")}</button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Error Log */}
+      {activeTab === "errors" && (
+        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800">
+          <div className="flex items-center justify-between border-b border-zinc-200 px-6 py-4 dark:border-zinc-800">
+            <h2 className="font-semibold">{t("admin.errorLog")} ({errorTotal})</h2>
+            <select
+              value={errorSource}
+              onChange={(e) => { setErrorSource(e.target.value); setErrorPage(0); }}
+              className="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs dark:border-zinc-700 dark:bg-zinc-900"
+            >
+              <option value="">{t("admin.errorAllSources")}</option>
+              <option value="frontend">{t("admin.errorFrontend")}</option>
+              <option value="backend">{t("admin.errorBackend")}</option>
+            </select>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="border-b border-zinc-200 text-xs text-zinc-500 dark:border-zinc-800">
+                <tr>
+                  <th className="px-6 py-3 font-medium">{t("admin.errorTime")}</th>
+                  <th className="px-6 py-3 font-medium">{t("admin.errorLevel")}</th>
+                  <th className="px-6 py-3 font-medium">{t("admin.errorSource")}</th>
+                  <th className="px-6 py-3 font-medium">{t("admin.errorMessage")}</th>
+                  <th className="px-6 py-3 font-medium">{t("admin.errorUrl")}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+                {errorEntries.map((entry: any) => (
+                  <tr key={entry.id}>
+                    <td className="px-6 py-3 text-xs text-zinc-500 whitespace-nowrap">{new Date(entry.created_at).toLocaleString()}</td>
+                    <td className="px-6 py-3">
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                        entry.level === "error" ? "bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400" :
+                        entry.level === "warn" ? "bg-yellow-50 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400" :
+                        "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
+                      }`}>{entry.level}</span>
+                    </td>
+                    <td className="px-6 py-3 text-xs">{entry.source}</td>
+                    <td className="max-w-xs truncate px-6 py-3 text-xs" title={entry.message}>{entry.message}</td>
+                    <td className="max-w-[200px] truncate px-6 py-3 text-xs text-zinc-500" title={entry.url || ""}>{entry.url || "—"}</td>
+                  </tr>
+                ))}
+                {errorEntries.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-8 text-center text-sm text-zinc-500">{t("admin.errorNoEntries")}</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+          {errorTotal > 50 && (
+            <div className="flex items-center justify-between border-t border-zinc-200 px-6 py-3 dark:border-zinc-800">
+              <button onClick={() => setErrorPage((p) => Math.max(0, p - 1))} disabled={errorPage === 0} className="rounded-lg border border-zinc-200 px-3 py-1 text-xs font-medium disabled:opacity-50 dark:border-zinc-700">{t("common.previous")}</button>
+              <span className="text-xs text-zinc-500">{t("common.page", { current: errorPage + 1, total: Math.ceil(errorTotal / 50) })}</span>
+              <button onClick={() => setErrorPage((p) => p + 1)} disabled={(errorPage + 1) * 50 >= errorTotal} className="rounded-lg border border-zinc-200 px-3 py-1 text-xs font-medium disabled:opacity-50 dark:border-zinc-700">{t("common.next")}</button>
             </div>
           )}
         </div>
