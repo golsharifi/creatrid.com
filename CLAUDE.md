@@ -32,8 +32,10 @@ Verified digital identity platform for creators. Connect social accounts, build 
 
 | Resource | URL |
 |----------|-----|
-| Frontend | https://lemon-plant-0ae85c203.2.azurestaticapps.net |
-| Backend API | https://creatrid-api.bluewave-351c9003.westeurope.azurecontainerapps.io |
+| Frontend | https://creatrid.com |
+| Backend API | https://api.creatrid.com |
+| Frontend (Azure) | https://lemon-plant-0ae85c203.2.azurestaticapps.net |
+| Backend (Azure) | https://creatrid-api.bluewave-351c9003.westeurope.azurecontainerapps.io |
 | Database | creatrid-pg.postgres.database.azure.com |
 | Container Registry | creatridacr.azurecr.io |
 
