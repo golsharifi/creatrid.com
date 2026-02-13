@@ -92,42 +92,35 @@ func (h *TipHandler) Send(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if h.config.StripeSecretKey != "" {
-		// Real Stripe flow
-		params := &stripe.PaymentIntentParams{
-			Amount:   stripe.Int64(int64(req.AmountCents)),
-			Currency: stripe.String(string(stripe.CurrencyUSD)),
-		}
-		params.AddMetadata("type", "tip")
-		params.AddMetadata("tip_id", tipID)
-		params.AddMetadata("from_user_id", user.ID)
-		params.AddMetadata("to_user_id", req.ToUserID)
-
-		pi, err := paymentintent.New(params)
-		if err != nil {
-			log.Printf("Stripe payment intent error: %v", err)
-			_ = h.store.UpdateTipStatus(r.Context(), tipID, "failed", nil)
-			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Payment failed"})
-			return
-		}
-
-		// Auto-complete for simulated mode — in production, confirm via webhook
-		stripeID := pi.ID
-		_ = h.store.UpdateTipStatus(r.Context(), tipID, "completed", &stripeID)
-
-		writeJSON(w, http.StatusOK, map[string]interface{}{
-			"id":           tipID,
-			"clientSecret": pi.ClientSecret,
-		})
+	if h.config.StripeSecretKey == "" {
+		_ = h.store.UpdateTipStatus(r.Context(), tipID, "failed", nil)
+		writeJSON(w, http.StatusServiceUnavailable, map[string]string{"error": "Payment processing is not configured"})
 		return
 	}
 
-	// Simulated mode — immediately mark completed
-	_ = h.store.UpdateTipStatus(r.Context(), tipID, "completed", nil)
+	params := &stripe.PaymentIntentParams{
+		Amount:   stripe.Int64(int64(req.AmountCents)),
+		Currency: stripe.String(string(stripe.CurrencyUSD)),
+	}
+	params.AddMetadata("type", "tip")
+	params.AddMetadata("tip_id", tipID)
+	params.AddMetadata("from_user_id", user.ID)
+	params.AddMetadata("to_user_id", req.ToUserID)
+
+	pi, err := paymentintent.New(params)
+	if err != nil {
+		log.Printf("Stripe payment intent error: %v", err)
+		_ = h.store.UpdateTipStatus(r.Context(), tipID, "failed", nil)
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Payment failed"})
+		return
+	}
+
+	stripeID := pi.ID
+	_ = h.store.UpdateTipStatus(r.Context(), tipID, "completed", &stripeID)
 
 	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"id":        tipID,
-		"simulated": true,
+		"id":           tipID,
+		"clientSecret": pi.ClientSecret,
 	})
 }
 

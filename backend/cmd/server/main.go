@@ -151,7 +151,19 @@ func main() {
 	fanSubHandler := handler.NewFanSubscriptionHandler(st, cfg)
 
 	// Init blockchain anchor service
-	anchorSvc := blockchain.New(cfg.BlockchainRPCURL, cfg.BlockchainPrivateKey, cfg.BlockchainChainID)
+	var anchorSvc *blockchain.AnchorService
+	if cfg.BlockchainRPCURL != "" {
+		var err error
+		anchorSvc, err = blockchain.New(cfg.BlockchainRPCURL, cfg.BlockchainPrivateKey, cfg.BlockchainChainID)
+		if err != nil {
+			log.Printf("WARNING: Blockchain anchor service failed to initialize: %v", err)
+		} else {
+			confirmWorker := blockchain.NewConfirmationWorker(st, anchorSvc)
+			go confirmWorker.Start(context.Background())
+		}
+	} else {
+		log.Println("Blockchain anchoring disabled (BLOCKCHAIN_RPC_URL not set)")
+	}
 	blockchainHandler := handler.NewBlockchainHandler(st, anchorSvc)
 
 	// Init webhook dispatcher and delivery worker

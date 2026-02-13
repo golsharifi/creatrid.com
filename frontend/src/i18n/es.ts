@@ -874,7 +874,6 @@ const es = {
     verifyButton: "Verificar",
     notFound: "No se encontro anclaje en blockchain para este hash.",
     proofCertificate: "Certificado de Prueba",
-    simulated: "Simulado (testnet)",
     myAnchors: "Mi Contenido Anclado",
     noAnchors: "Sin contenido anclado aun.",
   },

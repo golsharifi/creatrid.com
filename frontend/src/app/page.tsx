@@ -419,8 +419,6 @@ export default function Home() {
             { abbr: "\ud835\udd4f", name: "Twitter / X" },
             { abbr: "in", name: "LinkedIn" },
             { abbr: "IG", name: "Instagram" },
-            { abbr: "Be", name: "Behance" },
-            { abbr: "Dr", name: "Dribbble" },
           ].map((platform) => (
             <div
               key={platform.name}

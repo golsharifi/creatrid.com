@@ -228,9 +228,9 @@ function VerifyContent() {
                     <span className="break-all rounded-lg bg-zinc-50 px-3 py-2 font-mono text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
                       {anchor.txHash}
                     </span>
-                    {anchor.chain === "polygon" && !anchor.txHash.startsWith("0x000000") && (
+                    {anchor.chain === "base" && (
                       <a
-                        href={`https://polygonscan.com/tx/${anchor.txHash}`}
+                        href={`https://basescan.org/tx/${anchor.txHash}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex-shrink-0 text-emerald-600 hover:text-emerald-700"
@@ -267,12 +267,6 @@ function VerifyContent() {
               </div>
             </dl>
 
-            {/* Simulated notice */}
-            {anchor.contractAddress === "0x0000000000000000000000000000000000000000" && (
-              <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300">
-                {t("blockchain.simulated")}
-              </div>
-            )}
           </div>
 
           {/* QR Code for sharing */}

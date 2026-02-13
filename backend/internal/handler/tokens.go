@@ -246,7 +246,7 @@ type purchaseTokenRequest struct {
 	Amount int `json:"amount"`
 }
 
-// Purchase buys tokens — creates Stripe payment intent or simulates if Stripe not configured.
+// Purchase buys tokens — creates a Stripe payment intent.
 func (h *TokenHandler) Purchase(w http.ResponseWriter, r *http.Request) {
 	user := middleware.UserFromContext(r.Context())
 	if user == nil {
@@ -285,53 +285,37 @@ func (h *TokenHandler) Purchase(w http.ResponseWriter, r *http.Request) {
 
 	totalCents := int64(token.PriceCents) * int64(req.Amount)
 
-	if h.config.StripeSecretKey != "" {
-		// Real Stripe flow
-		params := &stripe.PaymentIntentParams{
-			Amount:   stripe.Int64(totalCents),
-			Currency: stripe.String(string(stripe.CurrencyUSD)),
-		}
-		params.AddMetadata("type", "token_purchase")
-		params.AddMetadata("token_id", tokenID)
-		params.AddMetadata("buyer_user_id", user.ID)
-		params.AddMetadata("amount", strconv.Itoa(req.Amount))
-
-		pi, err := paymentintent.New(params)
-		if err != nil {
-			log.Printf("Stripe payment intent error: %v", err)
-			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Payment failed"})
-			return
-		}
-
-		// For simplicity, we auto-mint since we're using payment intents in test mode
-		// In production, you'd confirm the intent and mint on webhook confirmation
-		purchaseID := cuid2.Generate()
-		if err := h.store.MintTokens(r.Context(), tokenID, user.ID, req.Amount, "purchase", purchaseID); err != nil {
-			log.Printf("Failed to mint tokens: %v", err)
-			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Failed to mint tokens"})
-			return
-		}
-
-		writeJSON(w, http.StatusOK, map[string]interface{}{
-			"success":        true,
-			"clientSecret":   pi.ClientSecret,
-			"amountCents":    totalCents,
-			"tokensMinted":   req.Amount,
-		})
+	if h.config.StripeSecretKey == "" {
+		writeJSON(w, http.StatusServiceUnavailable, map[string]string{"error": "Payment processing is not configured"})
 		return
 	}
 
-	// Simulated mode — immediately mint tokens
+	params := &stripe.PaymentIntentParams{
+		Amount:   stripe.Int64(totalCents),
+		Currency: stripe.String(string(stripe.CurrencyUSD)),
+	}
+	params.AddMetadata("type", "token_purchase")
+	params.AddMetadata("token_id", tokenID)
+	params.AddMetadata("buyer_user_id", user.ID)
+	params.AddMetadata("amount", strconv.Itoa(req.Amount))
+
+	pi, err := paymentintent.New(params)
+	if err != nil {
+		log.Printf("Stripe payment intent error: %v", err)
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Payment failed"})
+		return
+	}
+
 	purchaseID := cuid2.Generate()
 	if err := h.store.MintTokens(r.Context(), tokenID, user.ID, req.Amount, "purchase", purchaseID); err != nil {
-		log.Printf("Failed to mint tokens (simulated): %v", err)
+		log.Printf("Failed to mint tokens: %v", err)
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Failed to mint tokens"})
 		return
 	}
 
 	writeJSON(w, http.StatusOK, map[string]interface{}{
 		"success":      true,
-		"simulated":    true,
+		"clientSecret": pi.ClientSecret,
 		"amountCents":  totalCents,
 		"tokensMinted": req.Amount,
 	})

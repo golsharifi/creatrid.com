@@ -33,6 +33,11 @@ func (h *BlockchainHandler) Anchor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if h.anchorSvc == nil {
+		writeJSON(w, http.StatusServiceUnavailable, map[string]string{"error": "Blockchain anchoring is not configured"})
+		return
+	}
+
 	contentID := chi.URLParam(r, "id")
 	if contentID == "" {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Content ID is required"})
@@ -67,8 +72,8 @@ func (h *BlockchainHandler) Anchor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Perform anchoring
-	txHash, blockNumber, contractAddress, err := h.anchorSvc.AnchorHash(item.HashSHA256)
+	// Submit transaction to blockchain
+	txHash, err := h.anchorSvc.AnchorHash(r.Context(), item.HashSHA256)
 	if err != nil {
 		log.Printf("Blockchain anchor error: %v", err)
 		writeJSON(w, http.StatusServiceUnavailable, map[string]string{"error": "Blockchain anchoring failed: " + err.Error()})
@@ -77,17 +82,14 @@ func (h *BlockchainHandler) Anchor(w http.ResponseWriter, r *http.Request) {
 
 	now := time.Now()
 	anchor := &store.ContentAnchor{
-		ID:              cuid2.Generate(),
-		ContentID:       contentID,
-		UserID:          user.ID,
-		ContentHash:     item.HashSHA256,
-		TxHash:          &txHash,
-		Chain:           "polygon",
-		BlockNumber:     &blockNumber,
-		ContractAddress: &contractAddress,
-		AnchorStatus:    "confirmed",
-		CreatedAt:       now,
-		ConfirmedAt:     &now,
+		ID:           cuid2.Generate(),
+		ContentID:    contentID,
+		UserID:       user.ID,
+		ContentHash:  item.HashSHA256,
+		TxHash:       &txHash,
+		Chain:        "base",
+		AnchorStatus: "pending",
+		CreatedAt:    now,
 	}
 
 	if err := h.store.CreateContentAnchor(r.Context(), anchor); err != nil {
@@ -97,8 +99,7 @@ func (h *BlockchainHandler) Anchor(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusCreated, map[string]interface{}{
-		"anchor":    anchor,
-		"simulated": h.anchorSvc.IsSimulated(),
+		"anchor": anchor,
 	})
 }
 
@@ -145,7 +146,6 @@ func (h *BlockchainHandler) VerifyByHash(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// Fetch the content item for additional context
 	item, err := h.store.FindContentItemByID(r.Context(), anchor.ContentID)
 	if err != nil {
 		log.Printf("Verify content lookup error: %v", err)

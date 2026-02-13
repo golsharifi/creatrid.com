@@ -880,7 +880,6 @@ const en = {
     verifyButton: "Verify",
     notFound: "No blockchain anchor found for this hash.",
     proofCertificate: "Proof Certificate",
-    simulated: "Simulated (testnet)",
     myAnchors: "My Anchored Content",
     noAnchors: "No anchored content yet.",
   },

@@ -81,14 +81,49 @@ func (s *Store) FindAnchorByTxHash(ctx context.Context, txHash string) (*Content
 	return &a, err
 }
 
-func (s *Store) UpdateAnchorStatus(ctx context.Context, id, status string, txHash *string, blockNumber *int64, contractAddress *string, confirmedAt *time.Time, errorMessage *string) error {
+func (s *Store) UpdateAnchorStatus(ctx context.Context, id, status string, errorMsg string, blockNumber int64, confirmedAt *time.Time) error {
+	var errPtr *string
+	if errorMsg != "" {
+		errPtr = &errorMsg
+	}
+	var blkPtr *int64
+	if blockNumber > 0 {
+		blkPtr = &blockNumber
+	}
 	_, err := s.pool.Exec(ctx,
 		`UPDATE content_anchors
-		 SET anchor_status = $1, tx_hash = $2, block_number = $3, contract_address = $4, confirmed_at = $5, error_message = $6
-		 WHERE id = $7`,
-		status, txHash, blockNumber, contractAddress, confirmedAt, errorMessage, id,
+		 SET anchor_status = $1, block_number = $2, confirmed_at = $3, error_message = $4
+		 WHERE id = $5`,
+		status, blkPtr, confirmedAt, errPtr, id,
 	)
 	return err
+}
+
+func (s *Store) ListPendingAnchors(ctx context.Context) ([]*ContentAnchor, error) {
+	rows, err := s.pool.Query(ctx,
+		`SELECT id, content_id, user_id, content_hash, tx_hash, chain, block_number, contract_address, anchor_status, error_message, created_at, confirmed_at
+		 FROM content_anchors
+		 WHERE anchor_status = 'pending'
+		 ORDER BY created_at ASC
+		 LIMIT 50`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var anchors []*ContentAnchor
+	for rows.Next() {
+		var a ContentAnchor
+		if err := rows.Scan(
+			&a.ID, &a.ContentID, &a.UserID, &a.ContentHash, &a.TxHash,
+			&a.Chain, &a.BlockNumber, &a.ContractAddress, &a.AnchorStatus,
+			&a.ErrorMessage, &a.CreatedAt, &a.ConfirmedAt,
+		); err != nil {
+			return nil, err
+		}
+		anchors = append(anchors, &a)
+	}
+	return anchors, nil
 }
 
 func (s *Store) ListAnchorsByUser(ctx context.Context, userID string, limit, offset int) ([]*ContentAnchor, int, error) {

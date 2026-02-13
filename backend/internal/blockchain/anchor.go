@@ -1,87 +1,177 @@
 package blockchain
 
 import (
-	"crypto/sha256"
+	"context"
+	"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
 	"log"
+	"math/big"
 	"time"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-// AnchorService handles blockchain anchoring of content hashes.
-// When rpcURL is empty, it operates in simulated mode.
+// AnchorService handles blockchain anchoring of content hashes on Base L2.
 type AnchorService struct {
-	rpcURL     string
-	privateKey string
-	chainID    string
-	simulated  bool
+	client     *ethclient.Client
+	privateKey *ecdsa.PrivateKey
+	fromAddr   common.Address
+	chainID    *big.Int
 }
 
-// New creates a new AnchorService. If rpcURL is empty, simulated mode is used.
-func New(rpcURL, privateKey, chainID string) *AnchorService {
-	if chainID == "" {
-		chainID = "137" // Polygon mainnet
+// New creates a new AnchorService connected to the given RPC endpoint.
+// Returns an error if the RPC URL or private key is missing/invalid.
+func New(rpcURL, privateKeyHex, chainIDStr string) (*AnchorService, error) {
+	if rpcURL == "" {
+		return nil, fmt.Errorf("BLOCKCHAIN_RPC_URL is required")
+	}
+	if privateKeyHex == "" {
+		return nil, fmt.Errorf("BLOCKCHAIN_PRIVATE_KEY is required")
 	}
 
-	simulated := rpcURL == ""
-	if !simulated {
-		log.Printf("Blockchain anchor service configured for chain %s (real anchoring not yet implemented, using simulation)", chainID)
-	} else {
-		log.Println("Blockchain anchor service running in simulated mode")
+	client, err := ethclient.Dial(rpcURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to RPC: %w", err)
 	}
+
+	privateKey, err := crypto.HexToECDSA(privateKeyHex)
+	if err != nil {
+		return nil, fmt.Errorf("invalid private key: %w", err)
+	}
+
+	chainID := big.NewInt(8453) // Base mainnet default
+	if chainIDStr != "" {
+		if _, ok := chainID.SetString(chainIDStr, 10); !ok {
+			return nil, fmt.Errorf("invalid chain ID: %s", chainIDStr)
+		}
+	}
+
+	fromAddr := crypto.PubkeyToAddress(privateKey.PublicKey)
+	log.Printf("Blockchain anchor service connected to chain %s, wallet %s", chainID.String(), fromAddr.Hex())
 
 	return &AnchorService{
-		rpcURL:     rpcURL,
+		client:     client,
 		privateKey: privateKey,
+		fromAddr:   fromAddr,
 		chainID:    chainID,
-		simulated:  simulated,
-	}
+	}, nil
 }
 
-// IsSimulated returns true if the service is operating in simulated mode.
-func (s *AnchorService) IsSimulated() bool {
-	return s.simulated
+// WalletAddress returns the service's wallet address.
+func (s *AnchorService) WalletAddress() string {
+	return s.fromAddr.Hex()
 }
 
-// AnchorHash anchors a content hash on the blockchain.
-// In simulated mode, it generates deterministic fake transaction data.
-// Returns txHash, blockNumber, contractAddress, and any error.
-func (s *AnchorService) AnchorHash(contentHash string) (txHash string, blockNumber int64, contractAddress string, err error) {
+// AnchorHash submits a content hash to the blockchain as transaction data.
+// Returns the tx hash immediately (transaction may still be pending).
+func (s *AnchorService) AnchorHash(ctx context.Context, contentHash string) (txHash string, err error) {
 	if s == nil {
-		return "", 0, "", fmt.Errorf("blockchain anchor service is not configured")
+		return "", fmt.Errorf("blockchain anchor service is not configured")
 	}
 
-	if !s.simulated {
-		// Real blockchain anchoring would happen here.
-		// For now, log and fall through to simulation.
-		log.Printf("Real blockchain anchoring requested for hash %s (falling back to simulation)", contentHash)
+	// Decode content hash to bytes for tx data
+	hashBytes, err := hex.DecodeString(contentHash)
+	if err != nil {
+		return "", fmt.Errorf("invalid content hash: %w", err)
 	}
 
-	// Simulated mode: generate deterministic transaction data
-	now := time.Now()
-	seed := contentHash + now.Format(time.RFC3339Nano) + "creatrid-anchor-salt"
-	hash := sha256.Sum256([]byte(seed))
-	txHash = "0x" + hex.EncodeToString(hash[:])[:64]
-	blockNumber = now.Unix()
-	contractAddress = "0x0000000000000000000000000000000000000000"
+	// Get nonce
+	nonce, err := s.client.PendingNonceAt(ctx, s.fromAddr)
+	if err != nil {
+		return "", fmt.Errorf("failed to get nonce: %w", err)
+	}
 
-	return txHash, blockNumber, contractAddress, nil
+	// Get gas price
+	gasPrice, err := s.client.SuggestGasPrice(ctx)
+	if err != nil {
+		return "", fmt.Errorf("failed to get gas price: %w", err)
+	}
+
+	// Create transaction: send 0 ETH to self with content hash as data
+	tx := types.NewTransaction(
+		nonce,
+		s.fromAddr,    // send to self
+		big.NewInt(0), // no value
+		50000,         // gas limit (21000 base + data cost + margin)
+		gasPrice,
+		hashBytes,
+	)
+
+	// Sign transaction
+	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(s.chainID), s.privateKey)
+	if err != nil {
+		return "", fmt.Errorf("failed to sign transaction: %w", err)
+	}
+
+	// Send transaction
+	if err := s.client.SendTransaction(ctx, signedTx); err != nil {
+		return "", fmt.Errorf("failed to send transaction: %w", err)
+	}
+
+	txHashHex := signedTx.Hash().Hex()
+	log.Printf("Blockchain anchor tx sent: %s (content hash: %s)", txHashHex, contentHash)
+
+	return txHashHex, nil
 }
 
-// VerifyAnchor verifies a transaction on the blockchain.
-// In simulated mode, this is a no-op that returns an error indicating
-// verification should be done via database lookup.
-func (s *AnchorService) VerifyAnchor(txHash string) (contentHash string, blockNumber int64, timestamp time.Time, err error) {
+// CheckTransaction checks if a transaction has been mined and returns block info.
+// Returns blockNumber, timestamp, and whether it's confirmed.
+func (s *AnchorService) CheckTransaction(ctx context.Context, txHashHex string) (blockNumber int64, timestamp time.Time, confirmed bool, err error) {
+	if s == nil {
+		return 0, time.Time{}, false, fmt.Errorf("blockchain anchor service is not configured")
+	}
+
+	receipt, err := s.client.TransactionReceipt(ctx, common.HexToHash(txHashHex))
+	if err != nil {
+		// Transaction not yet mined
+		return 0, time.Time{}, false, nil
+	}
+
+	if receipt.Status != types.ReceiptStatusSuccessful {
+		return 0, time.Time{}, false, fmt.Errorf("transaction reverted")
+	}
+
+	block, err := s.client.BlockByNumber(ctx, receipt.BlockNumber)
+	if err != nil {
+		return receipt.BlockNumber.Int64(), time.Time{}, true, nil
+	}
+
+	ts := time.Unix(int64(block.Time()), 0)
+	return receipt.BlockNumber.Int64(), ts, true, nil
+}
+
+// VerifyAnchor verifies a transaction on-chain and returns the data stored in it.
+func (s *AnchorService) VerifyAnchor(ctx context.Context, txHashHex string) (contentHash string, blockNumber int64, timestamp time.Time, err error) {
 	if s == nil {
 		return "", 0, time.Time{}, fmt.Errorf("blockchain anchor service is not configured")
 	}
 
-	if !s.simulated {
-		// Real blockchain verification would happen here.
-		log.Printf("Real blockchain verification requested for tx %s (not yet implemented)", txHash)
+	tx, isPending, err := s.client.TransactionByHash(ctx, common.HexToHash(txHashHex))
+	if err != nil {
+		return "", 0, time.Time{}, fmt.Errorf("transaction not found: %w", err)
+	}
+	if isPending {
+		return "", 0, time.Time{}, fmt.Errorf("transaction is still pending")
 	}
 
-	// In simulated mode, verification must be done via database lookup.
-	// The handler will look up the anchor by tx hash in the database.
-	return "", 0, time.Time{}, fmt.Errorf("on-chain verification not available in simulated mode; use database lookup")
+	contentHash = hex.EncodeToString(tx.Data())
+
+	receipt, err := s.client.TransactionReceipt(ctx, common.HexToHash(txHashHex))
+	if err != nil {
+		return contentHash, 0, time.Time{}, nil
+	}
+
+	blockNumber = receipt.BlockNumber.Int64()
+
+	block, err := s.client.BlockByNumber(ctx, receipt.BlockNumber)
+	if err != nil {
+		return contentHash, blockNumber, time.Time{}, nil
+	}
+
+	timestamp = time.Unix(int64(block.Time()), 0)
+	return contentHash, blockNumber, timestamp, nil
 }

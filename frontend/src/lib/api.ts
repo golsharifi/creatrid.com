@@ -536,7 +536,7 @@ export const api = {
   },
   blockchain: {
     anchor: (contentId: string) =>
-      request<{ anchor: any; simulated: boolean }>(`/api/content/${contentId}/anchor`, { method: "POST" }),
+      request<{ anchor: any }>(`/api/content/${contentId}/anchor`, { method: "POST" }),
     getAnchor: (contentId: string) =>
       request<{ anchor: any }>(`/api/content/${contentId}/anchor`),
     verify: (hash: string) =>
@@ -561,7 +561,7 @@ export const api = {
     transactions: (tokenId: string, limit = 20, offset = 0) =>
       request<{ transactions: any[]; total: number }>(`/api/tokens/${tokenId}/transactions?limit=${limit}&offset=${offset}`),
     purchase: (tokenId: string, amount: number) =>
-      request<{ success: boolean; simulated?: boolean; amountCents: number; tokensMinted: number }>(`/api/tokens/${tokenId}/purchase`, {
+      request<{ success: boolean; amountCents: number; tokensMinted: number }>(`/api/tokens/${tokenId}/purchase`, {
         method: "POST",
         body: JSON.stringify({ amount }),
       }),
@@ -570,7 +570,7 @@ export const api = {
   },
   tips: {
     send: (data: { toUserId: string; amountCents: number; message?: string }) =>
-      request<{ id: string; simulated?: boolean }>("/api/tips", {
+      request<{ id: string }>("/api/tips", {
         method: "POST",
         body: JSON.stringify(data),
       }),
