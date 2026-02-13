@@ -7,6 +7,10 @@ import { api } from "@/lib/api";
 import { DollarSign, Users, Activity, Send, Star, X } from "@/components/icons";
 import { useTranslation } from "react-i18next";
 
+// Feature flag: set to true to show advanced token UI (supply, holders count, transactions tab).
+// When false, tokens are presented as non-transferable support points (SEC-safe mode).
+const SHOW_ADVANCED_TOKEN_UI = false;
+
 type TokenData = {
   id: string;
   userId: string;
@@ -163,8 +167,8 @@ export default function TokensPage() {
 
   const tabs = [
     { key: "token" as const, label: t("tokens.title") },
-    { key: "holders" as const, label: t("tokens.holders") },
-    { key: "transactions" as const, label: t("tokens.transactions") },
+    ...(SHOW_ADVANCED_TOKEN_UI ? [{ key: "holders" as const, label: t("tokens.holders") }] : [{ key: "holders" as const, label: t("tokens.supporters") }]),
+    ...(SHOW_ADVANCED_TOKEN_UI ? [{ key: "transactions" as const, label: t("tokens.transactions") }] : []),
     { key: "tips" as const, label: t("tokens.tips") },
     { key: "fans" as const, label: t("tokens.fans") },
   ];
@@ -222,7 +226,7 @@ export default function TokensPage() {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium">{t("tokens.pricePerToken")} ($)</label>
+                <label className="mb-1 block text-sm font-medium">{SHOW_ADVANCED_TOKEN_UI ? t("tokens.pricePerToken") : t("tokens.supportAmount")} ($)</label>
                 <input
                   type="number"
                   value={createPrice}
@@ -291,11 +295,13 @@ export default function TokensPage() {
 
       {/* Token Overview Tab */}
       {activeTab === "token" && token && (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className={`grid gap-4 sm:grid-cols-2 ${SHOW_ADVANCED_TOKEN_UI ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
           <StatCard icon={Star} label={t("tokens.tokenName")} value={`${token.name} (${token.symbol})`} />
-          <StatCard icon={DollarSign} label={t("tokens.pricePerToken")} value={`$${(token.priceCents / 100).toFixed(2)}`} />
-          <StatCard icon={Activity} label={t("tokens.supply")} value={token.totalSupply} />
-          <StatCard icon={Users} label={t("tokens.holders")} value={holdersTotal || 0} />
+          <StatCard icon={DollarSign} label={SHOW_ADVANCED_TOKEN_UI ? t("tokens.pricePerToken") : t("tokens.supportAmount")} value={`$${(token.priceCents / 100).toFixed(2)}`} />
+          {SHOW_ADVANCED_TOKEN_UI && (
+            <StatCard icon={Activity} label={t("tokens.supply")} value={token.totalSupply} />
+          )}
+          <StatCard icon={Users} label={SHOW_ADVANCED_TOKEN_UI ? t("tokens.holders") : t("tokens.supporters")} value={holdersTotal || 0} />
         </div>
       )}
 

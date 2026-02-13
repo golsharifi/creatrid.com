@@ -134,7 +134,11 @@ func (h *TokenHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{"token": token})
+	resp := map[string]interface{}{"token": token}
+	if !h.config.TokensTransferable {
+		resp["disclaimer"] = "Support tokens are non-transferable digital items for showing appreciation to creators. They are not securities, investments, or financial instruments."
+	}
+	writeJSON(w, http.StatusOK, resp)
 }
 
 type updateTokenRequest struct {
@@ -313,12 +317,17 @@ func (h *TokenHandler) Purchase(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{
+	resp := map[string]interface{}{
 		"success":      true,
 		"clientSecret": pi.ClientSecret,
 		"amountCents":  totalCents,
-		"tokensMinted": req.Amount,
-	})
+	}
+	if h.config.TokensTransferable {
+		resp["tokensMinted"] = req.Amount
+	} else {
+		resp["supportPoints"] = req.Amount
+	}
+	writeJSON(w, http.StatusOK, resp)
 }
 
 // PublicToken returns a creator's token info by username.
@@ -337,5 +346,9 @@ func (h *TokenHandler) PublicToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{"token": token})
+	resp := map[string]interface{}{"token": token}
+	if !h.config.TokensTransferable {
+		resp["disclaimer"] = "Support tokens are non-transferable digital items for showing appreciation to creators. They are not securities, investments, or financial instruments."
+	}
+	writeJSON(w, http.StatusOK, resp)
 }

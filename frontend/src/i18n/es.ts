@@ -33,7 +33,7 @@ const es = {
     webhooks: "Webhooks",
     blog: "Blog",
     agency: "Agencia",
-    tokens: "Tokens",
+    tokens: "Soporte",
     verify: "Verificar",
     settings: "Ajustes",
     logout: "Cerrar sesion",
@@ -321,7 +321,7 @@ const es = {
     // Hero
     heroBadge: "La plataforma de la economia creativa",
     heroHeadline: "Tu Creator Passport.",
-    heroHeadlineAccent: "Construye. Demuestra. Gana.",
+    heroHeadlineAccent: "Construye. Demuestra. Crecer.",
     heroSubtext:
       "Conecta tus cuentas, construye una identidad verificada con un Creator Score, monetiza tu contenido con licencias respaldadas por blockchain y crece con analiticas en tiempo real — todo desde una sola plataforma.",
     ctaDashboard: "Ir al panel",
@@ -344,7 +344,7 @@ const es = {
     // How it Works
     howTitle: "Como funciona",
     howSubtitle:
-      "Cuatro pasos desde el registro hasta ganar — construye tu identidad de creador verificada y empieza a monetizar.",
+      "Cuatro pasos para construir tu identidad de creador verificada y comenzar a crecer.",
     step1Title: "Conecta tus cuentas",
     step1Desc:
       "Vincula tus perfiles de YouTube, GitHub, Twitter, LinkedIn, Instagram, Dribbble y Behance con un solo clic mediante OAuth.",
@@ -353,13 +353,13 @@ const es = {
       "Nuestro motor de puntuacion evalua la completitud de tu perfil, conexiones verificadas y alcance de audiencia en una escala de 0 a 100. Personaliza tu perfil publico con temas y enlaces.",
     step3Title: "Monetiza tu contenido",
     step3Desc:
-      "Sube a la Boveda de Contenido, configura licencias digitales, ancla la propiedad en blockchain, publica en el mercado y gana a traves de tokens y suscripciones de fans.",
+      "Sube a la Boveda de Contenido, configura licencias digitales, ancla la propiedad en blockchain, publica en el mercado y recibe soporte de fans y suscripciones.",
     step4Title: "Crece con datos",
     step4Desc:
       "Rastrea visitas al perfil, clics e ingresos por contenido con analiticas en tiempo real. Colabora con otros creadores y gestiona tu portafolio con herramientas de agencia.",
 
     // Feature Tabs
-    featuresTitle: "Todo lo que necesitas para construir, demostrar y ganar",
+    featuresTitle: "Todo lo que necesitas para construir, demostrar y crecer",
     featuresSubtitle:
       "Una plataforma completa para identidad, contenido, monetizacion, descubrimiento y analiticas.",
 
@@ -402,9 +402,9 @@ const es = {
     featMarketplaceTitle: "Mercado de Creadores",
     featMarketplaceDesc:
       "Pon tu contenido a la venta con licencias escalonadas. Los compradores descubren y compran licencias directamente.",
-    featTokensTitle: "Tokens de Creador",
+    featTokensTitle: "Soporte al Creador",
     featTokensDesc:
-      "Crea tu propio token social que los fans pueden comprar. Recibe propinas con mensajes personalizados de tus seguidores.",
+      "Permite que los fans apoyen tu trabajo directamente con propinas y puntos de soporte. Recibe mensajes de tus mayores seguidores.",
     featSubscriptionsTitle: "Suscripciones de Fans",
     featSubscriptionsDesc:
       "Ofrece tres niveles de suscripcion — Seguidor, Superfan y Patron — para ingresos recurrentes de fans.",
@@ -457,9 +457,9 @@ const es = {
     monetizationLicensingTitle: "Licencias digitales",
     monetizationLicensingDesc:
       "Configura licencias personales, comerciales, editoriales o de entrenamiento de IA con tus propios precios. Los compradores compran directamente.",
-    monetizationTokensTitle: "Tokens de Creador",
+    monetizationTokensTitle: "Soporte al Creador",
     monetizationTokensDesc:
-      "Lanza tu propio token social. Los fans compran tokens y envian propinas con mensajes personales para apoyar tu trabajo.",
+      "Configura el soporte directo de fans. Los seguidores envian propinas y compran puntos de soporte para mostrar su aprecio.",
     monetizationSubscriptionsTitle: "Suscripciones de Fans",
     monetizationSubscriptionsDesc:
       "Ofrece los niveles Seguidor, Superfan y Patron para ingresos recurrentes de tus fans mas dedicados.",
@@ -469,7 +469,7 @@ const es = {
     useCasesSubtitle: "Ya sea que crees, contrates o gestiones \u2014 Creatrid se adapta a tu flujo de trabajo.",
     useCaseCreatorsTitle: "Para Creadores",
     useCaseCreatorsDesc:
-      "Construye tu identidad verificada, aumenta tu Creator Score, monetiza contenido a traves de licencias y tokens, y rastrea todo con analiticas en tiempo real.",
+      "Construye tu identidad verificada, aumenta tu Creator Score, monetiza contenido a traves de licencias y soporte de fans, y rastrea todo con analiticas en tiempo real.",
     useCaseBrandsTitle: "Para Marcas",
     useCaseBrandsDesc:
       "Encuentra creadores verificados con metricas reales. Filtra por puntuacion, plataforma y nicho. Envia solicitudes de colaboracion y verifica identidades via API.",
@@ -505,13 +505,13 @@ const es = {
       "Explora la pagina Descubrir para encontrar creadores por puntuacion, plataforma o nicho. Envia una solicitud de colaboracion con un mensaje y el creador puede aceptar o rechazar desde su bandeja de entrada.",
     faq7Q: "Puedo monetizar mi contenido?",
     faq7A:
-      "Si. Sube tu trabajo a la Boveda de Contenido, configura ofertas de licencia (personal, comercial, editorial o entrenamiento de IA), publicalo en el mercado, crea tu propio token social y ofrece suscripciones de fans.",
+      "Si. Sube tu trabajo a la Boveda de Contenido, configura ofertas de licencia (personal, comercial, editorial o entrenamiento de IA), publicalo en el mercado, configura soporte al creador y ofrece suscripciones de fans.",
     faq8Q: "Como funciona el anclaje en blockchain?",
     faq8A:
       "Cuando subes contenido, Creatrid genera un hash SHA-256 de tu archivo. Luego puedes anclar ese hash en la blockchain Base L2, creando una prueba de propiedad inmutable y con marca de tiempo que cualquiera puede verificar.",
-    faq9Q: "Que son los Tokens de Creador?",
+    faq9Q: "Como funciona el soporte al creador?",
     faq9A:
-      "Los Tokens de Creador son tokens sociales que puedes crear y vender a tus fans. Los seguidores tambien pueden enviarte propinas con mensajes personales. Es una forma directa de ganar con tu comunidad.",
+      "Los fans pueden apoyar a los creadores directamente a traves de propinas, puntos de soporte y suscripciones. Es una forma directa de conectar con tu comunidad y recibir aprecio por tu trabajo.",
     faq10Q: "Puedo gestionar multiples creadores como agencia?",
     faq10A:
       "Si. Crea una cuenta de agencia para invitar y gestionar creadores, ver analiticas agregadas, rastrear el uso de la API y supervisar todo tu portafolio de creadores desde un solo panel.",
@@ -1014,10 +1014,10 @@ const es = {
 
   // Tokens
   tokens: {
-    title: "Tokens",
-    subtitle: "Crea tu token social, recibe propinas y gestiona suscripciones de fans.",
-    createToken: "Crear Token",
-    noToken: "Aun no has creado un token. Configura uno para empezar a ganar.",
+    title: "Soporte al Creador",
+    subtitle: "Configura el soporte al creador, recibe propinas y gestiona suscripciones de fans.",
+    createToken: "Configurar Soporte",
+    noToken: "Aun no has configurado el soporte al creador. Configuralo para que los fans apoyen tu trabajo.",
     tokenName: "Nombre del Token",
     tokenSymbol: "Simbolo",
     pricePerToken: "Precio por Token",
@@ -1044,8 +1044,10 @@ const es = {
     noSubscriptions: "Sin suscripciones aun.",
     cancelSubscription: "Cancelar",
     subscribe: "Suscribirse",
+    supportAmount: "Monto de Soporte",
+    supporters: "Seguidores",
     purchasing: "Comprando...",
-    purchaseTokens: "Comprar Tokens",
+    purchaseTokens: "Apoyar al Creador",
   },
 };
 

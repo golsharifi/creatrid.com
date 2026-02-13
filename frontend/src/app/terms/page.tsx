@@ -139,6 +139,79 @@ export default function TermsPage() {
             .
           </p>
         </section>
+
+        <section>
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+            12. Creator Support &amp; Tokens
+          </h2>
+          <p className="mt-2">
+            Support tokens available on the Service are digital items for showing
+            appreciation to creators. They are:
+          </p>
+          <ul className="mt-2 list-disc space-y-1 pl-5">
+            <li>NOT securities, investments, or financial instruments</li>
+            <li>NOT representative of equity, ownership, or rights to profits</li>
+            <li>NOT guaranteed to have any monetary value</li>
+            <li>Non-transferable between users</li>
+          </ul>
+          <p className="mt-2">
+            Creatrid does not operate a securities exchange. Support tokens cannot
+            be traded, resold, or transferred to other users. They exist solely as
+            a mechanism for fans to show appreciation to creators.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+            13. Content Licensing &amp; Marketplace
+          </h2>
+          <p className="mt-2">
+            License purchases on the marketplace grant specific usage rights as
+            described in each offering. A platform fee is deducted from each sale,
+            and creators receive the remainder. Revenue from sales is not
+            guaranteed. Creatrid acts as a marketplace facilitator, not a financial
+            advisor.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+            14. Earnings &amp; Payouts
+          </h2>
+          <p className="mt-2">
+            Creator earnings come from license sales, tips, and fan subscriptions.
+            Earnings are highly variable, and most creators earn nothing. No
+            minimum income is guaranteed. Payouts are processed through Stripe and
+            are subject to Stripe&apos;s terms of service. Creatrid does not hold
+            funds in escrow; payments are processed in real-time.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+            15. Blockchain Anchoring
+          </h2>
+          <p className="mt-2">
+            Blockchain anchoring provides a timestamped record of a content hash on
+            the Base L2 blockchain. It does NOT constitute legal copyright
+            registration. It does NOT replace filing with the U.S. Copyright Office
+            or equivalent authorities in other jurisdictions. Gas fees for anchoring
+            are covered by the platform.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+            16. Risk Disclaimer
+          </h2>
+          <p className="mt-2">
+            All monetary features on the Service (tips, subscriptions, licensing,
+            support tokens) involve financial risk. Past earnings of other creators
+            are not indicative of your future earnings. Creatrid is not a financial
+            advisor and does not provide investment advice. You should consult with
+            a qualified professional before making any financial decisions.
+          </p>
+        </section>
       </div>
     </div>
   );

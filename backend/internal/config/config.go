@@ -60,6 +60,8 @@ type Config struct {
 	BlockchainRPCURL     string
 	BlockchainPrivateKey string
 	BlockchainChainID    string
+
+	TokensTransferable bool
 }
 
 func Load() (*Config, error) {
@@ -109,6 +111,8 @@ func Load() (*Config, error) {
 		BlockchainRPCURL:     os.Getenv("BLOCKCHAIN_RPC_URL"),
 		BlockchainPrivateKey: os.Getenv("BLOCKCHAIN_PRIVATE_KEY"),
 		BlockchainChainID:    getEnv("BLOCKCHAIN_CHAIN_ID", "137"),
+
+		TokensTransferable: os.Getenv("TOKENS_TRANSFERABLE") == "true",
 	}
 
 	cfg.GoogleRedirect = cfg.BackendURL + "/api/auth/google/callback"

@@ -33,7 +33,7 @@ const en = {
     webhooks: "Webhooks",
     blog: "Blog",
     agency: "Agency",
-    tokens: "Tokens",
+    tokens: "Support",
     verify: "Verify",
     settings: "Settings",
     logout: "Logout",
@@ -323,7 +323,7 @@ const en = {
     // Hero
     heroBadge: "The Creator Economy Platform",
     heroHeadline: "Your Creator Passport.",
-    heroHeadlineAccent: "Build. Prove. Earn.",
+    heroHeadlineAccent: "Build. Prove. Grow.",
     heroSubtext:
       "Connect your accounts, build a verified identity with a Creator Score, monetize your content with blockchain-backed licensing, and grow with real-time analytics \u2014 all from one platform.",
     ctaDashboard: "Go to Dashboard",
@@ -346,7 +346,7 @@ const en = {
     // How it Works
     howTitle: "How it Works",
     howSubtitle:
-      "Four steps from sign-up to earning \u2014 build your verified creator identity and start monetizing.",
+      "Four steps to build your verified creator identity and start growing.",
     step1Title: "Connect your accounts",
     step1Desc:
       "Link your YouTube, GitHub, Twitter, LinkedIn, Instagram, Dribbble, and Behance profiles with one-click OAuth.",
@@ -355,13 +355,13 @@ const en = {
       "Our scoring engine evaluates your profile completeness, verified connections, and audience reach on a 0\u2013100 scale. Customize your public profile with themes and links.",
     step3Title: "Monetize your content",
     step3Desc:
-      "Upload to the Content Vault, set up digital licenses, anchor ownership on the blockchain, list on the marketplace, and earn through tokens and fan subscriptions.",
+      "Upload to the Content Vault, set up digital licenses, anchor ownership on the blockchain, list on the marketplace, and receive fan support and subscriptions.",
     step4Title: "Grow with data",
     step4Desc:
       "Track profile views, clicks, and content revenue with real-time analytics. Collaborate with other creators and manage your portfolio with agency tools.",
 
     // Feature Tabs
-    featuresTitle: "Everything you need to build, prove, and earn",
+    featuresTitle: "Everything you need to build, prove, and grow",
     featuresSubtitle:
       "A complete platform for identity, content, monetization, discovery, and analytics.",
 
@@ -404,9 +404,9 @@ const en = {
     featMarketplaceTitle: "Creator Marketplace",
     featMarketplaceDesc:
       "List your content for sale with tiered licensing. Buyers discover and purchase licenses directly.",
-    featTokensTitle: "Creator Tokens",
+    featTokensTitle: "Creator Support",
     featTokensDesc:
-      "Create your own social token that fans can purchase. Receive tips with custom messages from supporters.",
+      "Let fans support your work directly with tips and support points. Receive messages from your biggest supporters.",
     featSubscriptionsTitle: "Fan Subscriptions",
     featSubscriptionsDesc:
       "Offer three subscription tiers \u2014 Supporter, Superfan, and Patron \u2014 for recurring fan revenue.",
@@ -459,9 +459,9 @@ const en = {
     monetizationLicensingTitle: "Digital Licensing",
     monetizationLicensingDesc:
       "Set up personal, commercial, editorial, or AI training licenses with your own pricing. Buyers purchase directly.",
-    monetizationTokensTitle: "Creator Tokens",
+    monetizationTokensTitle: "Creator Support",
     monetizationTokensDesc:
-      "Launch your own social token. Fans buy tokens and send tips with personal messages to support your work.",
+      "Set up direct fan support. Supporters send tips and purchase support points to show their appreciation.",
     monetizationSubscriptionsTitle: "Fan Subscriptions",
     monetizationSubscriptionsDesc:
       "Offer Supporter, Superfan, and Patron tiers for recurring revenue from your most dedicated fans.",
@@ -471,7 +471,7 @@ const en = {
     useCasesSubtitle: "Whether you create, hire, or manage \u2014 Creatrid fits your workflow.",
     useCaseCreatorsTitle: "For Creators",
     useCaseCreatorsDesc:
-      "Build your verified identity, grow your Creator Score, monetize content through licensing and tokens, and track everything with real-time analytics.",
+      "Build your verified identity, grow your Creator Score, monetize content through licensing and fan support, and track everything with real-time analytics.",
     useCaseBrandsTitle: "For Brands",
     useCaseBrandsDesc:
       "Find verified creators with real metrics. Filter by score, platform, and niche. Send collaboration requests and verify identities via API.",
@@ -507,13 +507,13 @@ const en = {
       "Browse the Discover page to find creators by score, platform, or niche. Send a collaboration request with a message, and the creator can accept or decline from their inbox.",
     faq7Q: "Can I monetize my content?",
     faq7A:
-      "Yes. Upload your work to the Content Vault, set up license offerings (personal, commercial, editorial, or AI training), list it on the marketplace, create your own social token, and offer fan subscriptions.",
+      "Yes. Upload your work to the Content Vault, set up license offerings (personal, commercial, editorial, or AI training), list it on the marketplace, set up creator support, and offer fan subscriptions.",
     faq8Q: "How does blockchain anchoring work?",
     faq8A:
       "When you upload content, Creatrid generates a SHA-256 hash of your file. You can then anchor that hash on the Base L2 blockchain, creating an immutable, timestamped proof of ownership that anyone can verify.",
-    faq9Q: "What are Creator Tokens?",
+    faq9Q: "How does creator support work?",
     faq9A:
-      "Creator Tokens are social tokens you can create and sell to fans. Supporters can also send you tips with personal messages. It is a direct way to earn from your community.",
+      "Fans can support creators directly through tips, support points, and subscriptions. It is a direct way to connect with your community and receive appreciation for your work.",
     faq10Q: "Can I manage multiple creators as an agency?",
     faq10A:
       "Yes. Create an agency account to invite and manage creators, view aggregate analytics, track API usage, and oversee your entire creator portfolio from one dashboard.",
@@ -1020,13 +1020,15 @@ const en = {
 
   // Tokens
   tokens: {
-    title: "Tokens",
-    subtitle: "Create your social token, receive tips, and manage fan subscriptions.",
-    createToken: "Create Token",
-    noToken: "You haven't created a token yet. Set one up to start earning.",
+    title: "Creator Support",
+    subtitle: "Set up creator support, receive tips, and manage fan subscriptions.",
+    createToken: "Set Up Support",
+    noToken: "You haven't set up creator support yet. Set one up to let fans support your work.",
     tokenName: "Token Name",
     tokenSymbol: "Symbol",
     pricePerToken: "Price per Token",
+    supportAmount: "Support Amount",
+    supporters: "Supporters",
     description: "Description",
     supply: "Total Supply",
     holders: "Holders",
@@ -1051,7 +1053,7 @@ const en = {
     cancelSubscription: "Cancel",
     subscribe: "Subscribe",
     purchasing: "Purchasing...",
-    purchaseTokens: "Purchase Tokens",
+    purchaseTokens: "Support Creator",
   },
 };
 
