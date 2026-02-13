@@ -25,6 +25,7 @@ function EarningsContent() {
   const [payouts, setPayouts] = useState<Payout[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [connecting, setConnecting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) router.push("/sign-in");
@@ -41,16 +42,22 @@ function EarningsContent() {
       if (dashRes.data) setDashboard(dashRes.data as any);
       if (payoutsRes.data) setPayouts((payoutsRes.data as any).payouts ?? []);
       setLoadingData(false);
+    }).catch(() => {
+      setLoadingData(false);
     });
   }, [user]);
 
   const handleConnect = async () => {
     setConnecting(true);
+    setError(null);
     const result = await api.payouts.connect();
-    if (result.data) {
+    if (result.data && (result.data as any).url) {
       window.location.href = (result.data as any).url;
+    } else {
+      const errMsg = (result as any).error?.error || (result as any).error || "Failed to start Stripe Connect onboarding";
+      setError(typeof errMsg === "string" ? errMsg : JSON.stringify(errMsg));
+      setConnecting(false);
     }
-    setConnecting(false);
   };
 
   if (loading || !user) return null;
@@ -86,6 +93,9 @@ function EarningsContent() {
                     <ExternalLink className="h-4 w-4" />
                     {connecting ? t("common.loading") : t("earnings.connectButton")}
                   </button>
+                  {error && (
+                    <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>
+                  )}
                 </div>
               </div>
             </div>
