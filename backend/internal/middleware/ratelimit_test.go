@@ -16,7 +16,8 @@ func TestRateLimiter_Allow(t *testing.T) {
 		}
 
 		for i := 0; i < 5; i++ {
-			if !rl.allow("192.168.1.1") {
+			allowed, _, _ := rl.allow("192.168.1.1")
+			if !allowed {
 				t.Errorf("request %d should be allowed within burst capacity", i+1)
 			}
 		}
@@ -31,13 +32,15 @@ func TestRateLimiter_Allow(t *testing.T) {
 
 		// Use all burst tokens
 		for i := 0; i < 3; i++ {
-			if !rl.allow("192.168.1.1") {
+			allowed, _, _ := rl.allow("192.168.1.1")
+			if !allowed {
 				t.Fatalf("request %d should be allowed within burst", i+1)
 			}
 		}
 
 		// Next request should be rejected
-		if rl.allow("192.168.1.1") {
+		allowed, _, _ := rl.allow("192.168.1.1")
+		if allowed {
 			t.Error("request after burst exhaustion should be denied")
 		}
 	})
@@ -55,7 +58,8 @@ func TestRateLimiter_Allow(t *testing.T) {
 		}
 
 		// Should be denied now
-		if rl.allow("192.168.1.1") {
+		allowed, _, _ := rl.allow("192.168.1.1")
+		if allowed {
 			t.Fatal("should be denied after exhausting burst")
 		}
 
@@ -66,7 +70,8 @@ func TestRateLimiter_Allow(t *testing.T) {
 		rl.mu.Unlock()
 
 		// Should be allowed again after refill
-		if !rl.allow("192.168.1.1") {
+		allowed, _, _ = rl.allow("192.168.1.1")
+		if !allowed {
 			t.Error("should be allowed after tokens refill")
 		}
 	})
@@ -82,15 +87,18 @@ func TestRateLimiter_Allow(t *testing.T) {
 		for i := 0; i < 2; i++ {
 			rl.allow("10.0.0.1")
 		}
-		if rl.allow("10.0.0.1") {
+		allowed, _, _ := rl.allow("10.0.0.1")
+		if allowed {
 			t.Error("IP1 should be denied after exhaustion")
 		}
 
 		// IP2 should still have full burst
-		if !rl.allow("10.0.0.2") {
+		allowed2, _, _ := rl.allow("10.0.0.2")
+		if !allowed2 {
 			t.Error("IP2 should be allowed - separate bucket")
 		}
-		if !rl.allow("10.0.0.2") {
+		allowed3, _, _ := rl.allow("10.0.0.2")
+		if !allowed3 {
 			t.Error("IP2 second request should still be allowed")
 		}
 	})
@@ -112,20 +120,23 @@ func TestRateLimiter_Allow(t *testing.T) {
 		rl.mu.Unlock()
 
 		// Should be allowed (tokens refilled to burst cap)
-		if !rl.allow("192.168.1.1") {
+		allowed, _, _ := rl.allow("192.168.1.1")
+		if !allowed {
 			t.Error("should be allowed after long idle")
 		}
 
 		// Tokens should be capped at burst (5), so we can make burst-1 more requests
 		// (we just consumed 1 above)
 		for i := 0; i < 4; i++ {
-			if !rl.allow("192.168.1.1") {
+			a, _, _ := rl.allow("192.168.1.1")
+			if !a {
 				t.Errorf("request %d after refill should be allowed", i+1)
 			}
 		}
 
 		// Now should be denied (5 tokens used)
-		if rl.allow("192.168.1.1") {
+		denied, _, _ := rl.allow("192.168.1.1")
+		if denied {
 			t.Error("should be denied after using all burst tokens")
 		}
 	})
