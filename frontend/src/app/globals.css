@@ -10,11 +10,29 @@
 :root {
   --background: #ffffff;
   --foreground: #09090b;
+  --chart-stroke: #18181b;
+  --chart-fill: #3f3f46;
+  --chart-bar: #52525b;
+  --chart-bar-alt: #71717a;
+  --chart-tick: #71717a;
+  --chart-gradient: #18181b;
+  --tooltip-bg: #ffffff;
+  --tooltip-border: #e4e4e7;
+  --tooltip-text: #18181b;
 }
 
 .dark {
   --background: #09090b;
   --foreground: #fafafa;
+  --chart-stroke: #d4d4d8;
+  --chart-fill: #a1a1aa;
+  --chart-bar: #a1a1aa;
+  --chart-bar-alt: #d4d4d8;
+  --chart-tick: #a1a1aa;
+  --chart-gradient: #d4d4d8;
+  --tooltip-bg: #18181b;
+  --tooltip-border: #3f3f46;
+  --tooltip-text: #fafafa;
 }
 
 body {

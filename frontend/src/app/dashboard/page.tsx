@@ -12,6 +12,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { CopyLinkButton, ShareTwitterButton, ShareLinkedInButton } from "@/components/share-buttons";
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { useTranslation } from "react-i18next";
+import { useChartColors } from "@/lib/use-chart-colors";
 
 const PROFILE_BASE_URL =
   process.env.NEXT_PUBLIC_PROFILE_URL || "https://creatrid.com";
@@ -41,6 +42,7 @@ function DashboardContent() {
   const [recentNotifications, setRecentNotifications] = useState<any[]>([]);
   const [copiedProfile, setCopiedProfile] = useState(false);
   const [connections, setConnections] = useState<any[]>([]);
+  const chartColors = useChartColors();
 
   const profileUrl = user?.username
     ? `${PROFILE_BASE_URL}/profile?u=${user.username}`
@@ -331,25 +333,25 @@ function DashboardContent() {
                 <AreaChart data={analytics.viewsByDay.slice(-7)}>
                   <defs>
                     <linearGradient id="viewsGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#18181b" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#18181b" stopOpacity={0} />
+                      <stop offset="5%" stopColor={chartColors.gradient} stopOpacity={0.3} />
+                      <stop offset="95%" stopColor={chartColors.gradient} stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <XAxis
                     dataKey="date"
-                    tick={{ fontSize: 10, fill: "#71717a" }}
+                    tick={{ fontSize: 10, fill: chartColors.tick }}
                     tickFormatter={(d: string) => new Date(d).toLocaleDateString(undefined, { weekday: "short" })}
                     axisLine={false}
                     tickLine={false}
                   />
                   <Tooltip
                     labelFormatter={(d) => new Date(String(d)).toLocaleDateString()}
-                    contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #e4e4e7" }}
+                    contentStyle={{ fontSize: 12, borderRadius: 8, backgroundColor: chartColors.tooltipBg, border: `1px solid ${chartColors.tooltipBorder}`, color: chartColors.tooltipText }}
                   />
                   <Area
                     type="monotone"
                     dataKey="count"
-                    stroke="#18181b"
+                    stroke={chartColors.stroke}
                     fill="url(#viewsGradient)"
                     strokeWidth={2}
                   />

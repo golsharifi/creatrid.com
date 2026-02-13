@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { useTranslation } from "react-i18next";
 import { Eye, MousePointerClick, TrendingUp, CalendarDays, Download } from "@/components/icons";
+import { useChartColors } from "@/lib/use-chart-colors";
 import {
   LineChart,
   Line,
@@ -71,6 +72,7 @@ export default function AnalyticsPage() {
   const { t } = useTranslation();
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [fetching, setFetching] = useState(true);
+  const chartColors = useChartColors();
 
   useEffect(() => {
     if (!loading && !user) router.push("/sign-in");
@@ -190,16 +192,17 @@ export default function AnalyticsPage() {
                 <Tooltip
                   labelFormatter={formatDateLabel}
                   contentStyle={{
-                    backgroundColor: "var(--tooltip-bg, #fff)",
-                    border: "1px solid var(--tooltip-border, #e4e4e7)",
+                    backgroundColor: chartColors.tooltipBg,
+                    border: `1px solid ${chartColors.tooltipBorder}`,
                     borderRadius: "8px",
                     fontSize: "12px",
+                    color: chartColors.tooltipText,
                   }}
                 />
                 <Line
                   type="monotone"
                   dataKey="count"
-                  stroke="#3f3f46"
+                  stroke={chartColors.stroke}
                   strokeWidth={2}
                   dot={false}
                   activeDot={{ r: 4 }}
@@ -235,16 +238,17 @@ export default function AnalyticsPage() {
                 <Tooltip
                   labelFormatter={formatDateLabel}
                   contentStyle={{
-                    backgroundColor: "var(--tooltip-bg, #fff)",
-                    border: "1px solid var(--tooltip-border, #e4e4e7)",
+                    backgroundColor: chartColors.tooltipBg,
+                    border: `1px solid ${chartColors.tooltipBorder}`,
                     borderRadius: "8px",
                     fontSize: "12px",
+                    color: chartColors.tooltipText,
                   }}
                 />
                 <Line
                   type="monotone"
                   dataKey="count"
-                  stroke="#3f3f46"
+                  stroke={chartColors.stroke}
                   strokeWidth={2}
                   dot={false}
                   activeDot={{ r: 4 }}
@@ -285,13 +289,14 @@ export default function AnalyticsPage() {
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "var(--tooltip-bg, #fff)",
-                    border: "1px solid var(--tooltip-border, #e4e4e7)",
+                    backgroundColor: chartColors.tooltipBg,
+                    border: `1px solid ${chartColors.tooltipBorder}`,
                     borderRadius: "8px",
                     fontSize: "12px",
+                    color: chartColors.tooltipText,
                   }}
                 />
-                <Bar dataKey="count" fill="#52525b" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="count" fill={chartColors.bar} radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -323,13 +328,14 @@ export default function AnalyticsPage() {
                 <Tooltip
                   labelFormatter={formatHourLabel}
                   contentStyle={{
-                    backgroundColor: "var(--tooltip-bg, #fff)",
-                    border: "1px solid var(--tooltip-border, #e4e4e7)",
+                    backgroundColor: chartColors.tooltipBg,
+                    border: `1px solid ${chartColors.tooltipBorder}`,
                     borderRadius: "8px",
                     fontSize: "12px",
+                    color: chartColors.tooltipText,
                   }}
                 />
-                <Bar dataKey="count" fill="#52525b" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="count" fill={chartColors.bar} radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -401,16 +407,17 @@ export default function AnalyticsPage() {
                   {data.deviceBreakdown.map((entry) => (
                     <Cell
                       key={entry.deviceType}
-                      fill={DEVICE_COLORS[entry.deviceType.toLowerCase()] || "#71717a"}
+                      fill={DEVICE_COLORS[entry.deviceType.toLowerCase()] || chartColors.barAlt}
                     />
                   ))}
                 </Pie>
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "var(--tooltip-bg, #fff)",
-                    border: "1px solid var(--tooltip-border, #e4e4e7)",
+                    backgroundColor: chartColors.tooltipBg,
+                    border: `1px solid ${chartColors.tooltipBorder}`,
                     borderRadius: "8px",
                     fontSize: "12px",
+                    color: chartColors.tooltipText,
                   }}
                 />
                 <Legend />
@@ -446,10 +453,11 @@ export default function AnalyticsPage() {
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "var(--tooltip-bg, #fff)",
-                    border: "1px solid var(--tooltip-border, #e4e4e7)",
+                    backgroundColor: chartColors.tooltipBg,
+                    border: `1px solid ${chartColors.tooltipBorder}`,
                     borderRadius: "8px",
                     fontSize: "12px",
+                    color: chartColors.tooltipText,
                   }}
                 />
                 <Bar dataKey="count" fill="#6366f1" radius={[0, 4, 4, 0]} />
@@ -485,10 +493,11 @@ export default function AnalyticsPage() {
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "var(--tooltip-bg, #fff)",
-                    border: "1px solid var(--tooltip-border, #e4e4e7)",
+                    backgroundColor: chartColors.tooltipBg,
+                    border: `1px solid ${chartColors.tooltipBorder}`,
                     borderRadius: "8px",
                     fontSize: "12px",
+                    color: chartColors.tooltipText,
                   }}
                 />
                 <Bar dataKey="count" fill="#14b8a6" radius={[0, 4, 4, 0]} />
