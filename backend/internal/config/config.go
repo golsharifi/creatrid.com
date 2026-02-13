@@ -56,6 +56,10 @@ type Config struct {
 	StripeWebhookSecret string
 	StripePricePro      string
 	StripePriceBusiness string
+
+	BlockchainRPCURL     string
+	BlockchainPrivateKey string
+	BlockchainChainID    string
 }
 
 func Load() (*Config, error) {
@@ -92,7 +96,7 @@ func Load() (*Config, error) {
 		SMTPPort:     getEnv("SMTP_PORT", "587"),
 		SMTPUsername: os.Getenv("SMTP_USERNAME"),
 		SMTPPassword: os.Getenv("SMTP_PASSWORD"),
-		SMTPFrom:     getEnv("SMTP_FROM", "noreply@creatrid.com"),
+		SMTPFrom:     getEnv("SMTP_FROM", "info@creatrid.com"),
 
 		RefreshInterval: getEnv("REFRESH_INTERVAL", "6h"),
 		MaxMindDBPath:   os.Getenv("MAXMIND_DB_PATH"),
@@ -101,6 +105,10 @@ func Load() (*Config, error) {
 		StripeWebhookSecret: os.Getenv("STRIPE_WEBHOOK_SECRET"),
 		StripePricePro:      os.Getenv("STRIPE_PRICE_PRO"),
 		StripePriceBusiness: os.Getenv("STRIPE_PRICE_BUSINESS"),
+
+		BlockchainRPCURL:     os.Getenv("BLOCKCHAIN_RPC_URL"),
+		BlockchainPrivateKey: os.Getenv("BLOCKCHAIN_PRIVATE_KEY"),
+		BlockchainChainID:    getEnv("BLOCKCHAIN_CHAIN_ID", "137"),
 	}
 
 	cfg.GoogleRedirect = cfg.BackendURL + "/api/auth/google/callback"

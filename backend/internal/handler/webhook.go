@@ -165,6 +165,54 @@ func (h *WebhookHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]bool{"success": true})
 }
 
+func (h *WebhookHandler) RetryDelivery(w http.ResponseWriter, r *http.Request) {
+	user := middleware.UserFromContext(r.Context())
+	if user == nil {
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "Not authenticated"})
+		return
+	}
+
+	endpointID := chi.URLParam(r, "id")
+	ep, err := h.store.FindWebhookEndpointByID(r.Context(), endpointID)
+	if err != nil || ep == nil {
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": "Webhook not found"})
+		return
+	}
+	if ep.UserID != user.ID {
+		writeJSON(w, http.StatusForbidden, map[string]string{"error": "Not authorized"})
+		return
+	}
+
+	deliveryIDStr := chi.URLParam(r, "deliveryId")
+	deliveryID, err := strconv.ParseInt(deliveryIDStr, 10, 64)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Invalid delivery ID"})
+		return
+	}
+
+	delivery, err := h.store.FindWebhookDeliveryByID(r.Context(), deliveryID)
+	if err != nil || delivery == nil {
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": "Delivery not found"})
+		return
+	}
+	if delivery.EndpointID != endpointID {
+		writeJSON(w, http.StatusForbidden, map[string]string{"error": "Delivery does not belong to this endpoint"})
+		return
+	}
+
+	if delivery.Status != "failed" && delivery.Status != "dead" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Only failed or dead deliveries can be retried"})
+		return
+	}
+
+	if err := h.store.ResetDeliveryForRetry(r.Context(), deliveryID); err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Failed to retry delivery"})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]bool{"success": true})
+}
+
 func (h *WebhookHandler) Deliveries(w http.ResponseWriter, r *http.Request) {
 	user := middleware.UserFromContext(r.Context())
 	if user == nil {

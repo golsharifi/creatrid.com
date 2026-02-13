@@ -27,6 +27,10 @@ type WebhookDelivery struct {
 	ResponseBody   *string          `json:"responseBody"`
 	DeliveredAt    *time.Time       `json:"deliveredAt"`
 	CreatedAt      time.Time        `json:"createdAt"`
+	Attempts       int              `json:"attempts"`
+	MaxAttempts    int              `json:"maxAttempts"`
+	NextRetryAt    *time.Time       `json:"nextRetryAt"`
+	Status         string           `json:"status"`
 }
 
 func (s *Store) CreateWebhookEndpoint(ctx context.Context, ep *WebhookEndpoint) error {
@@ -140,7 +144,8 @@ func (s *Store) ListWebhookDeliveries(ctx context.Context, endpointID string, li
 	}
 
 	rows, err := s.pool.Query(ctx,
-		`SELECT id, endpoint_id, event_type, payload, response_status, response_body, delivered_at, created_at
+		`SELECT id, endpoint_id, event_type, payload, response_status, response_body, delivered_at, created_at,
+		        COALESCE(attempts, 0), COALESCE(max_attempts, 5), next_retry_at, COALESCE(status, 'pending')
 		 FROM webhook_deliveries WHERE endpoint_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3`,
 		endpointID, limit, offset,
 	)
@@ -152,7 +157,7 @@ func (s *Store) ListWebhookDeliveries(ctx context.Context, endpointID string, li
 	var deliveries []*WebhookDelivery
 	for rows.Next() {
 		var d WebhookDelivery
-		if err := rows.Scan(&d.ID, &d.EndpointID, &d.EventType, &d.Payload, &d.ResponseStatus, &d.ResponseBody, &d.DeliveredAt, &d.CreatedAt); err != nil {
+		if err := rows.Scan(&d.ID, &d.EndpointID, &d.EventType, &d.Payload, &d.ResponseStatus, &d.ResponseBody, &d.DeliveredAt, &d.CreatedAt, &d.Attempts, &d.MaxAttempts, &d.NextRetryAt, &d.Status); err != nil {
 			return nil, 0, err
 		}
 		deliveries = append(deliveries, &d)
@@ -161,4 +166,82 @@ func (s *Store) ListWebhookDeliveries(ctx context.Context, endpointID string, li
 		deliveries = []*WebhookDelivery{}
 	}
 	return deliveries, total, nil
+}
+
+// ListPendingDeliveries fetches deliveries that are ready for dispatch.
+func (s *Store) ListPendingDeliveries(ctx context.Context, limit int) ([]*WebhookDelivery, error) {
+	rows, err := s.pool.Query(ctx,
+		`SELECT id, endpoint_id, event_type, payload, response_status, response_body, delivered_at, created_at,
+		        COALESCE(attempts, 0), COALESCE(max_attempts, 5), next_retry_at, COALESCE(status, 'pending')
+		 FROM webhook_deliveries
+		 WHERE COALESCE(status, 'pending') = 'pending'
+		   AND (next_retry_at IS NULL OR next_retry_at <= NOW())
+		 ORDER BY created_at ASC
+		 LIMIT $1`, limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var deliveries []*WebhookDelivery
+	for rows.Next() {
+		var d WebhookDelivery
+		if err := rows.Scan(&d.ID, &d.EndpointID, &d.EventType, &d.Payload, &d.ResponseStatus, &d.ResponseBody, &d.DeliveredAt, &d.CreatedAt, &d.Attempts, &d.MaxAttempts, &d.NextRetryAt, &d.Status); err != nil {
+			return nil, err
+		}
+		deliveries = append(deliveries, &d)
+	}
+	return deliveries, nil
+}
+
+// IncrementDeliveryAttempt records a delivery attempt with the result.
+func (s *Store) IncrementDeliveryAttempt(ctx context.Context, id int64, status string, responseStatus int, responseBody string, nextRetryAt *time.Time) error {
+	var deliveredAt *time.Time
+	if status == "success" {
+		now := time.Now()
+		deliveredAt = &now
+	}
+	_, err := s.pool.Exec(ctx,
+		`UPDATE webhook_deliveries
+		 SET attempts = COALESCE(attempts, 0) + 1,
+		     status = $2,
+		     response_status = $3,
+		     response_body = $4,
+		     delivered_at = $5,
+		     next_retry_at = $6
+		 WHERE id = $1`,
+		id, status, responseStatus, responseBody, deliveredAt, nextRetryAt,
+	)
+	return err
+}
+
+// MarkDeliveryDead marks a delivery as dead (all retries exhausted).
+func (s *Store) MarkDeliveryDead(ctx context.Context, id int64) error {
+	_, err := s.pool.Exec(ctx,
+		`UPDATE webhook_deliveries SET status = 'dead', next_retry_at = NULL WHERE id = $1`, id,
+	)
+	return err
+}
+
+// ResetDeliveryForRetry resets a failed or dead delivery back to pending for manual retry.
+func (s *Store) ResetDeliveryForRetry(ctx context.Context, id int64) error {
+	_, err := s.pool.Exec(ctx,
+		`UPDATE webhook_deliveries SET status = 'pending', next_retry_at = NULL, attempts = 0 WHERE id = $1`, id,
+	)
+	return err
+}
+
+// FindWebhookDeliveryByID finds a single delivery by its ID.
+func (s *Store) FindWebhookDeliveryByID(ctx context.Context, id int64) (*WebhookDelivery, error) {
+	var d WebhookDelivery
+	err := s.pool.QueryRow(ctx,
+		`SELECT id, endpoint_id, event_type, payload, response_status, response_body, delivered_at, created_at,
+		        COALESCE(attempts, 0), COALESCE(max_attempts, 5), next_retry_at, COALESCE(status, 'pending')
+		 FROM webhook_deliveries WHERE id = $1`, id,
+	).Scan(&d.ID, &d.EndpointID, &d.EventType, &d.Payload, &d.ResponseStatus, &d.ResponseBody, &d.DeliveredAt, &d.CreatedAt, &d.Attempts, &d.MaxAttempts, &d.NextRetryAt, &d.Status)
+	if err == pgx.ErrNoRows {
+		return nil, nil
+	}
+	return &d, err
 }

@@ -442,6 +442,8 @@ export const api = {
       request<{ success: boolean }>(`/api/webhooks/${id}`, { method: "DELETE" }),
     deliveries: (id: string, limit = 20, offset = 0) =>
       request<{ deliveries: any[]; total: number }>(`/api/webhooks/${id}/deliveries?limit=${limit}&offset=${offset}`),
+    retryDelivery: (endpointId: string, deliveryId: string) =>
+      request<{ success: boolean }>(`/api/webhooks/${endpointId}/deliveries/${deliveryId}/retry`, { method: "POST" }),
   },
   referrals: {
     code: () => request<{ code: string }>("/api/referrals/code"),
@@ -531,5 +533,104 @@ export const api = {
   analyticsExport: {
     profileUrl: () => `${API_URL}/api/analytics/export`,
     contentUrl: () => `${API_URL}/api/content-analytics/export`,
+  },
+  blockchain: {
+    anchor: (contentId: string) =>
+      request<{ anchor: any; simulated: boolean }>(`/api/content/${contentId}/anchor`, { method: "POST" }),
+    getAnchor: (contentId: string) =>
+      request<{ anchor: any }>(`/api/content/${contentId}/anchor`),
+    verify: (hash: string) =>
+      request<{ anchor: any; content: any }>(`/api/verify/${hash}`),
+    list: (limit = 20, offset = 0) =>
+      request<{ anchors: any[]; total: number }>(`/api/anchors?limit=${limit}&offset=${offset}`),
+  },
+  tokens: {
+    create: (data: { name: string; symbol: string; description?: string; priceCents: number }) =>
+      request<{ token: any }>("/api/tokens", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    get: () => request<{ token: any }>("/api/tokens"),
+    update: (data: { name?: string; description?: string; priceCents?: number; isActive?: boolean }) =>
+      request<{ success: boolean }>("/api/tokens", {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
+    holders: (tokenId: string, limit = 20, offset = 0) =>
+      request<{ holders: any[]; total: number }>(`/api/tokens/${tokenId}/holders?limit=${limit}&offset=${offset}`),
+    transactions: (tokenId: string, limit = 20, offset = 0) =>
+      request<{ transactions: any[]; total: number }>(`/api/tokens/${tokenId}/transactions?limit=${limit}&offset=${offset}`),
+    purchase: (tokenId: string, amount: number) =>
+      request<{ success: boolean; simulated?: boolean; amountCents: number; tokensMinted: number }>(`/api/tokens/${tokenId}/purchase`, {
+        method: "POST",
+        body: JSON.stringify({ amount }),
+      }),
+    getByUsername: (username: string) =>
+      request<{ token: any }>(`/api/users/${username}/token`),
+  },
+  tips: {
+    send: (data: { toUserId: string; amountCents: number; message?: string }) =>
+      request<{ id: string; simulated?: boolean }>("/api/tips", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    received: (limit = 20, offset = 0) =>
+      request<{ tips: any[]; total: number }>(`/api/tips/received?limit=${limit}&offset=${offset}`),
+    sent: (limit = 20, offset = 0) =>
+      request<{ tips: any[]; total: number }>(`/api/tips/sent?limit=${limit}&offset=${offset}`),
+    stats: () =>
+      request<{ totalReceivedCents: number; totalSentCents: number; receivedCount: number; sentCount: number }>("/api/tips/stats"),
+  },
+  fanSubscriptions: {
+    subscribe: (data: { creatorUserId: string; tier: string }) =>
+      request<{ subscription: any }>("/api/fan-subscriptions", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    list: () =>
+      request<{ subscriptions: any[] }>("/api/fan-subscriptions"),
+    fans: (limit = 20, offset = 0) =>
+      request<{ fans: any[]; total: number }>(`/api/fan-subscriptions/fans?limit=${limit}&offset=${offset}`),
+    cancel: (id: string) =>
+      request<{ success: boolean }>(`/api/fan-subscriptions/${id}`, { method: "DELETE" }),
+    gateContent: (contentId: string, data: { tokenId?: string; minTokens?: number; subscriptionTier?: string }) =>
+      request<{ success: boolean }>(`/api/content/${contentId}/gate`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    removeGate: (contentId: string) =>
+      request<{ success: boolean }>(`/api/content/${contentId}/gate`, { method: "DELETE" }),
+    checkAccess: (contentId: string) =>
+      request<{ hasAccess: boolean; reason: string }>(`/api/content/${contentId}/access`),
+  },
+  agency: {
+    create: (name: string, website?: string, description?: string) =>
+      request<{ agency: any }>("/api/agency", {
+        method: "POST",
+        body: JSON.stringify({ name, website, description }),
+      }),
+    get: () => request<{ agency: any; stats: any }>("/api/agency"),
+    update: (data: { name?: string; website?: string; description?: string }) =>
+      request<{ success: boolean }>("/api/agency", {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
+    invite: (username: string) =>
+      request<{ id: string }>("/api/agency/invite", {
+        method: "POST",
+        body: JSON.stringify({ username }),
+      }),
+    creators: (limit = 20, offset = 0) =>
+      request<{ creators: any[]; total: number }>(`/api/agency/creators?limit=${limit}&offset=${offset}`),
+    removeCreator: (creatorId: string) =>
+      request<{ success: boolean }>(`/api/agency/creators/${creatorId}`, { method: "DELETE" }),
+    analytics: () => request<any>("/api/agency/analytics"),
+    apiUsage: (days = 30) => request<any>(`/api/agency/api-usage?days=${days}`),
+    invites: () => request<{ invites: any[] }>("/api/agency/invites"),
+    respondToInvite: (id: string, action: "accept" | "decline") =>
+      request<{ success: boolean }>(`/api/agency/invites/${id}/respond`, {
+        method: "POST",
+        body: JSON.stringify({ action }),
+      }),
   },
 };

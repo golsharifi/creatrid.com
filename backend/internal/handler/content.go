@@ -202,6 +202,13 @@ func (h *ContentHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Dispatch webhook event for content upload
+	dispatchWebhook(user.ID, "content.uploaded", map[string]interface{}{
+		"contentId":   contentID,
+		"title":       title,
+		"contentType": contentType,
+	})
+
 	// Scan content metadata for profanity / policy violations
 	descText := ""
 	if description != nil {

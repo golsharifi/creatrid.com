@@ -110,6 +110,7 @@ func RequireAPIKey(st *store.Store) func(http.Handler) http.Handler {
 			}()
 
 			ctx := context.WithValue(r.Context(), apiKeyUserContextKey, apiKey.UserID)
+			ctx = SetAPIKeyIDContext(ctx, apiKey.ID)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

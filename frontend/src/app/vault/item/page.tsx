@@ -21,6 +21,10 @@ import {
   X,
   Edit3,
   Check,
+  CheckCircle,
+  Clock,
+  AlertTriangle,
+  ExternalLink,
 } from "@/components/icons";
 import { useTranslation } from "react-i18next";
 
@@ -115,6 +119,21 @@ function VaultDetailContent() {
     title: string;
   } | null>(null);
 
+  // Blockchain anchor state
+  const [anchor, setAnchor] = useState<{
+    id: string;
+    contentId: string;
+    contentHash: string;
+    txHash: string | null;
+    chain: string;
+    blockNumber: number | null;
+    contractAddress: string | null;
+    anchorStatus: string;
+    createdAt: string;
+    confirmedAt: string | null;
+  } | null>(null);
+  const [anchoring, setAnchoring] = useState(false);
+
   useEffect(() => {
     if (!loading && !user) router.push("/sign-in");
   }, [user, loading, router]);
@@ -150,13 +169,22 @@ function VaultDetailContent() {
     }
   }, [id]);
 
+  const fetchAnchor = useCallback(async () => {
+    if (!id) return;
+    const result = await api.blockchain.getAnchor(id);
+    if (result.data) {
+      setAnchor(result.data.anchor);
+    }
+  }, [id]);
+
   useEffect(() => {
     if (user && id) {
       fetchItem();
       fetchOfferings();
       fetchProof();
+      fetchAnchor();
     }
-  }, [user, id, fetchItem, fetchOfferings, fetchProof]);
+  }, [user, id, fetchItem, fetchOfferings, fetchProof, fetchAnchor]);
 
   const handleSave = async () => {
     if (!item) return;
@@ -220,6 +248,16 @@ function VaultDetailContent() {
   const handleDeleteLicense = async (offeringId: string) => {
     await api.licenses.delete(offeringId);
     setOfferings((prev) => prev.filter((o) => o.id !== offeringId));
+  };
+
+  const handleAnchor = async () => {
+    if (!id) return;
+    setAnchoring(true);
+    const result = await api.blockchain.anchor(id);
+    if (result.data) {
+      setAnchor(result.data.anchor);
+    }
+    setAnchoring(false);
   };
 
   if (loading || !user) return null;
@@ -549,6 +587,127 @@ function VaultDetailContent() {
                     {new Date(item.createdAt).toLocaleString()}
                   </span>
                 </div>
+              </div>
+            )}
+          </div>
+
+          {/* Blockchain Anchor */}
+          <div className="mt-6 rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-emerald-500" />
+              <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                {t("blockchain.chain")}
+              </h2>
+            </div>
+
+            {anchor ? (
+              <div className="mt-4">
+                {/* Status badge */}
+                <div className="mb-4">
+                  {anchor.anchorStatus === "confirmed" ? (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                      <CheckCircle className="h-4 w-4" />
+                      {t("blockchain.verified")}
+                    </span>
+                  ) : anchor.anchorStatus === "pending" ? (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-sm font-medium text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+                      <Clock className="h-4 w-4" />
+                      {t("blockchain.pending")}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 text-sm font-medium text-red-700 dark:bg-red-950 dark:text-red-300">
+                      <AlertTriangle className="h-4 w-4" />
+                      {t("blockchain.failed")}
+                    </span>
+                  )}
+                </div>
+
+                {/* Anchor details */}
+                <div className="space-y-2 text-sm">
+                  {anchor.txHash && (
+                    <div>
+                      <span className="font-medium text-zinc-700 dark:text-zinc-300">
+                        {t("blockchain.txHash")}:
+                      </span>
+                      <div className="mt-1 flex items-center gap-2">
+                        <code className="break-all rounded bg-zinc-100 px-2 py-0.5 text-xs dark:bg-zinc-800">
+                          {anchor.txHash}
+                        </code>
+                        {anchor.chain === "polygon" && !anchor.txHash.startsWith("0x000000") && (
+                          <a
+                            href={`https://polygonscan.com/tx/${anchor.txHash}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-shrink-0 text-emerald-600 hover:text-emerald-700"
+                          >
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex gap-6">
+                    <div>
+                      <span className="font-medium text-zinc-700 dark:text-zinc-300">
+                        {t("blockchain.chain")}:
+                      </span>
+                      <span className="ml-2 capitalize text-zinc-600 dark:text-zinc-400">
+                        {anchor.chain}
+                      </span>
+                    </div>
+                    {anchor.blockNumber && (
+                      <div>
+                        <span className="font-medium text-zinc-700 dark:text-zinc-300">
+                          {t("blockchain.blockNumber")}:
+                        </span>
+                        <span className="ml-2 text-zinc-600 dark:text-zinc-400">
+                          {anchor.blockNumber.toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  {anchor.confirmedAt && (
+                    <div>
+                      <span className="font-medium text-zinc-700 dark:text-zinc-300">
+                        {t("blockchain.anchoredAt")}:
+                      </span>
+                      <span className="ml-2 text-zinc-600 dark:text-zinc-400">
+                        {new Date(anchor.confirmedAt).toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Simulated notice */}
+                {anchor.contractAddress === "0x0000000000000000000000000000000000000000" && (
+                  <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                    {t("blockchain.simulated")}
+                  </div>
+                )}
+
+                {/* Verify link */}
+                <div className="mt-3">
+                  <Link
+                    href={`/verify?hash=${anchor.contentHash}`}
+                    className="text-xs font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400"
+                  >
+                    {t("blockchain.proofCertificate")} &rarr;
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-4">
+                <p className="mb-3 text-sm text-zinc-500">
+                  Anchor this content&apos;s SHA-256 hash on the blockchain for immutable proof of existence.
+                </p>
+                <button
+                  onClick={handleAnchor}
+                  disabled={anchoring}
+                  className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:opacity-50 dark:bg-emerald-500 dark:hover:bg-emerald-600"
+                >
+                  <Shield className="h-4 w-4" />
+                  {anchoring ? t("blockchain.anchoring") : t("blockchain.anchor")}
+                </button>
               </div>
             )}
           </div>

@@ -4,14 +4,36 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 import { useTranslation } from "react-i18next";
-import { Webhook, Plus, Trash2, ToggleLeft, ToggleRight, ChevronDown, ChevronUp } from "@/components/icons";
+import { Webhook, Plus, Trash2, ToggleLeft, ToggleRight, ChevronDown, ChevronUp, Clock } from "@/components/icons";
 
 const AVAILABLE_EVENTS = [
   { value: "license.sold", label: "License Sold" },
   { value: "content.uploaded", label: "Content Uploaded" },
+  { value: "profile.viewed", label: "Profile Viewed" },
   { value: "collaboration.received", label: "Collaboration Received" },
   { value: "payout.completed", label: "Payout Completed" },
 ];
+
+function StatusBadge({ status }: { status: string }) {
+  const { t } = useTranslation();
+  const styles: Record<string, string> = {
+    success: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+    pending: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+    failed: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+    dead: "bg-zinc-200 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-400",
+  };
+  const labels: Record<string, string> = {
+    success: t("webhooks.delivery.success"),
+    pending: t("webhooks.delivery.pending"),
+    failed: t("webhooks.delivery.failed"),
+    dead: t("webhooks.delivery.dead"),
+  };
+  return (
+    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${styles[status] || styles.pending}`}>
+      {labels[status] || status}
+    </span>
+  );
+}
 
 export default function WebhooksPage() {
   const { user, loading: authLoading } = useAuth();
@@ -24,6 +46,7 @@ export default function WebhooksPage() {
   const [creating, setCreating] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [deliveries, setDeliveries] = useState<any[]>([]);
+  const [retryingId, setRetryingId] = useState<number | null>(null);
 
   const loadEndpoints = useCallback(async () => {
     const res = await api.webhooks.list();
@@ -66,6 +89,15 @@ export default function WebhooksPage() {
     setExpandedId(id);
     const res = await api.webhooks.deliveries(id);
     if (res.data) setDeliveries(res.data.deliveries || []);
+  };
+
+  const handleRetry = async (endpointId: string, deliveryId: number) => {
+    setRetryingId(deliveryId);
+    await api.webhooks.retryDelivery(endpointId, String(deliveryId));
+    // Reload deliveries
+    const res = await api.webhooks.deliveries(endpointId);
+    if (res.data) setDeliveries(res.data.deliveries || []);
+    setRetryingId(null);
   };
 
   if (authLoading || loading) {
@@ -174,18 +206,45 @@ export default function WebhooksPage() {
               </div>
               {expandedId === ep.id && (
                 <div className="border-t border-zinc-200 p-4 dark:border-zinc-800">
-                  <h4 className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">{t("webhooks.recentDeliveries")}</h4>
+                  <h4 className="mb-3 text-sm font-medium text-zinc-700 dark:text-zinc-300">{t("webhooks.recentDeliveries")}</h4>
                   {deliveries.length === 0 ? (
                     <p className="text-sm text-zinc-400">{t("webhooks.noDeliveries")}</p>
                   ) : (
                     <div className="space-y-2">
                       {deliveries.slice(0, 10).map((d: any) => (
-                        <div key={d.id} className="flex items-center justify-between rounded-lg bg-zinc-50 px-3 py-2 text-sm dark:bg-zinc-800">
-                          <span className="text-zinc-700 dark:text-zinc-300">{d.eventType}</span>
-                          <span className={d.responseStatus >= 200 && d.responseStatus < 300 ? "text-emerald-600" : "text-red-500"}>
-                            {d.responseStatus || "pending"}
-                          </span>
-                          <span className="text-xs text-zinc-400">{new Date(d.createdAt).toLocaleString()}</span>
+                        <div key={d.id} className="rounded-lg bg-zinc-50 px-3 py-2 dark:bg-zinc-800">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="font-medium text-zinc-700 dark:text-zinc-300">{d.eventType}</span>
+                            <div className="flex items-center gap-2">
+                              <StatusBadge status={d.status || (d.responseStatus >= 200 && d.responseStatus < 300 ? "success" : d.deliveredAt ? "failed" : "pending")} />
+                              {d.responseStatus ? (
+                                <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                                  {t("webhooks.delivery.responseCode")}: {d.responseStatus}
+                                </span>
+                              ) : null}
+                            </div>
+                          </div>
+                          <div className="mt-1 flex items-center justify-between">
+                            <div className="flex items-center gap-3 text-xs text-zinc-400">
+                              <span>{new Date(d.createdAt).toLocaleString()}</span>
+                              <span>{t("webhooks.delivery.attempts")}: {d.attempts || 0}/{d.maxAttempts || 5}</span>
+                              {d.nextRetryAt && d.status === "pending" && (
+                                <span className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  {t("webhooks.delivery.nextRetry")}: {new Date(d.nextRetryAt).toLocaleString()}
+                                </span>
+                              )}
+                            </div>
+                            {(d.status === "failed" || d.status === "dead") && (
+                              <button
+                                onClick={() => handleRetry(ep.id, d.id)}
+                                disabled={retryingId === d.id}
+                                className="rounded px-2 py-0.5 text-xs font-medium text-blue-600 hover:bg-blue-50 disabled:opacity-50 dark:text-blue-400 dark:hover:bg-blue-900/20"
+                              >
+                                {retryingId === d.id ? t("webhooks.delivery.retrying") : t("webhooks.delivery.retry")}
+                              </button>
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>

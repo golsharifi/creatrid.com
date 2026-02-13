@@ -88,6 +88,18 @@ func (h *CollaborationHandler) SendRequest(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	// Dispatch webhook event for collaboration request
+	senderUsername := ""
+	if user.Username != nil {
+		senderUsername = *user.Username
+	}
+	dispatchWebhook(req.ToUserID, "collaboration.received", map[string]interface{}{
+		"requestId":    id,
+		"fromUser":     senderUsername,
+		"fromUserId":   user.ID,
+		"message":      req.Message,
+	})
+
 	// Notify the recipient
 	senderName := "Someone"
 	if user.Name != nil {

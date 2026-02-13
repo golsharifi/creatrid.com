@@ -21,8 +21,6 @@ const PLATFORMS: PlatformConfig[] = [
   { key: "twitter", name: "Twitter / X", icon: "\u{1d54f}", available: true },
   { key: "linkedin", name: "LinkedIn", icon: "in", available: true },
   { key: "instagram", name: "Instagram", icon: "IG", available: true },
-  { key: "behance", name: "Behance", icon: "Be", available: true },
-  { key: "dribbble", name: "Dribbble", icon: "Dr", available: true },
 ];
 
 function ConnectionsContent() {

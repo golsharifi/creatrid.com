@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/creatrid/creatrid/internal/auth"
+	"github.com/creatrid/creatrid/internal/blockchain"
 	"github.com/creatrid/creatrid/internal/config"
 	"github.com/creatrid/creatrid/internal/email"
 	"github.com/creatrid/creatrid/internal/geoip"
@@ -22,6 +23,7 @@ import (
 	"github.com/creatrid/creatrid/internal/scheduler"
 	"github.com/creatrid/creatrid/internal/storage"
 	"github.com/creatrid/creatrid/internal/store"
+	"github.com/creatrid/creatrid/internal/webhook"
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -143,6 +145,20 @@ func main() {
 	errorLogHandler := handler.NewErrorLogHandler(st)
 	totpSvc := auth.NewTOTPService()
 	twoFAHandler := handler.NewTwoFAHandler(st, totpSvc, jwtSvc, cfg)
+	agencyHandler := handler.NewAgencyHandler(st)
+	tokenHandler := handler.NewTokenHandler(st, cfg)
+	tipHandler := handler.NewTipHandler(st, cfg)
+	fanSubHandler := handler.NewFanSubscriptionHandler(st, cfg)
+
+	// Init blockchain anchor service
+	anchorSvc := blockchain.New(cfg.BlockchainRPCURL, cfg.BlockchainPrivateKey, cfg.BlockchainChainID)
+	blockchainHandler := handler.NewBlockchainHandler(st, anchorSvc)
+
+	// Init webhook dispatcher and delivery worker
+	webhookDisp := webhook.NewDispatcher(st)
+	handler.SetWebhookDispatcher(webhookDisp)
+	webhookWorker := webhook.NewWorker(st)
+	go webhookWorker.Start(context.Background())
 
 	// Start connection refresh scheduler
 	providerMap := make(map[string]platform.Provider)
@@ -233,6 +249,9 @@ func main() {
 		r.Get("/api/search", searchHandler.Search)
 		r.Get("/api/search/suggestions", searchHandler.Suggestions)
 		r.Get("/api/users/{username}/collections", collectionHandler.PublicList)
+		r.Get("/api/content/{id}/anchor", blockchainHandler.GetAnchor)
+		r.Get("/api/verify/{hash}", blockchainHandler.VerifyByHash)
+		r.Get("/api/users/{username}/token", tokenHandler.PublicToken)
 
 		// Health check
 		r.Get("/api/health", func(w http.ResponseWriter, r *http.Request) {
@@ -308,6 +327,10 @@ func main() {
 		r.Get("/api/billing/subscription", billingHandler.GetSubscription)
 		r.Post("/api/billing/portal", billingHandler.CreatePortal)
 
+		// Blockchain Anchoring
+		r.Post("/api/content/{id}/anchor", blockchainHandler.Anchor)
+		r.Get("/api/anchors", blockchainHandler.ListAnchors)
+
 		// Content Vault
 		r.Post("/api/content", contentHandler.Upload)
 		r.Get("/api/content", contentHandler.List)
@@ -357,6 +380,7 @@ func main() {
 		r.Patch("/api/webhooks/{id}", webhookHandler.Update)
 		r.Delete("/api/webhooks/{id}", webhookHandler.Delete)
 		r.Get("/api/webhooks/{id}/deliveries", webhookHandler.Deliveries)
+		r.Post("/api/webhooks/{id}/deliveries/{deliveryId}/retry", webhookHandler.RetryDelivery)
 
 		// Referrals
 		r.Get("/api/referrals/code", referralHandler.GetCode)
@@ -368,6 +392,41 @@ func main() {
 		// Analytics Export
 		r.Get("/api/analytics/export", analyticsHandler.ExportCSV)
 		r.Get("/api/content-analytics/export", contentAnalyticsHandler.ExportCSV)
+
+		// Creator Tokens
+		r.Post("/api/tokens", tokenHandler.Create)
+		r.Get("/api/tokens", tokenHandler.Get)
+		r.Patch("/api/tokens", tokenHandler.Update)
+		r.Get("/api/tokens/{id}/holders", tokenHandler.Holders)
+		r.Get("/api/tokens/{id}/transactions", tokenHandler.Transactions)
+		r.Post("/api/tokens/{id}/purchase", tokenHandler.Purchase)
+
+		// Tips
+		r.Post("/api/tips", tipHandler.Send)
+		r.Get("/api/tips/received", tipHandler.Received)
+		r.Get("/api/tips/sent", tipHandler.Sent)
+		r.Get("/api/tips/stats", tipHandler.Stats)
+
+		// Fan Subscriptions
+		r.Post("/api/fan-subscriptions", fanSubHandler.Subscribe)
+		r.Get("/api/fan-subscriptions", fanSubHandler.MySubscriptions)
+		r.Get("/api/fan-subscriptions/fans", fanSubHandler.MyFans)
+		r.Delete("/api/fan-subscriptions/{id}", fanSubHandler.Cancel)
+		r.Post("/api/content/{id}/gate", fanSubHandler.GateContent)
+		r.Delete("/api/content/{id}/gate", fanSubHandler.RemoveGate)
+		r.Get("/api/content/{id}/access", fanSubHandler.CheckAccess)
+
+		// Agency
+		r.Post("/api/agency", agencyHandler.Create)
+		r.Get("/api/agency", agencyHandler.Get)
+		r.Patch("/api/agency", agencyHandler.Update)
+		r.Post("/api/agency/invite", agencyHandler.Invite)
+		r.Get("/api/agency/creators", agencyHandler.ListCreators)
+		r.Delete("/api/agency/creators/{creatorId}", agencyHandler.RemoveCreator)
+		r.Get("/api/agency/analytics", agencyHandler.Analytics)
+		r.Get("/api/agency/api-usage", agencyHandler.APIUsage)
+		r.Get("/api/agency/invites", agencyHandler.ListInvites)
+		r.Post("/api/agency/invites/{id}/respond", agencyHandler.RespondToInvite)
 	})
 
 	// Admin routes
@@ -385,11 +444,13 @@ func main() {
 		r.Get("/api/admin/errors", errorLogHandler.List)
 		r.Get("/api/admin/moderation", moderationHandler.List)
 		r.Post("/api/admin/moderation/{id}/resolve", moderationHandler.Resolve)
+		r.Post("/api/agency/bulk-verify", agencyHandler.BulkVerify)
 	})
 
 	// Third-party verification API (API key auth)
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.RequireAPIKey(st))
+		r.Use(middleware.RecordAPIUsage(st))
 		r.Get("/api/v1/verify/{username}", verifyHandler.Verify)
 		r.Get("/api/v1/verify/{username}/score", verifyHandler.Score)
 		r.Get("/api/v1/search", verifyHandler.Search)

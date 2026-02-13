@@ -47,6 +47,13 @@ func (h *AnalyticsHandler) TrackView(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_ = h.store.RecordProfileView(r.Context(), user.ID, ip, referrer, ua.Browser, ua.OS, ua.DeviceType, country, city)
+
+	// Dispatch webhook event for profile view
+	dispatchWebhook(user.ID, "profile.viewed", map[string]interface{}{
+		"username": username,
+		"referrer": referrer,
+	})
+
 	writeJSON(w, http.StatusOK, map[string]bool{"ok": true})
 }
 

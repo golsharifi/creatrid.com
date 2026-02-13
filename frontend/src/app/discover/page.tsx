@@ -25,8 +25,6 @@ const PLATFORMS = [
   { value: "twitter", label: "Twitter/X" },
   { value: "linkedin", label: "LinkedIn" },
   { value: "instagram", label: "Instagram" },
-  { value: "dribbble", label: "Dribbble" },
-  { value: "behance", label: "Behance" },
 ];
 
 export default function DiscoverPage() {

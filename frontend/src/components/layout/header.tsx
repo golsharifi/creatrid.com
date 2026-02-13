@@ -9,6 +9,7 @@ import {
   Moon,
   LogOut,
   User,
+  Users,
   LayoutDashboard,
   Menu,
   X,
@@ -25,6 +26,8 @@ import {
   Gift,
   Webhook,
   BookOpen,
+  Shield,
+  Zap,
 } from "@/components/icons";
 import { useTranslation } from "react-i18next";
 import { NotificationBell } from "@/components/notification-bell";
@@ -141,6 +144,13 @@ export function Header() {
                 <Archive className="h-5 w-5" />
               </Link>
               <Link
+                href="/verify"
+                className="rounded-lg p-2 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+                title={t("header.verify")}
+              >
+                <Shield className="h-5 w-5" />
+              </Link>
+              <Link
                 href="/marketplace"
                 className="rounded-lg p-2 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
               >
@@ -151,6 +161,13 @@ export function Header() {
                 className="rounded-lg p-2 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
               >
                 <DollarSign className="h-5 w-5" />
+              </Link>
+              <Link
+                href="/tokens"
+                className="rounded-lg p-2 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+                title={t("header.tokens")}
+              >
+                <Zap className="h-5 w-5" />
               </Link>
               <Link
                 href="/search"
@@ -164,6 +181,15 @@ export function Header() {
               >
                 <BookOpen className="h-5 w-5" />
               </Link>
+              {user.role === "BRAND" && (
+                <Link
+                  href="/agency"
+                  className="rounded-lg p-2 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+                  title={t("header.agency")}
+                >
+                  <Users className="h-5 w-5" />
+                </Link>
+              )}
               <NotificationBell />
               <Link
                 href="/settings"
@@ -224,6 +250,14 @@ export function Header() {
                       {t("header.vault")}
                     </Link>
                     <Link
+                      href="/verify"
+                      onClick={() => setMobileOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                    >
+                      <Shield className="h-4 w-4" />
+                      {t("header.verify")}
+                    </Link>
+                    <Link
                       href="/marketplace"
                       onClick={() => setMobileOpen(false)}
                       className="flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
@@ -238,6 +272,14 @@ export function Header() {
                     >
                       <DollarSign className="h-4 w-4" />
                       {t("header.earnings")}
+                    </Link>
+                    <Link
+                      href="/tokens"
+                      onClick={() => setMobileOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                    >
+                      <Zap className="h-4 w-4" />
+                      {t("header.tokens")}
                     </Link>
                     <Link
                       href="/collections"
@@ -311,6 +353,16 @@ export function Header() {
                       <BookOpen className="h-4 w-4" />
                       {t("header.blog")}
                     </Link>
+                    {user.role === "BRAND" && (
+                      <Link
+                        href="/agency"
+                        onClick={() => setMobileOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                      >
+                        <Users className="h-4 w-4" />
+                        {t("header.agency")}
+                      </Link>
+                    )}
                     <Link
                       href="/settings"
                       onClick={() => setMobileOpen(false)}
