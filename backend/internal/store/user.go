@@ -22,12 +22,16 @@ func (s *Store) FindUserByID(ctx context.Context, id string) (*model.User, error
 	var u model.User
 	err := s.pool.QueryRow(ctx,
 		`SELECT id, name, email, email_verified, image, username, bio, role,
-		        creator_score, is_verified, onboarded, theme, custom_links, email_prefs, created_at, updated_at
+		        creator_score, is_verified, onboarded, theme, custom_links, email_prefs,
+		        stripe_connect_account_id, COALESCE(stripe_connect_onboarded, false),
+		        created_at, updated_at
 		 FROM users WHERE id = $1`, id,
 	).Scan(
 		&u.ID, &u.Name, &u.Email, &u.EmailVerified, &u.Image,
 		&u.Username, &u.Bio, &u.Role, &u.CreatorScore,
-		&u.IsVerified, &u.Onboarded, &u.Theme, &u.CustomLinks, &u.EmailPrefsRaw, &u.CreatedAt, &u.UpdatedAt,
+		&u.IsVerified, &u.Onboarded, &u.Theme, &u.CustomLinks, &u.EmailPrefsRaw,
+		&u.StripeConnectAccountID, &u.StripeConnectOnboarded,
+		&u.CreatedAt, &u.UpdatedAt,
 	)
 	if err == pgx.ErrNoRows {
 		return nil, nil
@@ -39,12 +43,16 @@ func (s *Store) FindUserByEmail(ctx context.Context, email string) (*model.User,
 	var u model.User
 	err := s.pool.QueryRow(ctx,
 		`SELECT id, name, email, email_verified, image, username, bio, role,
-		        creator_score, is_verified, onboarded, theme, custom_links, email_prefs, created_at, updated_at
+		        creator_score, is_verified, onboarded, theme, custom_links, email_prefs,
+		        stripe_connect_account_id, COALESCE(stripe_connect_onboarded, false),
+		        created_at, updated_at
 		 FROM users WHERE email = $1`, email,
 	).Scan(
 		&u.ID, &u.Name, &u.Email, &u.EmailVerified, &u.Image,
 		&u.Username, &u.Bio, &u.Role, &u.CreatorScore,
-		&u.IsVerified, &u.Onboarded, &u.Theme, &u.CustomLinks, &u.EmailPrefsRaw, &u.CreatedAt, &u.UpdatedAt,
+		&u.IsVerified, &u.Onboarded, &u.Theme, &u.CustomLinks, &u.EmailPrefsRaw,
+		&u.StripeConnectAccountID, &u.StripeConnectOnboarded,
+		&u.CreatedAt, &u.UpdatedAt,
 	)
 	if err == pgx.ErrNoRows {
 		return nil, nil
@@ -56,12 +64,16 @@ func (s *Store) FindUserByUsername(ctx context.Context, username string) (*model
 	var u model.User
 	err := s.pool.QueryRow(ctx,
 		`SELECT id, name, email, email_verified, image, username, bio, role,
-		        creator_score, is_verified, onboarded, theme, custom_links, email_prefs, created_at, updated_at
+		        creator_score, is_verified, onboarded, theme, custom_links, email_prefs,
+		        stripe_connect_account_id, COALESCE(stripe_connect_onboarded, false),
+		        created_at, updated_at
 		 FROM users WHERE username = $1`, username,
 	).Scan(
 		&u.ID, &u.Name, &u.Email, &u.EmailVerified, &u.Image,
 		&u.Username, &u.Bio, &u.Role, &u.CreatorScore,
-		&u.IsVerified, &u.Onboarded, &u.Theme, &u.CustomLinks, &u.EmailPrefsRaw, &u.CreatedAt, &u.UpdatedAt,
+		&u.IsVerified, &u.Onboarded, &u.Theme, &u.CustomLinks, &u.EmailPrefsRaw,
+		&u.StripeConnectAccountID, &u.StripeConnectOnboarded,
+		&u.CreatedAt, &u.UpdatedAt,
 	)
 	if err == pgx.ErrNoRows {
 		return nil, nil

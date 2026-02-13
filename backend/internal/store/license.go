@@ -272,7 +272,7 @@ func (s *Store) ListMarketplaceContent(ctx context.Context, contentType, query, 
 	}
 
 	if query != "" {
-		baseWhere += ` AND (ci.title ILIKE '%' || $` + fmt.Sprintf("%d", argIdx) + ` || '%' OR ci.description ILIKE '%' || $` + fmt.Sprintf("%d", argIdx) + ` || '%')`
+		baseWhere += ` AND ci.search_vector @@ plainto_tsquery('english', $` + fmt.Sprintf("%d", argIdx) + `)`
 		args = append(args, query)
 		argIdx++
 	}

@@ -2,8 +2,11 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/creatrid/creatrid/internal/middleware"
 	"github.com/creatrid/creatrid/internal/store"
@@ -80,6 +83,24 @@ func (h *CollaborationHandler) SendRequest(w http.ResponseWriter, r *http.Reques
 	if err := h.store.CreateCollaborationRequest(r.Context(), id, user.ID, req.ToUserID, req.Message); err != nil {
 		writeJSON(w, http.StatusConflict, map[string]string{"error": "Request already sent to this user"})
 		return
+	}
+
+	// Notify the recipient
+	senderName := "Someone"
+	if user.Name != nil {
+		senderName = *user.Name
+	}
+	notif := &store.Notification{
+		ID:        cuid2.Generate(),
+		UserID:    req.ToUserID,
+		Type:      "collab_request",
+		Title:     "New collaboration request",
+		Message:   fmt.Sprintf("%s wants to collaborate with you", senderName),
+		Data:      []byte(fmt.Sprintf(`{"requestId":"%s","fromUserId":"%s"}`, id, user.ID)),
+		CreatedAt: time.Now(),
+	}
+	if err := h.store.CreateNotification(r.Context(), notif); err != nil {
+		log.Printf("Failed to create collab notification: %v", err)
 	}
 
 	writeJSON(w, http.StatusCreated, map[string]string{"id": id})
@@ -165,6 +186,24 @@ func (h *CollaborationHandler) Respond(w http.ResponseWriter, r *http.Request) {
 	if err := h.store.UpdateCollaborationStatus(r.Context(), requestID, status); err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Failed to update"})
 		return
+	}
+
+	// Notify the original sender about the response
+	responderName := "Someone"
+	if user.Name != nil {
+		responderName = *user.Name
+	}
+	notif := &store.Notification{
+		ID:        cuid2.Generate(),
+		UserID:    cr.FromUserID,
+		Type:      "collab_response",
+		Title:     fmt.Sprintf("Collaboration %s", status),
+		Message:   fmt.Sprintf("%s %s your collaboration request", responderName, status),
+		Data:      []byte(fmt.Sprintf(`{"requestId":"%s","status":"%s"}`, requestID, status)),
+		CreatedAt: time.Now(),
+	}
+	if err := h.store.CreateNotification(r.Context(), notif); err != nil {
+		log.Printf("Failed to create collab response notification: %v", err)
 	}
 
 	writeJSON(w, http.StatusOK, map[string]string{"status": status})

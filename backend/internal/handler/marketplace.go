@@ -101,6 +101,14 @@ func (h *MarketplaceHandler) Detail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Track the view for content analytics
+	ip := r.Header.Get("X-Forwarded-For")
+	if ip == "" {
+		ip = r.RemoteAddr
+	}
+	referrer := r.Header.Get("Referer")
+	_ = h.store.RecordContentView(r.Context(), contentID, ip, referrer)
+
 	var creatorName, creatorUsername, creatorImage *string
 	if creator != nil {
 		creatorName = creator.Name

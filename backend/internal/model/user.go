@@ -33,10 +33,12 @@ type User struct {
 	IsVerified    bool            `json:"isVerified"`
 	Onboarded     bool            `json:"onboarded"`
 	Theme         string          `json:"theme"`
-	CustomLinks   json.RawMessage `json:"customLinks"`
-	EmailPrefsRaw json.RawMessage `json:"emailPrefs"`
-	CreatedAt     time.Time       `json:"createdAt"`
-	UpdatedAt     time.Time       `json:"updatedAt"`
+	CustomLinks             json.RawMessage `json:"customLinks"`
+	EmailPrefsRaw           json.RawMessage `json:"emailPrefs"`
+	StripeConnectAccountID  *string         `json:"-"`
+	StripeConnectOnboarded  bool            `json:"-"`
+	CreatedAt               time.Time       `json:"createdAt"`
+	UpdatedAt               time.Time       `json:"updatedAt"`
 }
 
 func (u *User) GetEmailPrefs() EmailPrefs {

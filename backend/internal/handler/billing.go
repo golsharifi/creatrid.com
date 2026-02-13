@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -314,6 +315,23 @@ func (h *BillingHandler) handleLicensePurchaseCompleted(r *http.Request, session
 	}
 
 	log.Printf("License purchase created: buyer=%s content=%s offering=%s amount=%d", buyerUserID, contentID, offeringID, amountCents)
+
+	// Notify the content creator about the sale
+	content, err := h.store.FindContentItemByID(r.Context(), contentID)
+	if err == nil && content != nil {
+		notif := &store.Notification{
+			ID:        cuid2.Generate(),
+			UserID:    content.UserID,
+			Type:      "license_sale",
+			Title:     "New license sale!",
+			Message:   fmt.Sprintf("Your content \"%s\" was licensed for $%.2f", content.Title, float64(amountCents)/100),
+			Data:      []byte(fmt.Sprintf(`{"contentId":"%s","purchaseId":"%s","amountCents":%d}`, contentID, purchase.ID, amountCents)),
+			CreatedAt: time.Now(),
+		}
+		if err := h.store.CreateNotification(r.Context(), notif); err != nil {
+			log.Printf("Failed to create sale notification: %v", err)
+		}
+	}
 }
 
 func (h *BillingHandler) handleSubscriptionUpdated(r *http.Request, event stripe.Event) {

@@ -362,6 +362,9 @@ func (h *ContentHandler) Download(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Record the download for analytics
+	_ = h.store.RecordContentDownload(r.Context(), item.ID, &user.ID)
+
 	// Set Content-Disposition header with the original filename
 	filename := item.Title + filepath.Ext(item.FileURL)
 	w.Header().Set("Content-Disposition", `attachment; filename="`+filename+`"`)
