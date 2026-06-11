@@ -5,10 +5,28 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api";
+import { features } from "@/lib/features";
 import { getAmbientEngine, type AmbientMode } from "@/lib/ambient-audio";
-import { Music, ArrowRight, Upload } from "@/components/icons";
+import { Music, ArrowRight, Upload, Lock } from "@/components/icons";
 
 const ACCENT = "var(--tab-music)";
+
+/**
+ * Online stations — fully built, awaiting the client's streaming licenses.
+ *
+ * Streaming third-party music catalogs requires public-performance and
+ * streaming licenses (PROs / label agreements), which the client is obtaining
+ * herself. The player below is production-ready: once licensed stream URLs
+ * are entered here and NEXT_PUBLIC_ENABLE_STREAMING=true is set, the section
+ * goes live with zero further code changes.
+ */
+const ONLINE_STATIONS: { name: string; genre: string; streamUrl: string }[] = [
+  // Replace with licensed stream URLs once licensing is in hand, e.g.:
+  // { name: "Creatrid Lo-Fi", genre: "Lo-fi beats", streamUrl: "https://licensed-cdn.example/lofi.mp3" },
+  { name: "Station One", genre: "Configure licensed stream", streamUrl: "" },
+  { name: "Station Two", genre: "Configure licensed stream", streamUrl: "" },
+  { name: "Station Three", genre: "Configure licensed stream", streamUrl: "" },
+];
 
 type AudioItem = {
   id: string;
@@ -37,6 +55,9 @@ export default function MusicPage() {
   // Signature track: the public Vault track that plays on your public profile
   const [signatureId, setSignatureId] = useState<string | null>(null);
   const [signatureMsg, setSignatureMsg] = useState("");
+
+  // Online stations (license-gated)
+  const [stationPlaying, setStationPlaying] = useState<string | null>(null);
 
   async function toggleSignature(track: AudioItem) {
     const clearing = signatureId === track.id;
@@ -281,10 +302,74 @@ export default function MusicPage() {
         )}
       </div>
 
+      {/* ── Online stations: built and ready, gated on streaming licenses ── */}
+      <div className="mt-6 rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 className="flex items-center gap-2 text-lg font-semibold">
+              {!features.streaming && <Lock className="h-4 w-4 text-zinc-400" />}
+              Online stations
+            </h2>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              {features.streaming
+                ? "Curated streams to soundtrack your page."
+                : "Built and ready — switches on the moment streaming licenses are in place."}
+            </p>
+          </div>
+        </div>
+
+        {features.streaming ? (
+          <ul className="mt-4 grid gap-3 sm:grid-cols-3">
+            {ONLINE_STATIONS.map((st) => (
+              <li
+                key={st.name}
+                className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800"
+              >
+                <p className="font-medium">{st.name}</p>
+                <p className="text-xs text-zinc-500">{st.genre}</p>
+                {stationPlaying === st.name && st.streamUrl ? (
+                  <audio controls autoPlay className="mt-3 w-full" src={st.streamUrl} />
+                ) : (
+                  <button
+                    onClick={() => st.streamUrl && setStationPlaying(st.name)}
+                    disabled={!st.streamUrl}
+                    className="mt-3 rounded-lg px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+                    style={{ background: ACCENT }}
+                  >
+                    {st.streamUrl ? "▶ Tune in" : "No stream configured"}
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="mt-4 rounded-xl border border-dashed border-zinc-300 p-4 text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+            <p>
+              Streaming third-party catalogs ("as META does") requires music licensing
+              — public-performance and streaming rights — which is being obtained.
+              The player is production-ready; to go live:
+            </p>
+            <ol className="mt-2 list-decimal pl-5">
+              <li>Add the licensed stream URLs to the station list.</li>
+              <li>
+                Set{" "}
+                <code className="rounded bg-zinc-200 px-1 py-0.5 text-xs dark:bg-zinc-800">
+                  NEXT_PUBLIC_ENABLE_STREAMING=true
+                </code>{" "}
+                and redeploy.
+              </li>
+            </ol>
+            <p className="mt-2">
+              Meanwhile, the ambient soundscapes above and your own uploaded tracks are
+              fully licensed territory and live today.
+            </p>
+          </div>
+        )}
+      </div>
+
       <p className="mt-8 rounded-xl border border-dashed border-zinc-300 bg-zinc-50 p-4 text-center text-xs text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-400">
         Your ★ signature track plays for visitors on your public passport page (it
-        must be a public track). Third-party streaming (Spotify-style catalogs) needs
-        licensing and stays out of v1.
+        must be a public track).
       </p>
     </div>
   );

@@ -77,3 +77,17 @@ export interface ContentComment {
   body: string;
   createdAt: string;
 }
+
+export interface StickerListing {
+  id: string;
+  sellerId: string;
+  seller: string | null;
+  stickerId: string;
+  name: string;
+  emoji: string;
+  rarity: string;
+  pricePoints: number;
+  status: string;
+  createdAt: string;
+  soldAt: string | null;
+}

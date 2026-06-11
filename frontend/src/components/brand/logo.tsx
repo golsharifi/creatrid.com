@@ -64,8 +64,9 @@ export function Logo({ className = "" }: { className?: string }) {
       <OrbMark className="h-8 w-8 shrink-0" />
       <span className="flex flex-col leading-none">
         <span className="text-lg font-extrabold tracking-tight">creatrid</span>
-        <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400">
-          Passport ID
+        {/* Client-mandated tagline as part of the logo lockup */}
+        <span className="whitespace-nowrap text-[8px] font-semibold uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">
+          Own Your Reputation · Monetize
         </span>
       </span>
     </span>

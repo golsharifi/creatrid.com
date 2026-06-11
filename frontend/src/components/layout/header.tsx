@@ -62,7 +62,9 @@ const PRIMARY_TABS: Tab[] = [
   { href: "/logo-studio", key: "logoStudio", Icon: ImageIcon, accent: "var(--tab-studio)" },
   { href: "/vr-community", key: "vrCommunity", Icon: Trophy, accent: "var(--tab-vr)" },
   { href: "/legal-ai", key: "legalAi", Icon: FileText, accent: "var(--tab-legal)" },
-  { href: "/trade", key: "trade", Icon: CreditCard, accent: "var(--tab-trade)", flag: "trade" },
+  // Trade is live as the closed-loop sticker exchange; only the external
+  // crypto/NFT portion stays behind features.tradeExternal (legal sign-off).
+  { href: "/trade", key: "trade", Icon: CreditCard, accent: "var(--tab-trade)" },
 ];
 
 // Secondary destinations, housed under the "more" (hamburger) menu.

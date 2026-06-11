@@ -18,6 +18,9 @@ export function ContentComments({ contentId }: { contentId: string }) {
   const [body, setBody] = useState("");
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState("");
+  const [likes, setLikes] = useState(0);
+  const [liked, setLiked] = useState(false);
+  const [likeBusy, setLikeBusy] = useState(false);
 
   const load = useCallback(async () => {
     const res = await api.comments.list(contentId);
@@ -25,11 +28,32 @@ export function ContentComments({ contentId }: { contentId: string }) {
       setComments(res.data.comments);
       setTotal(res.data.total);
     }
-  }, [contentId]);
+    if (user) {
+      const likeRes = await api.likes.mine(contentId);
+      if (likeRes.data) {
+        setLikes(likeRes.data.likes);
+        setLiked(likeRes.data.liked);
+      }
+    } else {
+      const likeRes = await api.likes.stats(contentId);
+      if (likeRes.data) setLikes(likeRes.data.likes);
+    }
+  }, [contentId, user]);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  async function toggleLike() {
+    if (!user || likeBusy) return;
+    setLikeBusy(true);
+    const res = liked ? await api.likes.unlike(contentId) : await api.likes.like(contentId);
+    setLikeBusy(false);
+    if (res.data) {
+      setLiked(res.data.liked);
+      setLikes(res.data.likes);
+    }
+  }
 
   async function post() {
     const text = body.trim();
@@ -53,9 +77,23 @@ export function ContentComments({ contentId }: { contentId: string }) {
 
   return (
     <div className="mt-8 rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-      <h2 className="text-lg font-semibold">
-        Comments {total > 0 && <span className="text-sm font-normal text-zinc-500">({total})</span>}
-      </h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">
+          Comments {total > 0 && <span className="text-sm font-normal text-zinc-500">({total})</span>}
+        </h2>
+        <button
+          onClick={toggleLike}
+          disabled={!user || likeBusy}
+          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+            liked
+              ? "bg-rose-50 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400"
+              : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+          } disabled:opacity-60`}
+          title={user ? (liked ? "Unlike" : "Like this work (+1 reputation to the creator)") : "Sign in to like"}
+        >
+          {liked ? "♥" : "♡"} {likes}
+        </button>
+      </div>
 
       {user ? (
         <div className="mt-4">

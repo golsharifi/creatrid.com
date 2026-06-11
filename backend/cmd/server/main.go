@@ -152,6 +152,7 @@ func main() {
 	fanSubHandler := handler.NewFanSubscriptionHandler(st, cfg)
 	arenaHandler := handler.NewArenaHandler(st)
 	commentHandler := handler.NewCommentHandler(st)
+	tradeHandler := handler.NewTradeHandler(st)
 
 	// AI assistant (Brand Studio + Legal AI) — enabled only when ANTHROPIC_API_KEY is set
 	var aiHandler *handler.AIHandler
@@ -264,6 +265,8 @@ func main() {
 		r.Get("/api/users/{username}/signature-track", userHandler.StreamSignatureTrack)
 		r.Get("/api/arena/leaderboard", arenaHandler.Leaderboard)
 		r.Get("/api/content/{id}/comments", commentHandler.List)
+		r.Get("/api/content/{id}/likes", commentHandler.LikeStats)
+		r.Get("/api/trade/listings", tradeHandler.Listings)
 		r.Get("/api/users/{username}/connections", connHandler.PublicList)
 		r.Post("/api/users/{username}/view", analyticsHandler.TrackView)
 		r.Post("/api/users/{username}/click", analyticsHandler.TrackClick)
@@ -377,6 +380,14 @@ func main() {
 		r.Get("/api/arena/me", arenaHandler.Me)
 		r.Post("/api/arena/explore", arenaHandler.Explore)
 		r.Post("/api/arena/gift", arenaHandler.Gift)
+		r.Get("/api/arena/wallet", tradeHandler.Wallet)
+		r.Get("/api/trade/listings/mine", tradeHandler.MyListings)
+		r.Post("/api/trade/listings", tradeHandler.CreateListing)
+		r.Delete("/api/trade/listings/{id}", tradeHandler.CancelListing)
+		r.Post("/api/trade/listings/{id}/buy", tradeHandler.Buy)
+		r.Post("/api/content/{id}/like", commentHandler.Like)
+		r.Delete("/api/content/{id}/like", commentHandler.Unlike)
+		r.Get("/api/content/{id}/likes/me", commentHandler.MyLikeStats)
 		r.Get("/api/users/watermark", userHandler.GetWatermark)
 		r.Post("/api/users/watermark", userHandler.UploadWatermark)
 		r.Delete("/api/users/watermark", userHandler.DeleteWatermark)

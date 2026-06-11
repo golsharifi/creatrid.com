@@ -1,4 +1,4 @@
-import type { User, PublicUser, Connection, EmailPrefs, UserSticker, ContentComment } from "./types";
+import type { User, PublicUser, Connection, EmailPrefs, UserSticker, ContentComment, StickerListing } from "./types";
 import { captureException } from "./sentry";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
@@ -106,7 +106,11 @@ export const api = {
       request<{
         user: PublicUser;
         signatureTrack?: { id: string; title: string };
-        arena?: { points: number; stickers: UserSticker[] };
+        arena?: {
+          points: number;
+          stickers: UserSticker[];
+          achievements?: { key: string; name: string; emoji: string }[];
+        };
       }>(`/api/users/${username}`),
     publicConnections: (username: string) =>
       request<{ connections: Connection[] }>(
@@ -710,6 +714,42 @@ export const api = {
       request<{ success: boolean }>("/api/arena/gift", {
         method: "POST",
         body: JSON.stringify({ username, stickerId }),
+      }),
+    wallet: () =>
+      request<{
+        points: number;
+        events: { delta: number; reason: string; createdAt: string }[];
+      }>("/api/arena/wallet"),
+  },
+
+  trade: {
+    listings: () =>
+      request<{ listings: StickerListing[] }>("/api/trade/listings"),
+    myListings: () =>
+      request<{ listings: StickerListing[] }>("/api/trade/listings/mine"),
+    createListing: (stickerId: string, pricePoints: number) =>
+      request<{ id: string }>("/api/trade/listings", {
+        method: "POST",
+        body: JSON.stringify({ stickerId, pricePoints }),
+      }),
+    cancelListing: (id: string) =>
+      request<{ success: boolean }>(`/api/trade/listings/${id}`, { method: "DELETE" }),
+    buy: (id: string) =>
+      request<{ success: boolean }>(`/api/trade/listings/${id}/buy`, { method: "POST" }),
+  },
+
+  likes: {
+    stats: (contentId: string) =>
+      request<{ likes: number }>(`/api/content/${contentId}/likes`),
+    mine: (contentId: string) =>
+      request<{ likes: number; liked: boolean }>(`/api/content/${contentId}/likes/me`),
+    like: (contentId: string) =>
+      request<{ liked: boolean; likes: number }>(`/api/content/${contentId}/like`, {
+        method: "POST",
+      }),
+    unlike: (contentId: string) =>
+      request<{ liked: boolean; likes: number }>(`/api/content/${contentId}/like`, {
+        method: "DELETE",
       }),
   },
 

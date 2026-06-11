@@ -149,8 +149,16 @@ export default function VRCommunityPage() {
           </p>
         </div>
         {user && (
-          <div className="ml-auto rounded-full px-4 py-2 text-sm font-bold text-white" style={{ background: ACCENT }}>
-            {points} pts
+          <div className="ml-auto flex items-center gap-3">
+            <Link
+              href="/trade"
+              className="text-sm font-medium text-zinc-500 underline-offset-2 hover:underline dark:text-zinc-400"
+            >
+              Wallet & history →
+            </Link>
+            <div className="rounded-full px-4 py-2 text-sm font-bold text-white" style={{ background: ACCENT }}>
+              {points} pts
+            </div>
           </div>
         )}
       </div>

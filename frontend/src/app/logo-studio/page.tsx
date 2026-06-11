@@ -101,32 +101,69 @@ export default function LogoStudioPage() {
     setQuotaKey((k) => k + 1);
   }
 
-  // Rasterize an SVG concept to PNG via canvas and save it as the user's
-  // vault watermark (the mark stamped onto image uploads).
+  // Rasterize an SVG concept to a 512px PNG via canvas.
+  async function rasterize(concept: LogoConcept): Promise<Blob> {
+    const svgBlob = new Blob([concept.svg], { type: "image/svg+xml" });
+    const url = URL.createObjectURL(svgBlob);
+    const img = new Image();
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error("SVG render failed"));
+      img.src = url;
+    });
+    const canvas = document.createElement("canvas");
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Canvas unavailable");
+    ctx.drawImage(img, 0, 0, 512, 512);
+    URL.revokeObjectURL(url);
+    return new Promise((resolve, reject) =>
+      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("PNG export failed"))), "image/png")
+    );
+  }
+
+  // Save a concept as the user's vault watermark (stamped on image uploads).
   async function setAsWatermark(concept: LogoConcept) {
     setWatermarkStatus("Setting watermark…");
     try {
-      const svgBlob = new Blob([concept.svg], { type: "image/svg+xml" });
-      const url = URL.createObjectURL(svgBlob);
-      const img = new Image();
-      await new Promise<void>((resolve, reject) => {
-        img.onload = () => resolve();
-        img.onerror = () => reject(new Error("SVG render failed"));
-        img.src = url;
-      });
-      const canvas = document.createElement("canvas");
-      canvas.width = 512;
-      canvas.height = 512;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) throw new Error("Canvas unavailable");
-      ctx.drawImage(img, 0, 0, 512, 512);
-      URL.revokeObjectURL(url);
-      const png: Blob = await new Promise((resolve, reject) =>
-        canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("PNG export failed"))), "image/png")
-      );
+      const png = await rasterize(concept);
       const res = await api.users.uploadWatermark(png);
       setWatermarkStatus(
         res.error ? `Failed: ${res.error}` : `"${concept.name}" is now your watermark ✓`
+      );
+    } catch (e) {
+      setWatermarkStatus(`Failed: ${e instanceof Error ? e.message : "unknown error"}`);
+    }
+  }
+
+  // Anchor a concept on-chain as the creator's passport marker: the PNG goes
+  // into the Vault as a public item, then the existing blockchain anchoring
+  // engine stamps its hash on-chain — timestamped proof this mark is theirs.
+  async function anchorAsMarker(concept: LogoConcept) {
+    setWatermarkStatus("Anchoring your passport marker on-chain…");
+    try {
+      const png = await rasterize(concept);
+      const upload = await api.content.upload(
+        png,
+        `Passport Marker — ${concept.name}`,
+        "My official logo mark, anchored on-chain as my passport identifier.",
+        ["passport-marker", "logo"],
+        true,
+        { filename: "passport-marker.png" }
+      );
+      if (upload.error || !upload.data?.item?.id) {
+        throw new Error(upload.error || "Vault upload failed");
+      }
+      const anchor = await api.blockchain.anchor(upload.data.item.id);
+      if (anchor.error) {
+        setWatermarkStatus(
+          `Marker saved to your Vault, but anchoring is unavailable: ${anchor.error}`
+        );
+        return;
+      }
+      setWatermarkStatus(
+        `"${concept.name}" anchored on-chain as your passport marker ✓ — see it in your Vault`
       );
     } catch (e) {
       setWatermarkStatus(`Failed: ${e instanceof Error ? e.message : "unknown error"}`);
@@ -269,6 +306,13 @@ export default function LogoStudioPage() {
                     >
                       <Zap className="h-4 w-4" />
                       Use as watermark
+                    </button>
+                    <button
+                      onClick={() => anchorAsMarker(c)}
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+                      title="Save to your Vault and stamp its hash on-chain — your NFT-style passport marker"
+                    >
+                      ⛓ Anchor as passport marker
                     </button>
                   </div>
                 </div>

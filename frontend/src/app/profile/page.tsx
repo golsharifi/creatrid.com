@@ -32,7 +32,11 @@ function ProfileContent() {
   const { t } = useTranslation();
   const [user, setUser] = useState<PublicUser | null>(null);
   const [signatureTrack, setSignatureTrack] = useState<{ id: string; title: string } | null>(null);
-  const [arena, setArena] = useState<{ points: number; stickers: { id: string; name: string; emoji: string; rarity: string; count: number }[] } | null>(null);
+  const [arena, setArena] = useState<{
+    points: number;
+    stickers: { id: string; name: string; emoji: string; rarity: string; count: number }[];
+    achievements?: { key: string; name: string; emoji: string }[];
+  } | null>(null);
   const [connections, setConnections] = useState<Connection[]>([]);
   const [contentItems, setContentItems] = useState<{ id: string; title: string; description?: string; contentType: string; mimeType: string; thumbnailUrl?: string; tags: string[]; createdAt: string }[]>([]);
   const [notFound, setNotFound] = useState(false);
@@ -176,6 +180,18 @@ function ProfileContent() {
                 {arena.points} pts
               </span>
             </div>
+            {(arena.achievements?.length ?? 0) > 0 && (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {arena.achievements!.map((a) => (
+                  <span
+                    key={a.key}
+                    className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium dark:bg-zinc-800"
+                  >
+                    {a.emoji} {a.name}
+                  </span>
+                ))}
+              </div>
+            )}
             {arena.stickers.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-2">
                 {arena.stickers.map((s) => (

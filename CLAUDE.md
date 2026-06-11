@@ -151,9 +151,18 @@ deploy/
 | POST | `/api/arena/explore` | Yes | Farm explore: random sticker drop + points (4h cooldown) |
 | POST | `/api/arena/gift` | Yes | Gift one sticker to another creator |
 | GET | `/api/arena/leaderboard` | No | Top 25 by points |
+| GET | `/api/arena/wallet` | Yes | Points balance + transaction history (ledger) |
 | GET | `/api/content/{id}/comments` | No | Comments on public content |
 | POST | `/api/content/{id}/comments` | Yes | Post comment (+2 pts to owner) |
 | DELETE | `/api/comments/{id}` | Yes | Delete own comment (or content owner / admin) |
+| GET | `/api/content/{id}/likes` | No | Like count on public content |
+| GET | `/api/content/{id}/likes/me` | Yes | Like count + whether current user liked |
+| POST/DELETE | `/api/content/{id}/like` | Yes | Like/unlike (+1/−1 pt to owner) |
+| GET | `/api/trade/listings` | No | Open sticker-exchange floor |
+| GET | `/api/trade/listings/mine` | Yes | Own listings (any status) |
+| POST | `/api/trade/listings` | Yes | List a sticker for points (escrowed) |
+| DELETE | `/api/trade/listings/{id}` | Yes | Cancel listing (sticker returned) |
+| POST | `/api/trade/listings/{id}/buy` | Yes | Buy: points buyer→seller, sticker→buyer, atomic |
 
 ### Passport extras
 | Method | Path | Auth | Description |
@@ -201,10 +210,16 @@ deploy/
 - [x] **Phase 24: Signature track** — public Vault audio plays on public profile
 - [x] **Phase 25: VR Community Arena** — farm explore game (4h cooldown, rarity-weighted sticker drops), 12-sticker catalog, point ledger, leaderboard, gifting, achievements, comments on public content (+2 pts/comment to owner), sticker collection on public profile
 
+- [x] **Phase 26: Reputation economy complete** — likes on public works (+1 pt), +5 pts per upload, achievements on public profile, wallet (balance + ledger history) in Arena/Trade
+- [x] **Phase 27: Trade tab live (closed-loop)** — sticker exchange: list/escrow/buy/cancel with atomic point transfers; "Anchor as passport marker" in Logo Studio (logo PNG → Vault → on-chain anchor); tagline in logo lockup
+- [x] **Phase 28: Online stations (license-gated)** — streaming player production-ready behind `NEXT_PUBLIC_ENABLE_STREAMING`; client obtains streaming licenses, adds stream URLs to `ONLINE_STATIONS`, flips flag
+
 ### Upcoming
 
-- [ ] **Trade tab** — built behind `NEXT_PUBLIC_ENABLE_TRADE` (default OFF); requires securities/CFTC legal sign-off before enabling — tokens were deliberately made non-transferable for SEC compliance (commit 8da40a1)
+- [ ] **External trading** — transferable crypto IDs / public NFT markets / Polymarket compat stays behind `NEXT_PUBLIC_ENABLE_TRADE` until the client's securities/CFTC legal sign-off (tokens deliberately non-transferable per commit 8da40a1); the in-platform exchange is live
+- [ ] **Online stations go-live** — pending the client's streaming licenses (see `ONLINE_STATIONS` in `frontend/src/app/music/page.tsx`)
 - [ ] **Full i18n of new tab pages** — titles/CTAs translated (en/es/fa); body copy still English
+- [ ] **Client inputs** — her original logo attachment + blueprint color screenshot (to verify palette match)
 
 ## Key Design Decisions
 

@@ -297,11 +297,13 @@ func (h *UserHandler) PublicProfile(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Arena reputation: points + sticker collection for the passport display.
+	// Arena reputation: points, sticker collection, and earned achievement
+	// badges for the passport display.
 	if state, err := h.store.GetArenaState(r.Context(), user.ID); err == nil && state != nil {
 		arena := map[string]interface{}{"points": state.Points}
 		if stickers, err := h.store.ListUserStickers(r.Context(), user.ID); err == nil {
 			arena["stickers"] = stickers
+			arena["achievements"] = achievements(state.Points, stickers)
 		}
 		resp["arena"] = arena
 	}

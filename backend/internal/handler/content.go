@@ -233,6 +233,11 @@ func (h *ContentHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Uploading work feeds reputation: +5 arena points per upload.
+	if err := h.store.AddArenaPoints(r.Context(), cuid2.Generate(), user.ID, 5, "upload"); err != nil {
+		log.Printf("Upload points credit failed: %v", err)
+	}
+
 	// Dispatch webhook event for content upload
 	dispatchWebhook(user.ID, "content.uploaded", map[string]interface{}{
 		"contentId":   contentID,
