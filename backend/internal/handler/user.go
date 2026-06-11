@@ -287,7 +287,26 @@ func (h *UserHandler) PublicProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{"user": user.ToPublic()})
+	resp := map[string]interface{}{"user": user.ToPublic()}
+
+	// Signature track (public profile soundtrack), if one is set and public.
+	if trackID, err := h.store.GetSignatureTrackID(r.Context(), user.ID); err == nil && trackID != nil {
+		if item, err := h.store.FindContentItemByID(r.Context(), *trackID); err == nil &&
+			item != nil && item.IsPublic && item.ContentType == "audio" {
+			resp["signatureTrack"] = map[string]string{"id": item.ID, "title": item.Title}
+		}
+	}
+
+	// Arena reputation: points + sticker collection for the passport display.
+	if state, err := h.store.GetArenaState(r.Context(), user.ID); err == nil && state != nil {
+		arena := map[string]interface{}{"points": state.Points}
+		if stickers, err := h.store.ListUserStickers(r.Context(), user.ID); err == nil {
+			arena["stickers"] = stickers
+		}
+		resp["arena"] = arena
+	}
+
+	writeJSON(w, http.StatusOK, resp)
 }
 
 var allowedImageTypes = map[string]string{

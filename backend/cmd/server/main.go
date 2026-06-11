@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/creatrid/creatrid/internal/ai"
 	"github.com/creatrid/creatrid/internal/auth"
 	"github.com/creatrid/creatrid/internal/blockchain"
 	"github.com/creatrid/creatrid/internal/config"
@@ -149,6 +150,24 @@ func main() {
 	tokenHandler := handler.NewTokenHandler(st, cfg)
 	tipHandler := handler.NewTipHandler(st, cfg)
 	fanSubHandler := handler.NewFanSubscriptionHandler(st, cfg)
+	arenaHandler := handler.NewArenaHandler(st)
+	commentHandler := handler.NewCommentHandler(st)
+
+	// AI assistant (Brand Studio + Legal AI) — enabled only when ANTHROPIC_API_KEY is set
+	var aiHandler *handler.AIHandler
+	if cfg.AnthropicAPIKey != "" {
+		aiHandler = handler.NewAIHandler(ai.New(ai.Config{
+			ModelLogos:    cfg.AIModelLogos,
+			ModelCopy:     cfg.AIModelCopy,
+			ModelRefine:   cfg.AIModelRefine,
+			ModelLegal:    cfg.AIModelLegal,
+			CompatBaseURL: cfg.AICompatBaseURL,
+			CompatAPIKey:  cfg.AICompatAPIKey,
+		}), st)
+		log.Println("AI assistant enabled")
+	} else {
+		log.Println("AI assistant disabled (ANTHROPIC_API_KEY not set)")
+	}
 
 	// Init blockchain anchor service
 	var anchorSvc *blockchain.AnchorService
@@ -242,6 +261,9 @@ func main() {
 		r.Use(middleware.RateLimit(20, 40)) // 20 req/s per IP, burst 40
 		r.Get("/api/auth/verify-email/{token}", userHandler.VerifyEmail)
 		r.Get("/api/users/{username}", userHandler.PublicProfile)
+		r.Get("/api/users/{username}/signature-track", userHandler.StreamSignatureTrack)
+		r.Get("/api/arena/leaderboard", arenaHandler.Leaderboard)
+		r.Get("/api/content/{id}/comments", commentHandler.List)
 		r.Get("/api/users/{username}/connections", connHandler.PublicList)
 		r.Post("/api/users/{username}/view", analyticsHandler.TrackView)
 		r.Post("/api/users/{username}/click", analyticsHandler.TrackClick)
@@ -350,6 +372,15 @@ func main() {
 		r.Patch("/api/content/{id}", contentHandler.Update)
 		r.Delete("/api/content/{id}", contentHandler.Delete)
 		r.Get("/api/content/{id}/download", contentHandler.Download)
+		r.Post("/api/content/{id}/comments", commentHandler.Create)
+		r.Delete("/api/comments/{id}", commentHandler.Delete)
+		r.Get("/api/arena/me", arenaHandler.Me)
+		r.Post("/api/arena/explore", arenaHandler.Explore)
+		r.Post("/api/arena/gift", arenaHandler.Gift)
+		r.Get("/api/users/watermark", userHandler.GetWatermark)
+		r.Post("/api/users/watermark", userHandler.UploadWatermark)
+		r.Delete("/api/users/watermark", userHandler.DeleteWatermark)
+		r.Post("/api/users/signature-track", userHandler.SetSignatureTrack)
 
 		// Licensing
 		r.Post("/api/content/{id}/licenses", licenseHandler.CreateOffering)
@@ -440,6 +471,20 @@ func main() {
 		r.Get("/api/agency/invites", agencyHandler.ListInvites)
 		r.Post("/api/agency/invites/{id}/respond", agencyHandler.RespondToInvite)
 	})
+
+	// AI assistant routes (Brand Studio + Legal AI) — slow, expensive calls get a
+	// strict per-user rate limit and are only mounted when the service is enabled.
+	if aiHandler != nil {
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.RequireAuth(jwtSvc, st))
+			r.Use(middleware.RateLimitUser(0.5, 3))
+			r.Get("/api/ai/quota", aiHandler.Quota)
+			r.Post("/api/ai/brand/logos", aiHandler.GenerateLogos)
+			r.Post("/api/ai/brand/copy", aiHandler.GenerateCopy)
+			r.Post("/api/ai/brand/refine", aiHandler.RefineText)
+			r.Post("/api/ai/legal", aiHandler.LegalAssist)
+		})
+	}
 
 	// Admin routes
 	r.Group(func(r chi.Router) {

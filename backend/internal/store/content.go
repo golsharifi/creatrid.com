@@ -20,6 +20,8 @@ type ContentItem struct {
 	ThumbnailURL *string   `json:"thumbnailUrl"`
 	HashSHA256   string    `json:"hashSha256"`
 	IsPublic     bool      `json:"isPublic"`
+	IsEncrypted   bool     `json:"isEncrypted"`
+	IsWatermarked bool     `json:"isWatermarked"`
 	Tags         []string  `json:"tags"`
 	CreatedAt    time.Time `json:"createdAt"`
 	UpdatedAt    time.Time `json:"updatedAt"`
@@ -27,11 +29,11 @@ type ContentItem struct {
 
 func (s *Store) CreateContentItem(ctx context.Context, item *ContentItem) error {
 	_, err := s.pool.Exec(ctx,
-		`INSERT INTO content_items (id, user_id, title, description, content_type, mime_type, file_size, file_url, thumbnail_url, hash_sha256, is_public, tags, created_at, updated_at)
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+		`INSERT INTO content_items (id, user_id, title, description, content_type, mime_type, file_size, file_url, thumbnail_url, hash_sha256, is_public, is_encrypted, is_watermarked, tags, created_at, updated_at)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
 		item.ID, item.UserID, item.Title, item.Description, item.ContentType,
 		item.MimeType, item.FileSize, item.FileURL, item.ThumbnailURL,
-		item.HashSHA256, item.IsPublic, item.Tags, item.CreatedAt, item.UpdatedAt,
+		item.HashSHA256, item.IsPublic, item.IsEncrypted, item.IsWatermarked, item.Tags, item.CreatedAt, item.UpdatedAt,
 	)
 	return err
 }
@@ -39,12 +41,12 @@ func (s *Store) CreateContentItem(ctx context.Context, item *ContentItem) error 
 func (s *Store) FindContentItemByID(ctx context.Context, id string) (*ContentItem, error) {
 	var item ContentItem
 	err := s.pool.QueryRow(ctx,
-		`SELECT id, user_id, title, description, content_type, mime_type, file_size, file_url, thumbnail_url, hash_sha256, is_public, tags, created_at, updated_at
+		`SELECT id, user_id, title, description, content_type, mime_type, file_size, file_url, thumbnail_url, hash_sha256, is_public, is_encrypted, is_watermarked, tags, created_at, updated_at
 		 FROM content_items WHERE id = $1`, id,
 	).Scan(
 		&item.ID, &item.UserID, &item.Title, &item.Description, &item.ContentType,
 		&item.MimeType, &item.FileSize, &item.FileURL, &item.ThumbnailURL,
-		&item.HashSHA256, &item.IsPublic, &item.Tags, &item.CreatedAt, &item.UpdatedAt,
+		&item.HashSHA256, &item.IsPublic, &item.IsEncrypted, &item.IsWatermarked, &item.Tags, &item.CreatedAt, &item.UpdatedAt,
 	)
 	if err == pgx.ErrNoRows {
 		return nil, nil
@@ -62,7 +64,7 @@ func (s *Store) ListContentItemsByUser(ctx context.Context, userID string, limit
 	}
 
 	rows, err := s.pool.Query(ctx,
-		`SELECT id, user_id, title, description, content_type, mime_type, file_size, file_url, thumbnail_url, hash_sha256, is_public, tags, created_at, updated_at
+		`SELECT id, user_id, title, description, content_type, mime_type, file_size, file_url, thumbnail_url, hash_sha256, is_public, is_encrypted, is_watermarked, tags, created_at, updated_at
 		 FROM content_items
 		 WHERE user_id = $1
 		 ORDER BY created_at DESC
@@ -80,7 +82,7 @@ func (s *Store) ListContentItemsByUser(ctx context.Context, userID string, limit
 		if err := rows.Scan(
 			&item.ID, &item.UserID, &item.Title, &item.Description, &item.ContentType,
 			&item.MimeType, &item.FileSize, &item.FileURL, &item.ThumbnailURL,
-			&item.HashSHA256, &item.IsPublic, &item.Tags, &item.CreatedAt, &item.UpdatedAt,
+			&item.HashSHA256, &item.IsPublic, &item.IsEncrypted, &item.IsWatermarked, &item.Tags, &item.CreatedAt, &item.UpdatedAt,
 		); err != nil {
 			return nil, 0, err
 		}
@@ -108,12 +110,12 @@ func (s *Store) DeleteContentItem(ctx context.Context, id string) error {
 func (s *Store) FindContentByHash(ctx context.Context, hash string) (*ContentItem, error) {
 	var item ContentItem
 	err := s.pool.QueryRow(ctx,
-		`SELECT id, user_id, title, description, content_type, mime_type, file_size, file_url, thumbnail_url, hash_sha256, is_public, tags, created_at, updated_at
+		`SELECT id, user_id, title, description, content_type, mime_type, file_size, file_url, thumbnail_url, hash_sha256, is_public, is_encrypted, is_watermarked, tags, created_at, updated_at
 		 FROM content_items WHERE hash_sha256 = $1`, hash,
 	).Scan(
 		&item.ID, &item.UserID, &item.Title, &item.Description, &item.ContentType,
 		&item.MimeType, &item.FileSize, &item.FileURL, &item.ThumbnailURL,
-		&item.HashSHA256, &item.IsPublic, &item.Tags, &item.CreatedAt, &item.UpdatedAt,
+		&item.HashSHA256, &item.IsPublic, &item.IsEncrypted, &item.IsWatermarked, &item.Tags, &item.CreatedAt, &item.UpdatedAt,
 	)
 	if err == pgx.ErrNoRows {
 		return nil, nil
@@ -145,7 +147,7 @@ func (s *Store) ListPublicContent(ctx context.Context, contentType, query string
 		return nil, 0, err
 	}
 
-	selectQuery := `SELECT id, user_id, title, description, content_type, mime_type, file_size, file_url, thumbnail_url, hash_sha256, is_public, tags, created_at, updated_at
+	selectQuery := `SELECT id, user_id, title, description, content_type, mime_type, file_size, file_url, thumbnail_url, hash_sha256, is_public, is_encrypted, is_watermarked, tags, created_at, updated_at
 		 FROM content_items ` + baseWhere +
 		` ORDER BY created_at DESC LIMIT $` + fmt.Sprintf("%d", argIdx) + ` OFFSET $` + fmt.Sprintf("%d", argIdx+1)
 	args = append(args, limit, offset)
@@ -162,7 +164,7 @@ func (s *Store) ListPublicContent(ctx context.Context, contentType, query string
 		if err := rows.Scan(
 			&item.ID, &item.UserID, &item.Title, &item.Description, &item.ContentType,
 			&item.MimeType, &item.FileSize, &item.FileURL, &item.ThumbnailURL,
-			&item.HashSHA256, &item.IsPublic, &item.Tags, &item.CreatedAt, &item.UpdatedAt,
+			&item.HashSHA256, &item.IsPublic, &item.IsEncrypted, &item.IsWatermarked, &item.Tags, &item.CreatedAt, &item.UpdatedAt,
 		); err != nil {
 			return nil, 0, err
 		}

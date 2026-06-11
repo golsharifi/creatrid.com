@@ -41,6 +41,33 @@ const es = {
     openMenu: "Abrir menu",
     closeMenu: "Cerrar menu",
     language: "Idioma",
+    music: "Música",
+    logoStudio: "Estudio de Logo",
+    vrCommunity: "Comunidad VR",
+    legalAi: "IA Legal",
+    trade: "Mercado",
+    myProfile: "Mi Perfil",
+    servicesLabel: "Servicios",
+    moreLabel: "Más",
+  },
+
+  tabs: {
+    musicTitle: "Ambiente y Música",
+    musicSubtitle: "Crea el ambiente de tu pasaporte.",
+    studioTitle: "Estudio de Logo",
+    studioSubtitle: "Asistente de marca con IA — diseña tu marca, escribe tu historia.",
+    legalTitle: "Asistente Legal IA",
+    legalSubtitle: "Derechos de autor, licencias, retiradas, contratos — explicados para creadores.",
+    arenaTitle: "Arena de la Comunidad VR",
+    arenaSubtitle: "Explora la granja, colecciona stickers de pasaporte, sube en la clasificación.",
+    explore: "Explorar la granja",
+    exploring: "Explorando…",
+    leaderboard: "Mejores creadores",
+    stickers: "Stickers del pasaporte",
+    achievements: "Logros",
+    turnOn: "Encender",
+    turnOff: "Apagar",
+    yourTracks: "Tus pistas",
   },
 
   // Footer
@@ -319,9 +346,9 @@ const es = {
   // Landing Page
   landing: {
     // Hero
-    heroBadge: "La plataforma de la economia creativa",
-    heroHeadline: "Tu Creator Passport.",
-    heroHeadlineAccent: "Construye. Demuestra. Crecer.",
+    heroBadge: "El Pasaporte Global del Creador",
+    heroHeadline: "Pasaporte Digital Global.",
+    heroHeadlineAccent: "Posee Tu Reputación. Monetiza.",
     heroSubtext:
       "Conecta tus cuentas, construye una identidad verificada con un Creator Score, monetiza tu contenido con licencias respaldadas por blockchain y crece con analiticas en tiempo real — todo desde una sola plataforma.",
     ctaDashboard: "Ir al panel",

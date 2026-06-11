@@ -31,6 +31,8 @@ function ProfileContent() {
   const username = searchParams.get("u");
   const { t } = useTranslation();
   const [user, setUser] = useState<PublicUser | null>(null);
+  const [signatureTrack, setSignatureTrack] = useState<{ id: string; title: string } | null>(null);
+  const [arena, setArena] = useState<{ points: number; stickers: { id: string; name: string; emoji: string; rarity: string; count: number }[] } | null>(null);
   const [connections, setConnections] = useState<Connection[]>([]);
   const [contentItems, setContentItems] = useState<{ id: string; title: string; description?: string; contentType: string; mimeType: string; thumbnailUrl?: string; tags: string[]; createdAt: string }[]>([]);
   const [notFound, setNotFound] = useState(false);
@@ -52,6 +54,8 @@ function ProfileContent() {
         setNotFound(true);
       } else if (result.data) {
         setUser(result.data.user);
+        setSignatureTrack(result.data.signatureTrack ?? null);
+        setArena(result.data.arena ?? null);
       }
       setLoading(false);
     });
@@ -142,6 +146,59 @@ function ProfileContent() {
             </div>
             {user.creatorTier && (
               <TierBadge tier={user.creatorTier} size="md" />
+            )}
+          </div>
+        )}
+
+        {/* Signature track — the creator's profile soundtrack */}
+        {signatureTrack && username && (
+          <div className="mt-6 w-full max-w-sm rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+              ♪ {signatureTrack.title}
+            </p>
+            <audio
+              controls
+              preload="none"
+              className="w-full"
+              src={api.users.signatureTrackUrl(username)}
+            />
+          </div>
+        )}
+
+        {/* Arena passport: points + sticker collection */}
+        {arena && (arena.points > 0 || arena.stickers.length > 0) && (
+          <div className="mt-6 w-full max-w-sm rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                Passport stickers
+              </p>
+              <span className="text-sm font-bold" style={{ color: "var(--tab-vr)" }}>
+                {arena.points} pts
+              </span>
+            </div>
+            {arena.stickers.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {arena.stickers.map((s) => (
+                  <span
+                    key={s.id}
+                    title={`${s.name} (${s.rarity})${s.count > 1 ? ` ×${s.count}` : ""}`}
+                    className={`relative inline-flex h-9 w-9 items-center justify-center rounded-lg text-xl ${
+                      s.rarity === "legendary"
+                        ? "bg-amber-100 dark:bg-amber-900/40"
+                        : s.rarity === "rare"
+                          ? "bg-purple-100 dark:bg-purple-900/40"
+                          : "bg-zinc-100 dark:bg-zinc-800"
+                    }`}
+                  >
+                    {s.emoji}
+                    {s.count > 1 && (
+                      <span className="absolute -right-1 -top-1 rounded-full bg-zinc-900 px-1 text-[9px] font-bold text-white dark:bg-zinc-100 dark:text-zinc-900">
+                        {s.count}
+                      </span>
+                    )}
+                  </span>
+                ))}
+              </div>
             )}
           </div>
         )}

@@ -10,6 +10,24 @@
 :root {
   --background: #ffffff;
   --foreground: #09090b;
+
+  /* ── Creatrid brand: "Global Digital Passport" ──
+     Deep passport navy + globe-orb cyan→violet gradient + gold seal. */
+  --brand-navy: #0b1437;
+  --brand-navy-2: #131d4d;
+  --brand-cyan: #22d3ee;
+  --brand-azure: #3b82f6;
+  --brand-violet: #8b5cf6;
+  --brand-gold: #f5c451;
+
+  /* Per-tab accent colors (Music · Vault · Logo Studio · VR · Legal AI · Trade) */
+  --tab-music: #8b5cf6;   /* violet  */
+  --tab-vault: #10b981;   /* emerald */
+  --tab-studio: #f59e0b;  /* amber   */
+  --tab-vr: #ec4899;      /* fuchsia */
+  --tab-legal: #3b82f6;   /* blue    */
+  --tab-trade: #06b6d4;   /* cyan    */
+
   --chart-stroke: #18181b;
   --chart-fill: #3f3f46;
   --chart-bar: #52525b;

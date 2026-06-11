@@ -4,6 +4,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { api } from "@/lib/api";
+import { encryptFile } from "@/lib/vault-crypto";
 import { Upload, X, File } from "@/components/icons";
 import { useTranslation } from "react-i18next";
 
@@ -28,6 +29,21 @@ export default function VaultUploadPage() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [dragging, setDragging] = useState(false);
+
+  // Watermark (images) + client-side encryption
+  const [applyWatermark, setApplyWatermark] = useState(false);
+  const [hasWatermark, setHasWatermark] = useState(false);
+  const [encrypt, setEncrypt] = useState(false);
+  const [passphrase, setPassphrase] = useState("");
+  const [passphrase2, setPassphrase2] = useState("");
+
+  useEffect(() => {
+    api.users.getWatermark().then((res) => {
+      if (res.data?.watermarkUrl) setHasWatermark(true);
+    });
+  }, []);
+
+  const isImage = !!file && file.type.startsWith("image/");
 
   useEffect(() => {
     if (!loading && !user) router.push("/sign-in");
@@ -75,6 +91,17 @@ export default function VaultUploadPage() {
       return;
     }
 
+    if (encrypt) {
+      if (passphrase.length < 8) {
+        setError("Encryption passphrase must be at least 8 characters");
+        return;
+      }
+      if (passphrase !== passphrase2) {
+        setError("Passphrases don't match");
+        return;
+      }
+    }
+
     setUploading(true);
     setError("");
 
@@ -83,7 +110,23 @@ export default function VaultUploadPage() {
       .map((tag) => tag.trim())
       .filter(Boolean);
 
-    const result = await api.content.upload(file, title.trim(), description.trim(), tags, isPublic);
+    let payload: globalThis.File | Blob = file;
+    const opts: { watermark?: boolean; encrypted?: boolean; filename?: string } = {};
+    if (encrypt) {
+      try {
+        payload = await encryptFile(file, passphrase);
+        opts.encrypted = true;
+        opts.filename = file.name + ".enc";
+      } catch {
+        setError("Encryption failed in this browser");
+        setUploading(false);
+        return;
+      }
+    } else if (applyWatermark && isImage) {
+      opts.watermark = true;
+    }
+
+    const result = await api.content.upload(payload, title.trim(), description.trim(), tags, encrypt ? false : isPublic, opts);
 
     if (result.error) {
       setError(result.error);
@@ -235,6 +278,85 @@ export default function VaultUploadPage() {
               }`}
             />
           </button>
+        </div>
+
+        {/* Watermark (images only) */}
+        {isImage && !encrypt && (
+          <div className="flex items-center justify-between rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
+            <div>
+              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                Apply my watermark
+              </p>
+              <p className="text-xs text-zinc-500">
+                {hasWatermark
+                  ? "Stamps your Logo Studio mark on the image (and its thumbnail)."
+                  : "No watermark set yet — create one in Logo Studio first."}
+              </p>
+            </div>
+            <button
+              onClick={() => hasWatermark && setApplyWatermark(!applyWatermark)}
+              disabled={!hasWatermark}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-40 ${
+                applyWatermark
+                  ? "bg-zinc-900 dark:bg-zinc-100"
+                  : "bg-zinc-300 dark:bg-zinc-700"
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform dark:bg-zinc-900 ${
+                  applyWatermark ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </button>
+          </div>
+        )}
+
+        {/* Client-side encryption */}
+        <div className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                Encrypt with a passphrase
+              </p>
+              <p className="text-xs text-zinc-500">
+                Encrypted in your browser (AES-256) before upload. Creatrid never
+                sees the passphrase — and can&apos;t recover it. Encrypted files stay
+                private.
+              </p>
+            </div>
+            <button
+              onClick={() => setEncrypt(!encrypt)}
+              className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+                encrypt
+                  ? "bg-zinc-900 dark:bg-zinc-100"
+                  : "bg-zinc-300 dark:bg-zinc-700"
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform dark:bg-zinc-900 ${
+                  encrypt ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </button>
+          </div>
+          {encrypt && (
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <input
+                type="password"
+                value={passphrase}
+                onChange={(e) => setPassphrase(e.target.value)}
+                placeholder="Passphrase (min 8 chars)"
+                className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+              />
+              <input
+                type="password"
+                value={passphrase2}
+                onChange={(e) => setPassphrase2(e.target.value)}
+                placeholder="Repeat passphrase"
+                className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+              />
+            </div>
+          )}
         </div>
 
         {/* Error */}

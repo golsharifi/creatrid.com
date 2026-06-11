@@ -41,6 +41,34 @@ const en = {
     openMenu: "Open menu",
     closeMenu: "Close menu",
     language: "Language",
+    music: "Music",
+    logoStudio: "Logo Studio",
+    vrCommunity: "VR Community",
+    legalAi: "Legal AI",
+    trade: "Trade",
+    myProfile: "My Profile",
+    servicesLabel: "Services",
+    moreLabel: "More",
+  },
+
+  // New service tabs (Music, Logo Studio, Legal AI, VR Arena)
+  tabs: {
+    musicTitle: "Ambient & Music",
+    musicSubtitle: "Set the mood for your passport.",
+    studioTitle: "Logo Studio",
+    studioSubtitle: "AI brand assistant — design your mark, write your story.",
+    legalTitle: "Legal AI Assistant",
+    legalSubtitle: "Copyright, licensing, takedowns, contracts — explained for creators.",
+    arenaTitle: "VR Community Arena",
+    arenaSubtitle: "Explore the farm, collect passport stickers, climb the leaderboard.",
+    explore: "Explore the farm",
+    exploring: "Exploring…",
+    leaderboard: "Top performers",
+    stickers: "Passport stickers",
+    achievements: "Achievements",
+    turnOn: "Turn on",
+    turnOff: "Turn off",
+    yourTracks: "Your tracks",
   },
 
   // Footer
@@ -321,9 +349,9 @@ const en = {
   // Landing Page
   landing: {
     // Hero
-    heroBadge: "The Creator Economy Platform",
-    heroHeadline: "Your Creator Passport.",
-    heroHeadlineAccent: "Build. Prove. Grow.",
+    heroBadge: "The Global Creator Passport",
+    heroHeadline: "Global Digital Passport ID.",
+    heroHeadlineAccent: "Own Your Reputation. Monetize.",
     heroSubtext:
       "Connect your accounts, build a verified identity with a Creator Score, monetize your content with blockchain-backed licensing, and grow with real-time analytics \u2014 all from one platform.",
     ctaDashboard: "Go to Dashboard",

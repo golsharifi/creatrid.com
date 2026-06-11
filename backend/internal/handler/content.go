@@ -2,9 +2,11 @@ package handler
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -136,6 +138,8 @@ func (h *ContentHandler) Upload(w http.ResponseWriter, r *http.Request) {
 	if ipStr := r.FormValue("is_public"); ipStr != "" {
 		isPublic = ipStr == "true"
 	}
+	isEncrypted := r.FormValue("encrypted") == "true"
+	wantWatermark := r.FormValue("watermark") == "true"
 
 	mimeType := header.Header.Get("Content-Type")
 	if mimeType == "" {
@@ -149,6 +153,31 @@ func (h *ContentHandler) Upload(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Failed to read file"})
 		return
+	}
+
+	// Stamp the creator's watermark onto image uploads when requested.
+	// Encrypted payloads are ciphertext and can't be watermarked.
+	isWatermarked := false
+	if wantWatermark && !isEncrypted && contentType == "image" {
+		wmURL, wmErr := h.store.GetWatermarkURL(r.Context(), user.ID)
+		if wmErr != nil || wmURL == nil || *wmURL == "" {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Set a watermark in Logo Studio first"})
+			return
+		}
+		wmData, wmErr := fetchBlob(r.Context(), *wmURL)
+		if wmErr != nil {
+			log.Printf("Watermark fetch failed: %v", wmErr)
+			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Failed to load your watermark"})
+			return
+		}
+		stamped, _, wmErr := imaging.ApplyWatermark(buf, wmData, 0.45)
+		if wmErr != nil {
+			log.Printf("Watermark apply failed: %v", wmErr)
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Couldn't watermark this image format"})
+			return
+		}
+		buf = stamped
+		isWatermarked = true
 	}
 
 	// Compute SHA-256 hash
@@ -177,6 +206,8 @@ func (h *ContentHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		FileURL:     fileURL,
 		HashSHA256:  hashHex,
 		IsPublic:    isPublic,
+		IsEncrypted:   isEncrypted,
+		IsWatermarked: isWatermarked,
 		Tags:        tags,
 		CreatedAt:   now,
 		UpdatedAt:   now,
@@ -419,6 +450,34 @@ func (h *ContentHandler) Download(w http.ResponseWriter, r *http.Request) {
 	// Set Content-Disposition header with the original filename
 	filename := item.Title + filepath.Ext(item.FileURL)
 	w.Header().Set("Content-Disposition", `attachment; filename="`+filename+`"`)
+
+	// proxy=1 streams the bytes through the API instead of redirecting to blob
+	// storage — needed when the browser reads the body with fetch() (e.g.
+	// client-side decryption), where a cross-origin redirect would hit CORS.
+	if r.URL.Query().Get("proxy") == "1" {
+		req, err := http.NewRequestWithContext(r.Context(), http.MethodGet, item.FileURL, nil)
+		if err != nil {
+			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Failed to fetch file"})
+			return
+		}
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil || resp.StatusCode != http.StatusOK {
+			if resp != nil {
+				resp.Body.Close()
+			}
+			log.Printf("Download proxy fetch failed: %v", err)
+			writeJSON(w, http.StatusBadGateway, map[string]string{"error": "Failed to fetch file"})
+			return
+		}
+		defer resp.Body.Close()
+		w.Header().Set("Content-Type", item.MimeType)
+		if resp.ContentLength > 0 {
+			w.Header().Set("Content-Length", strconv.FormatInt(resp.ContentLength, 10))
+		}
+		_, _ = io.Copy(w, resp.Body)
+		return
+	}
+
 	http.Redirect(w, r, item.FileURL, http.StatusFound)
 }
 
@@ -532,4 +591,21 @@ func (h *ContentHandler) Proof(w http.ResponseWriter, r *http.Request) {
 		"createdAt":  item.CreatedAt,
 		"title":      item.Title,
 	})
+}
+
+// fetchBlob downloads a stored blob (e.g. the user's watermark) by URL.
+func fetchBlob(ctx context.Context, url string) ([]byte, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("blob fetch returned %d", resp.StatusCode)
+	}
+	return io.ReadAll(io.LimitReader(resp.Body, 10<<20))
 }

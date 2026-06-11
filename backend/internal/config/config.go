@@ -62,6 +62,14 @@ type Config struct {
 	BlockchainChainID    string
 
 	TokensTransferable bool
+
+	AnthropicAPIKey string
+	AIModelLogos    string
+	AIModelCopy     string
+	AIModelRefine   string
+	AIModelLegal    string
+	AICompatBaseURL string
+	AICompatAPIKey  string
 }
 
 func Load() (*Config, error) {
@@ -113,6 +121,14 @@ func Load() (*Config, error) {
 		BlockchainChainID:    getEnv("BLOCKCHAIN_CHAIN_ID", "137"),
 
 		TokensTransferable: os.Getenv("TOKENS_TRANSFERABLE") == "true",
+
+		AnthropicAPIKey: os.Getenv("ANTHROPIC_API_KEY"),
+		AIModelLogos:    os.Getenv("AI_MODEL_LOGOS"),
+		AIModelCopy:     os.Getenv("AI_MODEL_COPY"),
+		AIModelRefine:   os.Getenv("AI_MODEL_REFINE"),
+		AIModelLegal:    os.Getenv("AI_MODEL_LEGAL"),
+		AICompatBaseURL: os.Getenv("AI_COMPAT_BASE_URL"),
+		AICompatAPIKey:  os.Getenv("AI_COMPAT_API_KEY"),
 	}
 
 	cfg.GoogleRedirect = cfg.BackendURL + "/api/auth/google/callback"

@@ -135,6 +135,33 @@ deploy/
 | GET | `/api/collaborations/outbox` | Yes | Sent requests |
 | POST | `/api/collaborations/{id}/respond` | Yes | Accept or decline request |
 
+### AI Assistant (enabled only when `ANTHROPIC_API_KEY` is set)
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/api/ai/quota` | Yes | Monthly usage vs plan limit (free 15 / pro 150 / business 500) |
+| POST | `/api/ai/brand/logos` | Yes | Generate 4 SVG logo concepts (Claude) |
+| POST | `/api/ai/brand/copy` | Yes | Generate marketing copy |
+| POST | `/api/ai/brand/refine` | Yes | Refine user-provided text |
+| POST | `/api/ai/legal` | Yes | Legal AI assistant (info + drafts, with disclaimer) |
+
+### Arena & Community (closed-loop: points/stickers NOT cashable)
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/api/arena/me` | Yes | Points, stickers, cooldown, achievements |
+| POST | `/api/arena/explore` | Yes | Farm explore: random sticker drop + points (4h cooldown) |
+| POST | `/api/arena/gift` | Yes | Gift one sticker to another creator |
+| GET | `/api/arena/leaderboard` | No | Top 25 by points |
+| GET | `/api/content/{id}/comments` | No | Comments on public content |
+| POST | `/api/content/{id}/comments` | Yes | Post comment (+2 pts to owner) |
+| DELETE | `/api/comments/{id}` | Yes | Delete own comment (or content owner / admin) |
+
+### Passport extras
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET/POST/DELETE | `/api/users/watermark` | Yes | Manage watermark mark (stamped on image uploads with `watermark=true`) |
+| POST | `/api/users/signature-track` | Yes | Set public Vault audio as profile soundtrack |
+| GET | `/api/users/{username}/signature-track` | No | Stream signature track (redirect) |
+
 ### Other
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
@@ -164,9 +191,20 @@ deploy/
 - [x] **Phase 17: Email Notifications** — SMTP service, welcome email on onboard, connection alert, weekly digest (admin-triggered)
 - [x] **Phase 18: B2B Features** — Creator discovery with filters, collaboration requests (send/accept/decline), inbox/outbox
 
+- [x] **Phase 19: Global Digital Passport rebrand** — Globe-orb logo, "Global Digital Passport ID" hero, 6 colored service tabs (Music · Vault · Logo Studio · VR Community · Legal AI · Trade), secondary nav moved to hamburger menu
+- [x] **Phase 20: AI Brand Studio + Legal AI** — `internal/ai` Claude service (model `claude-opus-4-8`, adaptive thinking), SVG logo concepts with server-side sanitization, marketing copy, refine, legal assistant with guided prompts
+- [x] **Phase 21: Ambient Music** — Web Audio rain/storm synth (no licensed assets), header on/off toggle, `/music` page playing user's own Vault audio
+
+- [x] **Custom Domain** — `creatrid.com` → Static Web Apps, `api.creatrid.com` → Container Apps (verified live)
+- [x] **Phase 22: AI quota + Pro gating** — `ai_generations` table, monthly per-plan limits (free 15 / pro 150 / business 500), quota meter UI with upgrade prompt
+- [x] **Phase 23: Vault watermark + encryption** — Logo Studio mark → watermark PNG, server-side compositing on image uploads, client-side AES-256-GCM passphrase encryption (decrypt via `?proxy=1` download)
+- [x] **Phase 24: Signature track** — public Vault audio plays on public profile
+- [x] **Phase 25: VR Community Arena** — farm explore game (4h cooldown, rarity-weighted sticker drops), 12-sticker catalog, point ledger, leaderboard, gifting, achievements, comments on public content (+2 pts/comment to owner), sticker collection on public profile
+
 ### Upcoming
 
-- [ ] **Custom Domain** — Point `creatrid.com` → Static Web Apps, `api.creatrid.com` → Container Apps
+- [ ] **Trade tab** — built behind `NEXT_PUBLIC_ENABLE_TRADE` (default OFF); requires securities/CFTC legal sign-off before enabling — tokens were deliberately made non-transferable for SEC compliance (commit 8da40a1)
+- [ ] **Full i18n of new tab pages** — titles/CTAs translated (en/es/fa); body copy still English
 
 ## Key Design Decisions
 
@@ -180,4 +218,4 @@ deploy/
 
 ## Environment Variables
 
-See `.env.example` for the full list. Required: `DATABASE_URL`, `JWT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`. All social platform credentials are optional. Image upload requires `AZURE_STORAGE_ACCOUNT`, `AZURE_STORAGE_KEY`, `AZURE_STORAGE_CONTAINER`. Email requires `SMTP_HOST`, `SMTP_USERNAME`, `SMTP_PASSWORD`.
+See `.env.example` for the full list. Required: `DATABASE_URL`, `JWT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`. All social platform credentials are optional. Image upload requires `AZURE_STORAGE_ACCOUNT`, `AZURE_STORAGE_KEY`, `AZURE_STORAGE_CONTAINER`. Email requires `SMTP_HOST`, `SMTP_USERNAME`, `SMTP_PASSWORD`. AI assistant (Brand Studio + Legal AI) requires `ANTHROPIC_API_KEY`; models are routed per task via `AI_MODEL_{LOGOS,COPY,REFINE,LEGAL}` (defaults: Opus 4.8 logos, Haiku 4.5 copy/refine, Sonnet 4.6 legal), and non-Claude model ids (e.g. DeepSeek) go through the OpenAI-compatible `AI_COMPAT_BASE_URL`/`AI_COMPAT_API_KEY` endpoint with automatic fallback to Claude defaults if unset. The Trade tab is gated by `NEXT_PUBLIC_ENABLE_TRADE` (frontend, default off pending legal sign-off).

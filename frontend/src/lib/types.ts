@@ -56,3 +56,24 @@ export interface Connection {
   metadata: Record<string, unknown>;
   connectedAt: string;
 }
+
+export interface UserSticker {
+  id: string;
+  name: string;
+  emoji: string;
+  rarity: string;
+  description: string;
+  count: number;
+  firstEarnedAt: string;
+}
+
+export interface ContentComment {
+  id: string;
+  contentId: string;
+  userId: string;
+  username: string | null;
+  name: string | null;
+  image: string | null;
+  body: string;
+  createdAt: string;
+}

@@ -4,6 +4,8 @@ import { useAuth } from "@/lib/auth-context";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, useCallback, Suspense } from "react";
 import { api } from "@/lib/api";
+import { decryptFile } from "@/lib/vault-crypto";
+import { ContentComments } from "@/components/content-comments";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -36,6 +38,7 @@ type ContentDetail = {
   mimeType: string;
   fileSize: number;
   isPublic: boolean;
+  isEncrypted?: boolean;
   tags: string[];
   fileUrl?: string;
   thumbnailUrl?: string;
@@ -102,6 +105,37 @@ function VaultDetailContent() {
   // Delete state
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [decryptPass, setDecryptPass] = useState("");
+  const [decrypting, setDecrypting] = useState(false);
+  const [decryptError, setDecryptError] = useState("");
+
+  async function handleDecryptDownload() {
+    if (!item || decrypting) return;
+    setDecrypting(true);
+    setDecryptError("");
+    try {
+      // proxy=1 streams through the API so fetch() can read the body (the
+      // direct blob redirect would fail CORS).
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"}/api/content/${item.id}/download?proxy=1`,
+        { credentials: "include" }
+      );
+      if (!res.ok) throw new Error("Download failed");
+      const data = await res.arrayBuffer();
+      const plain = await decryptFile(data, decryptPass);
+      const blob = new Blob([plain]);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = item.title;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      setDecryptError(e instanceof Error ? e.message : "Decryption failed");
+    } finally {
+      setDecrypting(false);
+    }
+  }
 
   // License state
   const [offerings, setOfferings] = useState<LicenseOffering[]>([]);
@@ -768,13 +802,39 @@ function VaultDetailContent() {
               )}
             </button>
 
-            <a
-              href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"}/api/content/${item.id}/download`}
-              className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
-            >
-              <Download className="h-4 w-4" />
-              {t("vault.detail.download")}
-            </a>
+            {item.isEncrypted ? (
+              <div className="rounded-lg border border-zinc-300 p-3 dark:border-zinc-700">
+                <p className="mb-2 text-xs font-medium text-zinc-500">
+                  🔐 Encrypted file — enter your passphrase to decrypt locally
+                </p>
+                <input
+                  type="password"
+                  value={decryptPass}
+                  onChange={(e) => setDecryptPass(e.target.value)}
+                  placeholder="Passphrase"
+                  className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm focus:border-zinc-400 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900"
+                />
+                <button
+                  onClick={handleDecryptDownload}
+                  disabled={decrypting || !decryptPass}
+                  className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium transition-colors hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+                >
+                  <Download className="h-4 w-4" />
+                  {decrypting ? "Decrypting…" : "Decrypt & download"}
+                </button>
+                {decryptError && (
+                  <p className="mt-2 text-xs text-red-600 dark:text-red-400">{decryptError}</p>
+                )}
+              </div>
+            ) : (
+              <a
+                href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"}/api/content/${item.id}/download`}
+                className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+              >
+                <Download className="h-4 w-4" />
+                {t("vault.detail.download")}
+              </a>
+            )}
 
             {showDeleteConfirm ? (
               <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-950">
@@ -809,6 +869,9 @@ function VaultDetailContent() {
           </div>
         </div>
       </div>
+
+      {/* Community comments — public works only */}
+      {item.isPublic && <ContentComments contentId={item.id} />}
     </div>
   );
 }

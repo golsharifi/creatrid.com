@@ -101,7 +101,13 @@ export default function Home() {
         <h1 className="max-w-4xl text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
           {t("landing.heroHeadline")}
           <br />
-          <span className="text-zinc-400 dark:text-zinc-500">
+          <span
+            className="bg-clip-text text-transparent"
+            style={{
+              backgroundImage:
+                "linear-gradient(90deg, var(--brand-cyan), var(--brand-azure) 45%, var(--brand-violet))",
+            }}
+          >
             {t("landing.heroHeadlineAccent")}
           </span>
         </h1>

@@ -1,4 +1,4 @@
-import type { User, PublicUser, Connection, EmailPrefs } from "./types";
+import type { User, PublicUser, Connection, EmailPrefs, UserSticker, ContentComment } from "./types";
 import { captureException } from "./sentry";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
@@ -103,11 +103,42 @@ export const api = {
       }
     },
     publicProfile: (username: string) =>
-      request<{ user: PublicUser }>(`/api/users/${username}`),
+      request<{
+        user: PublicUser;
+        signatureTrack?: { id: string; title: string };
+        arena?: { points: number; stickers: UserSticker[] };
+      }>(`/api/users/${username}`),
     publicConnections: (username: string) =>
       request<{ connections: Connection[] }>(
         `/api/users/${username}/connections`
       ),
+    signatureTrackUrl: (username: string) =>
+      `${API_URL}/api/users/${username}/signature-track`,
+    setSignatureTrack: (contentId: string | null) =>
+      request<{ success: boolean }>("/api/users/signature-track", {
+        method: "POST",
+        body: JSON.stringify({ contentId }),
+      }),
+    getWatermark: () =>
+      request<{ watermarkUrl: string | null }>("/api/users/watermark"),
+    uploadWatermark: async (blob: Blob): Promise<ApiResponse<{ watermarkUrl: string }>> => {
+      try {
+        const formData = new FormData();
+        formData.append("image", blob, "watermark.png");
+        const res = await fetch(`${API_URL}/api/users/watermark`, {
+          method: "POST",
+          credentials: "include",
+          body: formData,
+        });
+        const json = await res.json();
+        if (!res.ok) return { error: json.error || "Upload failed" };
+        return { data: json };
+      } catch {
+        return { error: "Network error" };
+      }
+    },
+    deleteWatermark: () =>
+      request<{ success: boolean }>("/api/users/watermark", { method: "DELETE" }),
   },
   connections: {
     list: () => request<{ connections: Connection[] }>("/api/connections"),
@@ -281,14 +312,27 @@ export const api = {
       request<{ url: string }>("/api/billing/portal", { method: "POST" }),
   },
   content: {
-    upload: async (file: File, title: string, description: string, tags: string[], isPublic: boolean): Promise<ApiResponse<{ item: any }>> => {
+    upload: async (
+      file: File | Blob,
+      title: string,
+      description: string,
+      tags: string[],
+      isPublic: boolean,
+      opts?: { watermark?: boolean; encrypted?: boolean; filename?: string }
+    ): Promise<ApiResponse<{ item: any }>> => {
       try {
         const formData = new FormData();
-        formData.append("file", file);
+        if (opts?.filename) {
+          formData.append("file", file, opts.filename);
+        } else {
+          formData.append("file", file);
+        }
         formData.append("title", title);
         formData.append("description", description);
         formData.append("tags", tags.join(","));
         formData.append("is_public", String(isPublic));
+        if (opts?.watermark) formData.append("watermark", "true");
+        if (opts?.encrypted) formData.append("encrypted", "true");
         const res = await fetch(`${API_URL}/api/content`, {
           method: "POST",
           credentials: "include",
@@ -631,6 +675,80 @@ export const api = {
       request<{ success: boolean }>(`/api/agency/invites/${id}/respond`, {
         method: "POST",
         body: JSON.stringify({ action }),
+      }),
+  },
+
+  arena: {
+    me: () =>
+      request<{
+        points: number;
+        stickers: UserSticker[];
+        catalog: { id: string; name: string; emoji: string; rarity: string; description: string }[];
+        nextExplore: string | null;
+        achievements: { key: string; name: string; emoji: string }[];
+      }>("/api/arena/me"),
+    explore: () =>
+      request<{
+        sticker: { id: string; name: string; emoji: string; rarity: string; description: string };
+        points: number;
+        totalPoints: number;
+        nextExplore: string;
+      }>("/api/arena/explore", { method: "POST" }),
+    leaderboard: () =>
+      request<{
+        leaderboard: {
+          userId: string;
+          username: string | null;
+          name: string | null;
+          image: string | null;
+          points: number;
+          stickers: number;
+          isVerified: boolean;
+        }[];
+      }>("/api/arena/leaderboard"),
+    gift: (username: string, stickerId: string) =>
+      request<{ success: boolean }>("/api/arena/gift", {
+        method: "POST",
+        body: JSON.stringify({ username, stickerId }),
+      }),
+  },
+
+  comments: {
+    list: (contentId: string, limit = 50, offset = 0) =>
+      request<{ comments: ContentComment[]; total: number }>(
+        `/api/content/${contentId}/comments?limit=${limit}&offset=${offset}`
+      ),
+    create: (contentId: string, body: string) =>
+      request<{ id: string }>(`/api/content/${contentId}/comments`, {
+        method: "POST",
+        body: JSON.stringify({ body }),
+      }),
+    delete: (id: string) =>
+      request<{ success: boolean }>(`/api/comments/${id}`, { method: "DELETE" }),
+  },
+
+  ai: {
+    quota: () =>
+      request<{ used: number; limit: number; plan: string }>("/api/ai/quota"),
+    generateLogos: (brief: string) =>
+      request<{ concepts: { name: string; rationale: string; svg: string }[] }>(
+        "/api/ai/brand/logos",
+        { method: "POST", body: JSON.stringify({ brief }) }
+      ),
+    generateCopy: (brief: string) =>
+      request<{ text: string }>("/api/ai/brand/copy", {
+        method: "POST",
+        body: JSON.stringify({ brief }),
+      }),
+    refineText: (text: string, instruction: string) =>
+      request<{ text: string }>("/api/ai/brand/refine", {
+        method: "POST",
+        body: JSON.stringify({ text, instruction }),
+      }),
+    legal: (question: string) =>
+      request<{ text: string }>("/api/ai/legal", {
+        method: "POST",
+        body: JSON.stringify({ question }),
       }),
   },
 };
